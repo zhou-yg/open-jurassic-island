@@ -15,7 +15,7 @@ var scenes: Dictionary = {
 	"main_menu": "res://scenes/menus/main_menu/main_menu.tscn",
 	"settings_menu": "res://scenes/menus/settings_menu/settings_menu.tscn",
 	"loading_screen": "res://scenes/menus/loading_screen/loading_screen.tscn",
-	"world": "res://scenes/world/world.tscn",
+	"world": "res://scenes-3d/jurassic-island/jurassic-island.tscn",
 }
 
 ## The alias for the currently active scene.

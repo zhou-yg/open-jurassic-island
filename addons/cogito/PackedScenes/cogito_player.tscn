@@ -1,4 +1,4 @@
-[gd_scene load_steps=39 format=3 uid="uid://kicjwmh02uwf"]
+[gd_scene format=3 uid="uid://kicjwmh02uwf"]
 
 [ext_resource type="Script" uid="uid://dyitnpyhwiqx7" path="res://addons/cogito/CogitoObjects/cogito_player.gd" id="1_87we8"]
 [ext_resource type="Resource" uid="uid://ll11y3yjbqt" path="res://addons/cogito/InventoryPD/Inventories/PlayerInventory_FIXED.tres" id="2_iyhv4"]
@@ -28,9 +28,6 @@
 [ext_resource type="PackedScene" uid="uid://dkie3md1cmsip" path="res://addons/cogito/EasyMenus/Scenes/PauseMenu.tscn" id="22_haksr"]
 [ext_resource type="PackedScene" uid="uid://cga0lxak2u2oq" path="res://addons/cogito/Components/AutoPickUpZone.tscn" id="24_810bw"]
 [ext_resource type="Script" uid="uid://egffa3q4ftpg" path="res://addons/cogito/Scripts/CogitoGUI.gd" id="24_ekjhh"]
-[ext_resource type="Script" uid="uid://dog0pawpwd55d" path="res://addons/cogito/InventoryPD/CustomResources/InventoryItemPD.gd" id="25_syofm"]
-[ext_resource type="Resource" uid="uid://bqhbrpnp2tt08" path="res://addons/cogito/InventoryPD/Items/Cogito_FoamBullets.tres" id="26_tndpm"]
-[ext_resource type="Resource" uid="uid://cvupo3p844nh2" path="res://addons/cogito/InventoryPD/Items/Cogito_LaserAmmo.tres" id="27_8coi0"]
 [ext_resource type="PackedScene" uid="uid://bnlt0es031dsf" path="res://addons/cogito/Components/AutoConsumes/HealthAutoConsume.tscn" id="32_s725a"]
 [ext_resource type="PackedScene" uid="uid://txkg0abvpsj7" path="res://addons/cogito/Components/AutoConsumes/StaminaAutoConsume.tscn" id="35_wx2rv"]
 
@@ -53,7 +50,7 @@ stream_4/stream = ExtResource("16_buq0c")
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_bpb0d"]
 
-[node name="CogitoPlayer" type="CharacterBody3D" node_paths=PackedStringArray("item_drop_shapecast") groups=["Player"]]
+[node name="CogitoPlayer" type="CharacterBody3D" unique_id=1005686144 node_paths=PackedStringArray("item_drop_shapecast") groups=["Player"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.8, 0)
 script = ExtResource("1_87we8")
 pause_menu = NodePath("GUI/Panel/AspectRatioContainer/PauseMenu")
@@ -70,9 +67,9 @@ HEADBOBBLE = 1
 STEP_HEIGHT_DEFAULT = Vector3(0, 0.35, 0)
 STEP_MAX_SLOPE_DEGREE = 1.0
 
-[node name="CogtoTestCurrency" parent="." instance=ExtResource("5_opu5d")]
+[node name="CogtoTestCurrency" parent="." unique_id=1944494960 instance=ExtResource("5_opu5d")]
 
-[node name="StrengthAttribute" type="Node" parent="."]
+[node name="StrengthAttribute" type="Node" parent="." unique_id=457937054]
 script = ExtResource("6_xg64i")
 attribute_name = "strength"
 attribute_display_name = "ATTR_strength"
@@ -83,73 +80,71 @@ value_start = 4.0
 attribute_visibility = 2
 metadata/_custom_type_script = "uid://b6l8lsrktfd4b"
 
-[node name="LightMeterAttribute" parent="." instance=ExtResource("5_v3qv3")]
+[node name="LightMeterAttribute" parent="." unique_id=191365729 instance=ExtResource("5_v3qv3")]
 
-[node name="SanityAttribute" parent="." instance=ExtResource("7_27cpi")]
+[node name="SanityAttribute" parent="." unique_id=2060230959 instance=ExtResource("7_27cpi")]
 decay_in_darkness = false
 
-[node name="StaminaAttribute" parent="." instance=ExtResource("8_kodbk")]
+[node name="StaminaAttribute" parent="." unique_id=2018002897 instance=ExtResource("8_kodbk")]
 
-[node name="HealthAttribute" parent="." instance=ExtResource("9_ky5mf")]
+[node name="HealthAttribute" parent="." unique_id=263154588 instance=ExtResource("9_ky5mf")]
 
-[node name="StandingCollisionShape" type="CollisionShape3D" parent="."]
+[node name="StandingCollisionShape" type="CollisionShape3D" parent="." unique_id=1784411903]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, 0)
 shape = SubResource("BoxShape3D_8vem4")
 
-[node name="CrouchingCollisionShape" type="CollisionShape3D" parent="."]
+[node name="CrouchingCollisionShape" type="CollisionShape3D" parent="." unique_id=687093608]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.45, 0)
 shape = SubResource("BoxShape3D_ut3wm")
 disabled = true
 
-[node name="StaircheckRayCast3D" type="RayCast3D" parent="."]
+[node name="StaircheckRayCast3D" type="RayCast3D" parent="." unique_id=1549630813]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 target_position = Vector3(0, -0.5, 0)
 
-[node name="CrouchRayCast" type="RayCast3D" parent="."]
+[node name="CrouchRayCast" type="RayCast3D" parent="." unique_id=184493194]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.8, 0)
 target_position = Vector3(0, 1.6, 0)
 collision_mask = 3
 
-[node name="Body" type="Node3D" parent="."]
+[node name="Body" type="Node3D" parent="." unique_id=1742479535]
 
-[node name="Neck" type="Node3D" parent="Body"]
+[node name="Neck" type="Node3D" parent="Body" unique_id=289497635]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.7, 0)
 
-[node name="Head" type="Node3D" parent="Body/Neck"]
+[node name="Head" type="Node3D" parent="Body/Neck" unique_id=566954098]
 
-[node name="Eyes" type="Node3D" parent="Body/Neck/Head"]
+[node name="Eyes" type="Node3D" parent="Body/Neck/Head" unique_id=1769593043]
 
-[node name="AnimationPlayer" type="AnimationPlayer" parent="Body/Neck/Head/Eyes"]
+[node name="AnimationPlayer" type="AnimationPlayer" parent="Body/Neck/Head/Eyes" unique_id=1706541663]
 reset_on_save = false
 root_node = NodePath("../..")
-libraries = {
-&"": ExtResource("10_tp6cj")
-}
+libraries/ = ExtResource("10_tp6cj")
 
-[node name="Camera" type="Camera3D" parent="Body/Neck/Head/Eyes"]
+[node name="Camera" type="Camera3D" parent="Body/Neck/Head/Eyes" unique_id=1600676108]
 
-[node name="InteractionRaycast" parent="Body/Neck/Head/Eyes/Camera" instance=ExtResource("10_2dndr")]
+[node name="InteractionRaycast" parent="Body/Neck/Head/Eyes/Camera" unique_id=1888543446 instance=ExtResource("10_2dndr")]
 
-[node name="CarryablePosition" type="Marker3D" parent="Body/Neck/Head/Eyes/Camera"]
+[node name="CarryablePosition" type="Marker3D" parent="Body/Neck/Head/Eyes/Camera" unique_id=2147401411]
 unique_name_in_owner = true
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.8)
 
-[node name="ItemDropShapeCast" type="ShapeCast3D" parent="Body/Neck/Head/Eyes/Camera"]
+[node name="ItemDropShapeCast" type="ShapeCast3D" parent="Body/Neck/Head/Eyes/Camera" unique_id=2098718097]
 shape = SubResource("BoxShape3D_bpb0d")
 target_position = Vector3(0, 0, -2)
 collision_mask = 3
 debug_shape_custom_color = Color(1, 0.368977, 0.687569, 1)
 script = ExtResource("14_bpb0d")
 
-[node name="Wieldables" type="Node3D" parent="Body/Neck/Head"]
+[node name="Wieldables" type="Node3D" parent="Body/Neck/Head" unique_id=1546219252]
 unique_name_in_owner = true
 script = ExtResource("12_lr21i")
 
-[node name="SlidingTimer" type="Timer" parent="."]
+[node name="SlidingTimer" type="Timer" parent="." unique_id=488430894]
 wait_time = 1.5
 one_shot = true
 
-[node name="FootstepPlayer" type="AudioStreamPlayer3D" parent="."]
+[node name="FootstepPlayer" type="AudioStreamPlayer3D" parent="." unique_id=1091132976]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.488, 0)
 stream = SubResource("AudioStreamRandomizer_af0lu")
 volume_db = -38.0
@@ -161,17 +156,17 @@ footstep_material_library = ExtResource("19_pc36t")
 generic_fallback_landing_profile = ExtResource("18_mdors")
 landing_material_library = ExtResource("19_pc36t")
 
-[node name="JumpCooldownTimer" type="Timer" parent="."]
+[node name="JumpCooldownTimer" type="Timer" parent="." unique_id=13191493]
 wait_time = 0.5
 one_shot = true
 
-[node name="PlayerInteractionComponent" parent="." node_paths=PackedStringArray("interaction_raycast", "carryable_position", "stamina_attribute", "wieldable_container") instance=ExtResource("20_4f25o")]
+[node name="PlayerInteractionComponent" parent="." unique_id=254295837 node_paths=PackedStringArray("interaction_raycast", "carryable_position", "stamina_attribute", "wieldable_container") instance=ExtResource("20_4f25o")]
 interaction_raycast = NodePath("../Body/Neck/Head/Eyes/Camera/InteractionRaycast")
 carryable_position = NodePath("../Body/Neck/Head/Eyes/Camera/CarryablePosition")
 stamina_attribute = NodePath("../StaminaAttribute")
 wieldable_container = NodePath("../Body/Neck/Head/Wieldables")
 
-[node name="GUI" type="Control" parent="."]
+[node name="GUI" type="Control" parent="." unique_id=648717827]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -180,7 +175,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("24_ekjhh")
 
-[node name="Panel" type="Panel" parent="GUI"]
+[node name="Panel" type="Panel" parent="GUI" unique_id=628323849]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -189,7 +184,7 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_bpb0d")
 
-[node name="AspectRatioContainer" type="AspectRatioContainer" parent="GUI/Panel"]
+[node name="AspectRatioContainer" type="AspectRatioContainer" parent="GUI/Panel" unique_id=1271452336]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -197,23 +192,22 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Player_HUD" parent="GUI/Panel/AspectRatioContainer" node_paths=PackedStringArray("player") instance=ExtResource("21_j3p88")]
+[node name="Player_HUD" parent="GUI/Panel/AspectRatioContainer" unique_id=776569770 node_paths=PackedStringArray("player") instance=ExtResource("21_j3p88")]
 layout_mode = 2
 player = NodePath("../../../..")
 item_drop_distance_offset = 0.0
 
-[node name="PauseMenu" parent="GUI/Panel/AspectRatioContainer" instance=ExtResource("22_haksr")]
+[node name="PauseMenu" parent="GUI/Panel/AspectRatioContainer" unique_id=195647111 instance=ExtResource("22_haksr")]
 layout_mode = 2
 
-[node name="NavigationAgent3D" type="NavigationAgent3D" parent="."]
+[node name="NavigationAgent3D" type="NavigationAgent3D" parent="." unique_id=1844160983]
 
-[node name="AutoPickUpZone" parent="." node_paths=PackedStringArray("_player_interaction_component") instance=ExtResource("24_810bw")]
-auto_pick_up_items = Array[ExtResource("25_syofm")]([ExtResource("26_tndpm"), ExtResource("27_8coi0")])
+[node name="AutoPickUpZone" parent="." unique_id=1333649982 node_paths=PackedStringArray("_player_interaction_component") instance=ExtResource("24_810bw")]
 _player_interaction_component = NodePath("../PlayerInteractionComponent")
 
-[node name="HealthAutoConsume" parent="." instance=ExtResource("32_s725a")]
+[node name="HealthAutoConsume" parent="." unique_id=1383014664 instance=ExtResource("32_s725a")]
 
-[node name="StaminaAutoConsume" parent="." instance=ExtResource("35_wx2rv")]
+[node name="StaminaAutoConsume" parent="." unique_id=156451437 instance=ExtResource("35_wx2rv")]
 
 [connection signal="mouse_movement" from="." to="Body/Neck/Head/Wieldables" method="sway"]
 [connection signal="player_state_loaded" from="." to="." method="_on_player_state_loaded"]

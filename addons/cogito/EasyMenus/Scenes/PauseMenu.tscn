@@ -1,4 +1,4 @@
-[gd_scene load_steps=13 format=3 uid="uid://dkie3md1cmsip"]
+[gd_scene format=3 uid="uid://dkie3md1cmsip"]
 
 [ext_resource type="Theme" uid="uid://by44nnjeu6u4n" path="res://addons/cogito/Theme/Cogito_Theme_A.tres" id="1_1djt0"]
 [ext_resource type="Script" uid="uid://c6ls4n4b776iy" path="res://addons/cogito/EasyMenus/Scripts/pause_menu_controller.gd" id="2_473pa"]
@@ -18,7 +18,7 @@ shader_parameter/BlurStrength = 0.7
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_3a44o"]
 
-[node name="PauseMenu" type="Control" node_paths=PackedStringArray("nodes_to_focus")]
+[node name="PauseMenu" type="Control" unique_id=427742533 node_paths=PackedStringArray("nodes_to_focus")]
 process_mode = 3
 z_index = 2
 layout_mode = 3
@@ -34,7 +34,7 @@ sound_hover = ExtResource("3_cekij")
 sound_click = ExtResource("4_ccwo8")
 empty_slot_texture = ExtResource("5_18sdt")
 
-[node name="BlurBG" type="TextureRect" parent="."]
+[node name="BlurBG" type="TextureRect" parent="." unique_id=384123385]
 material = SubResource("ShaderMaterial_8kcia")
 layout_mode = 1
 anchors_preset = 15
@@ -44,7 +44,7 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = SubResource("PlaceholderTexture2D_gjw0g")
 
-[node name="Panel" type="Panel" parent="."]
+[node name="Panel" type="Panel" parent="." unique_id=832162566]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -52,7 +52,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="Content" type="VBoxContainer" parent="."]
+[node name="Content" type="VBoxContainer" parent="." unique_id=844795360]
 unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
@@ -62,28 +62,28 @@ grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 15
 
-[node name="PauseMenuLabel" type="Label" parent="Content"]
+[node name="PauseMenuLabel" type="Label" parent="Content" unique_id=305173498]
 layout_mode = 2
 theme_override_font_sizes/font_size = 45
 text = "LAB_PauseMenu"
 horizontal_alignment = 1
 
-[node name="HSeparator" type="HSeparator" parent="Content"]
+[node name="HSeparator" type="HSeparator" parent="Content" unique_id=358790658]
 custom_minimum_size = Vector2(0, 20)
 layout_mode = 2
 
-[node name="GameMenu" type="MarginContainer" parent="Content"]
+[node name="GameMenu" type="MarginContainer" parent="Content" unique_id=1886924908]
 layout_mode = 2
 theme_override_constants/margin_left = 0
 theme_override_constants/margin_top = 25
 theme_override_constants/margin_right = 0
 theme_override_constants/margin_bottom = 25
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Content/GameMenu"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Content/GameMenu" unique_id=1099646312]
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="ResumeGameButton" type="Button" parent="Content/GameMenu/VBoxContainer"]
+[node name="ResumeGameButton" type="Button" parent="Content/GameMenu/VBoxContainer" unique_id=874397164]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 4
@@ -91,41 +91,41 @@ theme_override_font_sizes/font_size = 30
 text = "BTN_Resume"
 script = ExtResource("6_a8sll")
 
-[node name="HSeparator" type="HSeparator" parent="Content/GameMenu/VBoxContainer"]
+[node name="HSeparator" type="HSeparator" parent="Content/GameMenu/VBoxContainer" unique_id=1854070743]
 visible = false
 layout_mode = 2
 theme_override_constants/separation = 10
 
-[node name="Separator_PanelContainer" type="PanelContainer" parent="Content/GameMenu/VBoxContainer"]
+[node name="Separator_PanelContainer" type="PanelContainer" parent="Content/GameMenu/VBoxContainer" unique_id=1603630574]
 custom_minimum_size = Vector2(0, 15)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_3a44o")
 
-[node name="Label_ActiveSlot" type="Label" parent="Content/GameMenu/VBoxContainer"]
+[node name="Label_ActiveSlot" type="Label" parent="Content/GameMenu/VBoxContainer" unique_id=1088323256]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 25
 text = "LAB_Current Slot"
 horizontal_alignment = 1
 
-[node name="PanelContainer" type="PanelContainer" parent="Content/GameMenu/VBoxContainer"]
+[node name="PanelContainer" type="PanelContainer" parent="Content/GameMenu/VBoxContainer" unique_id=1685085100]
 custom_minimum_size = Vector2(130, 160)
 layout_mode = 2
 theme = ExtResource("1_1djt0")
 theme_type_variation = &"HUDPanel"
 
-[node name="MarginContainer" type="MarginContainer" parent="Content/GameMenu/VBoxContainer/PanelContainer"]
+[node name="MarginContainer" type="MarginContainer" parent="Content/GameMenu/VBoxContainer/PanelContainer" unique_id=251539647]
 layout_mode = 2
 theme_override_constants/margin_left = 2
 theme_override_constants/margin_top = 2
 theme_override_constants/margin_right = 2
 theme_override_constants/margin_bottom = 2
 
-[node name="VBoxContainer" type="VBoxContainer" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer"]
+[node name="VBoxContainer" type="VBoxContainer" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer" unique_id=653377685]
 layout_mode = 2
 alignment = 1
 
-[node name="Screenshot_Spot" type="TextureRect" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Screenshot_Spot" type="TextureRect" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=1920136473]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 3
@@ -133,14 +133,14 @@ texture = ExtResource("5_18sdt")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Label_SaveTime2" type="Label" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label_SaveTime2" type="Label" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=769856435]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "LAB_Last_save"
 horizontal_alignment = 1
 
-[node name="Label_SaveTime" type="Label" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer"]
+[node name="Label_SaveTime" type="Label" parent="Content/GameMenu/VBoxContainer/PanelContainer/MarginContainer/VBoxContainer" unique_id=385129420]
 unique_name_in_owner = true
 auto_translate_mode = 2
 layout_mode = 2
@@ -148,10 +148,10 @@ theme_override_font_sizes/font_size = 16
 text = "YYYY-MM-DD HH:MM"
 horizontal_alignment = 1
 
-[node name="HBoxContainer" type="HBoxContainer" parent="Content/GameMenu/VBoxContainer"]
+[node name="HBoxContainer" type="HBoxContainer" parent="Content/GameMenu/VBoxContainer" unique_id=993299138]
 layout_mode = 2
 
-[node name="LoadButton" type="Button" parent="Content/GameMenu/VBoxContainer/HBoxContainer"]
+[node name="LoadButton" type="Button" parent="Content/GameMenu/VBoxContainer/HBoxContainer" unique_id=697297465]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -160,7 +160,7 @@ theme_override_font_sizes/font_size = 30
 text = "BTN_Load"
 script = ExtResource("6_a8sll")
 
-[node name="SaveButton" type="Button" parent="Content/GameMenu/VBoxContainer/HBoxContainer"]
+[node name="SaveButton" type="Button" parent="Content/GameMenu/VBoxContainer/HBoxContainer" unique_id=146871380]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -169,37 +169,37 @@ theme_override_font_sizes/font_size = 30
 text = "BTN_Save"
 script = ExtResource("6_a8sll")
 
-[node name="Separator_PanelContainer2" type="PanelContainer" parent="Content/GameMenu/VBoxContainer"]
+[node name="Separator_PanelContainer2" type="PanelContainer" parent="Content/GameMenu/VBoxContainer" unique_id=2023132000]
 custom_minimum_size = Vector2(0, 15)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxEmpty_3a44o")
 
-[node name="OptionsButton" type="Button" parent="Content/GameMenu/VBoxContainer"]
+[node name="OptionsButton" type="Button" parent="Content/GameMenu/VBoxContainer" unique_id=1741857771]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 30
 text = "BTN_Options"
 script = ExtResource("6_a8sll")
 
-[node name="BackToMenuButton" type="Button" parent="Content/GameMenu/VBoxContainer"]
+[node name="BackToMenuButton" type="Button" parent="Content/GameMenu/VBoxContainer" unique_id=231588785]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 30
 text = "BTN_Back_to_Menu"
 script = ExtResource("6_a8sll")
 
-[node name="QuitButton" type="Button" parent="Content/GameMenu/VBoxContainer"]
+[node name="QuitButton" type="Button" parent="Content/GameMenu/VBoxContainer" unique_id=90092630]
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 30
 text = "BTN_Quit"
 script = ExtResource("6_a8sll")
 
-[node name="OptionsTabMenu" parent="Content" instance=ExtResource("6_xdpcn")]
+[node name="OptionsTabMenu" parent="Content" unique_id=1318910979 instance=ExtResource("6_xdpcn")]
 visible = false
 layout_mode = 2
 
-[node name="MenuSceneSwitcher" type="Node" parent="."]
+[node name="MenuSceneSwitcher" type="Node" parent="." unique_id=1705784743]
 script = ExtResource("12_4c47n")
 main_menu_scene = "res://addons/cogito/DemoScenes/COGITO_0_MainMenu.tscn"
 

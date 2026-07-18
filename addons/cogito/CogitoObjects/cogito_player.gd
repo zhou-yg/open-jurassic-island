@@ -86,7 +86,7 @@ var LandingVolume: float = 0.8
 @export var disable_roll_anim : bool = false
 @export var CAN_BUNNYHOP : bool = true
 @export var BUNNY_HOP_ACCELERATION : float = 0.1
-@export var INVERT_Y_AXIS : bool = true
+@export var INVERT_Y_AXIS : bool = false
 ## Controled by the game config. If false, player has to hold the crouch key to stay crouched.
 @export var TOGGLE_CROUCH : bool = false
 ## How much strength the player has to push RigidBody3D objects.
@@ -350,7 +350,7 @@ func _reload_options():
 		
 		HEADBOBBLE = config.get_value(OptionsConstants.section_name, OptionsConstants.head_bobble_key, 1)
 		MOUSE_SENS = config.get_value(OptionsConstants.section_name, OptionsConstants.mouse_sens_key, 0.25)
-		INVERT_Y_AXIS = config.get_value(OptionsConstants.section_name, OptionsConstants.invert_vertical_axis_key, true)
+		INVERT_Y_AXIS = false # config.get_value(OptionsConstants.section_name, OptionsConstants.invert_vertical_axis_key, true)
 		TOGGLE_CROUCH = config.get_value(OptionsConstants.section_name, OptionsConstants.toggle_crouching_key, true)
 		JOY_H_SENS = config.get_value(OptionsConstants.section_name, OptionsConstants.gp_looksens_key, 2)
 		JOY_V_SENS = config.get_value(OptionsConstants.section_name, OptionsConstants.gp_looksens_key, 2)

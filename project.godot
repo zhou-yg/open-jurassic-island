@@ -37,15 +37,24 @@ buses/default_bus_layout="res://common/audio/default_bus_layout.tres"
 
 SaveLoad="*res://autoloads/save_load.gd"
 Scenes="*res://autoloads/scene_manager/scenes.tscn"
-Audio="*res://autoloads/audio.gd"
+Audio="*uid://cujwm7u5pvogl"
 Events="*res://autoloads/events.gd"
 UserPrefs="*res://autoloads/user_prefs/user_prefs.tscn"
 GameData="*res://autoloads/data/game_data.gd"
 PlayerData="*res://autoloads/data/player_data.gd"
+CogitoGlobals="*uid://d0q71mnw6am11"
+CogitoSceneManager="*uid://dwd61hyssfy55"
+CogitoQuestManager="*uid://c33l80dv3c6c5"
+MenuTemplateManager="*uid://dru131jwwih1y"
+InputHelper="*uid://cholww48njaeh"
 
 [display]
 
 window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/cogito/plugin.cfg", "res://addons/input_helper/plugin.cfg", "res://addons/quick_audio/plugin.cfg", "res://addons/terrain_3d/plugin.cfg")
 
 [file_customization]
 
@@ -63,14 +72,14 @@ import/blender/enabled=false
 
 [input]
 
-up={
+forward={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":87,"key_label":0,"unicode":119,"location":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194320,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":32,"key_label":0,"unicode":32,"location":0,"echo":false,"script":null)
 ]
 }
-down={
+back={
 "deadzone": 0.5,
 "events": [Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":83,"key_label":0,"unicode":115,"location":0,"echo":false,"script":null)
 , Object(InputEventKey,"resource_local_to_scene":false,"resource_name":"","device":-1,"window_id":0,"alt_pressed":false,"shift_pressed":false,"ctrl_pressed":false,"meta_pressed":false,"pressed":false,"keycode":0,"physical_keycode":4194322,"key_label":0,"unicode":0,"location":0,"echo":false,"script":null)
