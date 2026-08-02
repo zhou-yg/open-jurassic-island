@@ -1066,7 +1066,7 @@ func _physics_process(delta):
 		direction = (body.global_transform.basis * Vector3(slide_vector.x, 0.0, slide_vector.y)).normalized()
 		current_speed = (sliding_timer.time_left / sliding_timer.wait_time + 0.5) * SLIDING_SPEED
 	
-	current_speed = clamp(current_speed, 0.5, 12.0)
+	current_speed = clamp(current_speed, 0.5, 102.0)
 	
 	if direction:
 		main_velocity.x = direction.x * current_speed

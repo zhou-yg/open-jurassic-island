@@ -1,0 +1,806 @@
+[gd_scene format=4 uid="uid://deqdti6g6cevd"]
+
+[ext_resource type="PackedScene" uid="uid://kicjwmh02uwf" path="res://addons/cogito/PackedScenes/cogito_player.tscn" id="1_qyeeg"]
+[ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="2_5pw6u"]
+[ext_resource type="Script" uid="uid://btnha2whsheir" path="res://addons/cogito/InventoryPD/cogito_inventory.gd" id="3_xbr5t"]
+[ext_resource type="Texture2D" uid="uid://cde74q05ex10c" path="res://scenes-3d/gray-box/proto-csg-colors/Green/texture_08.png" id="4_h1gp8"]
+[ext_resource type="Texture2D" uid="uid://dyoww75p2o7yr" path="res://scenes-3d/gray-box/proto-csg-colors/Red/texture_09.png" id="5_xbr5t"]
+[ext_resource type="Texture2D" uid="uid://b4sr3nyf073n2" path="res://scenes-3d/gray-box/proto-csg-colors/Red/texture_08.png" id="6_h1gp8"]
+[ext_resource type="Texture2D" uid="uid://biydp11emv01x" path="res://scenes-3d/gray-box/proto-csg-colors/Red/texture_05.png" id="7_45c5x"]
+[ext_resource type="Texture2D" uid="uid://cxgo78s6w58i0" path="res://scenes-3d/jurassic-island/Grass_15-128x128.png" id="8_dgwoy"]
+[ext_resource type="Texture2D" uid="uid://fq0hpn7li082" path="res://scenes-3d/gray-box/proto-csg-colors/Light/texture_07.png" id="9_gmtgu"]
+[ext_resource type="Texture2D" uid="uid://bbmxpnvb4opf0" path="res://scenes-3d/gray-box/proto-csg-colors/Light/texture_06.png" id="10_w2yeq"]
+[ext_resource type="Texture2D" uid="uid://cwctin57gsuif" path="res://scenes-3d/gray-box/proto-csg-colors/Light/texture_03.png" id="11_w2yeq"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_f0r7u"]
+sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+
+[sub_resource type="Sky" id="Sky_6rb87"]
+sky_material = SubResource("ProceduralSkyMaterial_f0r7u")
+
+[sub_resource type="Environment" id="Environment_2k2pl"]
+background_mode = 2
+sky = SubResource("Sky_6rb87")
+tonemap_mode = 2
+glow_enabled = true
+
+[sub_resource type="Resource" id="Resource_w2yeq"]
+resource_local_to_scene = true
+script = ExtResource("3_xbr5t")
+grid = true
+inventory_size = Vector2i(6, 3)
+inventory_slots = Array[ExtResource("2_5pw6u")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_45c5x"]
+albedo_texture = ExtResource("4_h1gp8")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_dgwoy"]
+albedo_texture = ExtResource("5_xbr5t")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_gmtgu"]
+albedo_texture = ExtResource("6_h1gp8")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_w2yeq"]
+albedo_texture = ExtResource("7_45c5x")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_jbdkb"]
+albedo_texture = ExtResource("8_dgwoy")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1f28h"]
+albedo_texture = ExtResource("9_gmtgu")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ai2yx"]
+albedo_texture = ExtResource("10_w2yeq")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_1jgtl"]
+albedo_texture = ExtResource("10_w2yeq")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_sk1xi"]
+albedo_texture = ExtResource("10_w2yeq")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_7xnfb"]
+albedo_texture = ExtResource("11_w2yeq")
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_6jfvl"]
+albedo_texture = ExtResource("11_w2yeq")
+
+[sub_resource type="ArrayMesh" id="ArrayMesh_07am3"]
+_surfaces = [{
+"aabb": AABB(-3.437317, -0.24587631, -200, 35.864655, 19.33813, 200),
+"attribute_data": PackedByteArray("AAAAAAAAAAAAAIA/AAAAAAAAgD8AAAA+AAAAP39SSj8AAIA/AAAAP3i7cz9eX34/AACAPwAAAD8AAAAAAAAAPwAAAAAAAMA+eEhEPV5ffj8AAAAAAAAAPwAAAD9/Uko/AAAAAAAAAD4AAIA/AAAAPgAAgD8AAIA+AACAPwAAAD4AAAAAAAAAPgAAAAAAAAAAeLtzP15ffj837QQ/AACAPwAAAD9/Uko/AAAAAAAAwD4AAIA/AADAPgAAgD8AAAA/AAAAAAAAgD4AAIA/AACAPgAAgD8AAMA+AAAAP39SSj+SJfY+AACAP3hIRD1eX34/AACAPwAAwD4AAAAAAADAPgAAAAAAAIA+AACAPwAAgD4AAAAAAACAPgAAAAAAAAA+"),
+"format": 34359738391,
+"material": SubResource("StandardMaterial3D_6jfvl"),
+"primitive": 3,
+"uv_scale": Vector4(0, 0, 0, 0),
+"vertex_count": 36,
+"vertex_data": PackedByteArray("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAEjDAP1bwPC8mEEAAEjDmLUBQoij+0AAAEjDAP1bwPC8mEEAAEjDAAAAAAAAAAAAAEjDAAAAAAAAAAAAAEjDAAAAAAAAAAAAAAAAIGD4QQDHe74AAAAAAAAAAAAAAAAAAAAAAP1bwPC8mEEAAAAAmLUBQoij+0AAAAAAAP1bwPC8mEEAAAAAAP1bwPC8mEEAAEjDmLUBQoij+0AAAEjDAP1bwPC8mEEAAEjDAP1bwPC8mEEAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEjDIGD4QQDHe74AAEjDmLUBQoij+0AAAEjDIGD4QQDHe74AAAAAIGD4QQDHe74AAEjDAAAAAAAAAAAAAEjDmLUBQoij+0AAAAAAmLUBQoij+0AAAEjDIGD4QQDHe74AAEjDmLUBQoij+0AAAAAAIGD4QQDHe74AAAAAAAAAAAAAAAAAAAAAIGD4QQDHe74AAEjDIGD4QQDHe74AAAAAmLUBQoij+0AAAAAAmLUBQoij+0AAAEjDmLUBQoij+0AAAAAAAP1bwPC8mEEAAAAAhxN4bP////+HE3hs/////4cTeGz//////////wAA/7//////AAD/v/////8AAP+//n4BAf/////+fgEB//////5+AQH//////3//f////7//f/9/////v/9//3////+/hJ564f////+Ennrh/////4SeeuH/////hxN4bP////+HE3hs/////4cTeGz//////////wAA/7//////AAD/v/////8AAP+//n4BAf/////+fgEB//////5+AQH/////YO1hbf////9g7WFt/////2DtYW3//////3//f////7//f/9/////v/9//3////+/YO1hbf////9g7WFt/////2DtYW3/////hJ564f////+Ennrh/////4SeeuH/////")
+}]
+
+[sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_w2yeq"]
+points = PackedVector3Array(32.427338, 7.8634186, 0, 31.044147, -0.24587631, 0, 32.427338, 7.8634186, -200, -3.437317, 19.092255, 0, -0.0004043579, -0.0016888678, 0, 31.044147, -0.24587631, -200, -3.437317, 19.092255, -200, -0.0004043579, -0.0016888678, -200)
+
+[node name="JurassicGrayBox" type="Node3D" unique_id=318402509]
+
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1337117843]
+transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+shadow_enabled = true
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=248324828]
+environment = SubResource("Environment_2k2pl")
+
+[node name="CogitoPlayer" parent="." unique_id=1005686144 instance=ExtResource("1_qyeeg")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.10422, 2, 480.42874)
+inventory_data = SubResource("Resource_w2yeq")
+JUMP_VELOCITY = 40.0
+WALKING_SPEED = 50.0
+SPRINTING_SPEED = 50.0
+CAN_SPRINT_ON_LADDER = true
+LADDER_SPEED = 200.0
+LADDER_SPRINT_SPEED = 200.0
+
+[node name="main-ground" type="CSGBox3D" parent="." unique_id=810758947]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.2751287, -0.35940933, -0.35506347)
+layers = 513
+use_collision = true
+size = Vector3(1000, 1, 1000)
+material = SubResource("StandardMaterial3D_45c5x")
+metadata/_edit_lock_ = true
+
+[node name="volcano-sys" type="Node3D" parent="." unique_id=1949081751]
+
+[node name="smoke" type="CSGTorus3D" parent="volcano-sys" unique_id=1035084529]
+transform = Transform3D(0.9999998, 0, 0.0005759586, 0, 1, 0, -0.0005759586, 0, 0.9999998, 0, 128.28064, 0)
+inner_radius = 40.0
+outer_radius = 10.0
+material = SubResource("StandardMaterial3D_dgwoy")
+
+[node name="volcano" type="CSGCylinder3D" parent="volcano-sys" unique_id=1656267842]
+transform = Transform3D(1, -8.9968715e-05, 0.000120858786, 9.023647e-05, 0.99999756, -0.0021939399, -0.000120659, 0.002193951, 0.99999756, 0, 10, 0)
+radius = 50.0
+height = 200.0
+sides = 10
+material = SubResource("StandardMaterial3D_gmtgu")
+
+[node name="volcano-clay" type="CSGBox3D" parent="volcano-sys" unique_id=1451586124]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5, 0)
+size = Vector3(60, 10, 60)
+material = SubResource("StandardMaterial3D_w2yeq")
+
+[node name="tree-line" type="Node3D" parent="volcano-sys" unique_id=1583355812]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -53.176, 2.5, 36.385906)
+
+[node name="tree2" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=359463438]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.522759)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree3" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=491666903]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.3301544)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree4" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=935253294]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.57579)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree5" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=2114766623]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.339396)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree6" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=990116316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.053031)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree7" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=2048434952]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.245636)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree8" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=2086608049]
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree9" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=1177424233]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.236394)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree10" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=226280873]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.706149)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree11" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=1734751477]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24.098576)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree12" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=1685997833]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28.291182)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree13" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=904772814]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.045546)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree14" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=1234974340]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.28194)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree15" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=1747135866]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20.612701)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree16" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=836452791]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 28.296852)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree17" type="CSGBox3D" parent="volcano-sys/tree-line" unique_id=1717516454]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24.097462)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree-line2" type="Node3D" parent="volcano-sys" unique_id=1898191732]
+transform = Transform3D(-0.080894835, 0, -0.99672264, 0, 1, 0, 0.99672264, 0, -0.080894835, -105.47198, 2.5, 41.802048)
+
+[node name="tree2" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1223973512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.522759)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree3" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=331127380]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.3301544)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree4" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1129759586]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.57579)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree5" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=788366703]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.339396)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree6" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1265070713]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.053031)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree7" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=914354494]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.245636)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree8" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1027829958]
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree9" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1186433550]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.236394)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree10" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=567411289]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.706149)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree11" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1671902835]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24.098576)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree12" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1615361725]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28.291182)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree13" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=690627950]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.045546)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree14" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=4976988]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.28194)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree15" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1898298452]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20.612701)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree16" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=1933405685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 28.296852)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree17" type="CSGBox3D" parent="volcano-sys/tree-line2" unique_id=617286518]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24.097462)
+use_collision = true
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree-line3" type="Node3D" parent="volcano-sys" unique_id=2099595016]
+transform = Transform3D(0.032876022, 0, -0.99945945, 0, 1, 0, 0.99945945, 0, 0.032876022, -112.27205, 2.5, -40.20598)
+
+[node name="tree2" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=394585575]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.522759)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree3" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=826752191]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.3301544)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree4" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=538751667]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.57579)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree5" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=2055065954]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.339396)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree6" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1038888211]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.053031)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree7" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1330061740]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.245636)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree8" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1123692803]
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree9" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=653155044]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.236394)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree10" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1860139655]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.706149)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree11" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1722667461]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24.098576)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree12" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1519995380]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28.291182)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree13" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1321775474]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.045546)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree14" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=1704725978]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.28194)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree15" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=489047070]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20.612701)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree16" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=2060704143]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 28.296852)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree17" type="CSGBox3D" parent="volcano-sys/tree-line3" unique_id=430580012]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24.097462)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree-line4" type="Node3D" parent="volcano-sys" unique_id=1035407614]
+transform = Transform3D(-0.14483972, 0, -0.9894551, 0, 1, 0, 0.9894551, 0, -0.14483972, -89.415955, 2.5, 73.20164)
+
+[node name="tree2" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=954993773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.522759)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree3" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1160107378]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.3301544)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree4" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=488593685]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.57579)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree5" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1227366588]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.339396)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree6" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=449101544]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.053031)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree7" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1041508773]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.245636)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree8" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1639304115]
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree9" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=148934730]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.236394)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree10" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1223777100]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.706149)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree11" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1707357968]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24.098576)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree12" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1620356729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28.291182)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree13" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=2131916465]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.045546)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree14" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1079553002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.28194)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree15" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=2058411253]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20.612701)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree16" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=24527201]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 28.296852)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree17" type="CSGBox3D" parent="volcano-sys/tree-line4" unique_id=1664600345]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24.097462)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree-line5" type="Node3D" parent="volcano-sys" unique_id=986650595]
+transform = Transform3D(-0.63265127, 0, -0.77443683, 0, 1, 0, 0.77443683, 0, -0.63265127, -221.71635, 2.5, -5.8698235)
+
+[node name="tree2" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=715452786]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8.522759)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree3" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=1344452498]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4.3301544)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree4" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=284902624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16.57579)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree5" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=193669617]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12.339396)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree6" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=545161560]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8.053031)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree7" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=1223392489]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12.245636)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree8" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=442141259]
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree9" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=1535392595]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4.236394)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree10" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=2004440942]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -3.706149)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree11" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=1904632825]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -24.098576)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree12" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=1141709077]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -28.291182)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree13" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=1885227546]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16.045546)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree14" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=382211301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20.28194)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree15" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=65315220]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 20.612701)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree16" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=119893453]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 28.296852)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="tree17" type="CSGBox3D" parent="volcano-sys/tree-line5" unique_id=635824987]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 24.097462)
+size = Vector3(2, 5, 2)
+material = SubResource("StandardMaterial3D_jbdkb")
+
+[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=1504138090]
+transform = Transform3D(0.79323643, -0.6089137, 0, 0.6089137, 0.79323643, 0, 0, 0, 1, 75.729996, 11.216267, 7.756241)
+size = Vector3(1, 19.968506, 22.919586)
+
+[node name="CSGPolygon3D" type="CSGPolygon3D" parent="." unique_id=475846288]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.868266, 0.10248649, 37.57686)
+use_collision = true
+polygon = PackedVector2Array(-1.1305957, 0.26202834, -0.7581563, 2.3529701, 2.789627, 0.03706485, 0.2428441, 0.07329285)
+
+[node name="hill" type="Node3D" parent="." unique_id=293565585]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -89.54788, 0, 0)
+
+[node name="hill-base" type="CSGBox3D" parent="hill" unique_id=1352323120]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.5, 0)
+use_collision = true
+size = Vector3(30, 5, 30)
+
+[node name="hill-base2" type="CSGBox3D" parent="hill" unique_id=1770070900]
+transform = Transform3D(0.9998495, -0.0157698, 0.0072285337, 0.015739145, 0.99986696, 0.004278596, -0.0072950413, -0.0041641877, 0.9999647, 0, 7.5, 0)
+use_collision = true
+size = Vector3(15, 5, 15)
+
+[node name="hill-top" type="CSGBox3D" parent="hill" unique_id=492533037]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 12.5, -2.5694942)
+use_collision = true
+size = Vector3(5, 5, 5)
+
+[node name="stairs1" type="CSGPolygon3D" parent="hill" unique_id=1017401844]
+transform = Transform3D(-0.004629857, 0.007565143, -0.99996066, 0.012109226, 0.99989843, 0.007508584, 0.999916, -0.012073971, -0.0047209766, -15.115913, 0.5591004, 15.265673)
+use_collision = true
+polygon = PackedVector2Array(-0.26820755, -0.41557217, -0.23517227, 4.816366, 2.7535763, 2.6064644, 7.4253235, -0.52952933)
+depth = 30.0
+
+[node name="stairs2" type="CSGPolygon3D" parent="hill" unique_id=1660143307]
+transform = Transform3D(-0.004629857, 0.007565143, -0.99996066, 0.012109226, 0.99989843, 0.007508584, 0.999916, -0.012073971, -0.0047209766, -7.404175, 5.414341, 6.832697)
+use_collision = true
+polygon = PackedVector2Array(0.63857794, -0.42551947, 0.72920275, 4.6708493, 2.7535763, 2.6064644, 7.044253, -0.47400618)
+depth = 15.0
+
+[node name="stairs3" type="CSGPolygon3D" parent="hill" unique_id=582820881]
+transform = Transform3D(-0.004629857, 0.007565143, -0.99996066, 0.012109226, 0.99989843, 0.007508584, 0.999916, -0.012073971, -0.0047209766, -2.5323029, 10.348403, -0.78120923)
+use_collision = true
+polygon = PackedVector2Array(0.63857794, -0.42551947, 0.72920275, 4.6708493, 2.7535763, 2.6064644, 7.044253, -0.47400618)
+depth = 5.0
+
+[node name="hill-corner-2" type="Node3D" parent="." unique_id=418053801]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -251.00826, 0, 292.17053)
+
+[node name="hill-base" type="CSGBox3D" parent="hill-corner-2" unique_id=1427924163]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -24.026718, 5, -37.33751)
+use_collision = true
+size = Vector3(400, 10, 400)
+material = SubResource("StandardMaterial3D_1f28h")
+
+[node name="stairs" type="CSGPolygon3D" parent="hill-corner-2" unique_id=1814361531]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -201.34651, 0, 162.73026)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 13.759033, 0.034130394, 1, 0)
+depth = 300.0
+
+[node name="hill-base2" type="CSGBox3D" parent="hill-corner-2" unique_id=420801330]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.23378, 15, -37.212997)
+use_collision = true
+size = Vector3(300, 10, 300)
+material = SubResource("StandardMaterial3D_ai2yx")
+
+[node name="hill-base3" type="CSGBox3D" parent="hill-corner-2" unique_id=1342059913]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 53.979782, 25, -37.212997)
+use_collision = true
+size = Vector3(200, 10, 200)
+material = SubResource("StandardMaterial3D_1jgtl")
+
+[node name="hill-base4" type="CSGBox3D" parent="hill-corner-2" unique_id=77541519]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80.64137, 35, -37.212997)
+use_collision = true
+size = Vector3(100, 10, 100)
+material = SubResource("StandardMaterial3D_sk1xi")
+
+[node name="stairs2" type="CSGPolygon3D" parent="hill-corner-2" unique_id=1702283038]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -134.58546, 10, 112.50955)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 21.273071, -0.9491453, 1, 0)
+depth = 300.0
+
+[node name="stairs3" type="CSGPolygon3D" parent="hill-corner-2" unique_id=1195866016]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -46.794968, 20, 62.694824)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 17.238922, 0.009086609, 1, 0)
+depth = 200.0
+
+[node name="stairs4" type="CSGPolygon3D" parent="hill-corner-2" unique_id=1740291938]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, 31.8936, 30, 12.544617)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 21.405182, 0.06354332, 1, 0)
+depth = 100.0
+
+[node name="hill-base5" type="CSGBox3D" parent="hill-corner-2" unique_id=1235743488]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -160.2383, 30.248596, -37.212997)
+use_collision = true
+size = Vector3(115.50855, 40, 300)
+material = SubResource("StandardMaterial3D_ai2yx")
+
+[node name="stairs5" type="CSGPolygon3D" parent="hill-corner-2" unique_id=893565845]
+transform = Transform3D(0.9999909, 0, 0.004241096, 0, 1, 0, -0.0042410963, 0, 0.99999094, -77.91579, 21.789627, 62.13214)
+use_collision = true
+polygon = PackedVector2Array(0, 0, -23.998352, 31.23687, 32.427338, 7.8637123, 31.171234, -1.6023083)
+depth = 200.0
+material = SubResource("StandardMaterial3D_7xnfb")
+
+[node name="hill-base6" type="CSGBox3D" parent="hill-corner-2" unique_id=1041268056]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -179.98927, 55.84857, -93.82628)
+use_collision = true
+size = Vector3(46.082275, 11.697144, 86.77344)
+material = SubResource("StandardMaterial3D_ai2yx")
+
+[node name="hill-base7" type="CSGBox3D" parent="hill-corner-2" unique_id=1403085061]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -179.93776, 56.25348, 25.08496)
+use_collision = true
+size = Vector3(45.979248, 12.506958, 86.77344)
+material = SubResource("StandardMaterial3D_ai2yx")
+
+[node name="CSGBakedMeshInstance3D" type="MeshInstance3D" parent="hill-corner-2" unique_id=904395991]
+transform = Transform3D(0.9999909, 0, 0.004241096, 0, 1, 0, -0.0042410963, 0, 0.99999094, -153.5023, 42.690674, 62.093933)
+mesh = SubResource("ArrayMesh_07am3")
+
+[node name="StaticBody3D" type="StaticBody3D" parent="hill-corner-2/CSGBakedMeshInstance3D" unique_id=1785486753]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="hill-corner-2/CSGBakedMeshInstance3D/StaticBody3D" unique_id=882864555]
+shape = SubResource("ConvexPolygonShape3D_w2yeq")
+
+[node name="hill-corner-3" type="Node3D" parent="." unique_id=667981079]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -251.00826, 0, -229.59961)
+
+[node name="hill-base" type="CSGBox3D" parent="hill-corner-3" unique_id=1274696850]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.644943, 5, -37.213486)
+use_collision = true
+size = Vector3(400, 10, 400)
+material = SubResource("StandardMaterial3D_1f28h")
+
+[node name="stairs" type="CSGPolygon3D" parent="hill-corner-3" unique_id=1401434177]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -201.34651, 0, 162.73026)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 13.759033, 0.034130394, 1, 0)
+depth = 300.0
+
+[node name="hill-base2" type="CSGBox3D" parent="hill-corner-3" unique_id=55742648]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.645, 15, -37.213)
+use_collision = true
+size = Vector3(300, 10, 300)
+material = SubResource("StandardMaterial3D_ai2yx")
+
+[node name="hill-base3" type="CSGBox3D" parent="hill-corner-3" unique_id=143878128]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.645, 25, -37.213)
+use_collision = true
+size = Vector3(200, 10, 200)
+material = SubResource("StandardMaterial3D_1jgtl")
+
+[node name="hill-base4" type="CSGBox3D" parent="hill-corner-3" unique_id=1634248936]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.645, 35, -37.213)
+use_collision = true
+size = Vector3(100, 10, 100)
+material = SubResource("StandardMaterial3D_sk1xi")
+
+[node name="stairs2" type="CSGPolygon3D" parent="hill-corner-3" unique_id=486850086]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -172.7495, 10, 112.50955)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 13.759033, 0.034130394, 1, 0)
+depth = 300.0
+
+[node name="stairs3" type="CSGPolygon3D" parent="hill-corner-3" unique_id=1222508498]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -122.751205, 20, 62.69481)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 13.759033, 0.034130394, 1, 0)
+depth = 200.0
+
+[node name="stairs4" type="CSGPolygon3D" parent="hill-corner-3" unique_id=1481382375]
+transform = Transform3D(-4.3711385e-08, 0, -0.99999994, 0, 1, 0, 0.9999999, 0, -4.3711385e-08, -71.09059, 30, 12.544617)
+use_collision = true
+polygon = PackedVector2Array(0, 0, 0.019805908, 10.397047, 13.759033, 0.034130394, 1, 0)
+depth = 100.0
+
+[node name="blocks" type="Node3D" parent="." unique_id=90897002]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 254.67508, 0, 286.32785)
+
+[node name="b1" type="CSGBox3D" parent="blocks" unique_id=2097736688]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.90024, 10, -30.63852)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b2" type="CSGBox3D" parent="blocks" unique_id=1888368762]
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, 118.35193, 10, 146.61786)
+size = Vector3(30, 20, 176.48785)
+
+[node name="b3" type="CSGBox3D" parent="blocks" unique_id=2008643299]
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, -65.041595, 10, 146.87747)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b4" type="CSGBox3D" parent="blocks" unique_id=732339162]
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, -202.33405, 10, 146.87747)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b5" type="CSGBox3D" parent="blocks" unique_id=2093801852]
+transform = Transform3D(-0.99861306, 0, 0.052649666, 0, 1, 0, -0.052649666, 0, -0.99861306, -202.33405, 10, 30.870789)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b6" type="CSGBox3D" parent="blocks" unique_id=1099015013]
+transform = Transform3D(-0.99861306, 0, 0.052649666, 0, 1, 0, -0.052649666, 0, -0.99861306, -202.33405, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b7" type="CSGBox3D" parent="blocks" unique_id=1239800159]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, -98.703384, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b8" type="CSGBox3D" parent="blocks" unique_id=1553493653]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, 62.81436, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b9" type="CSGBox3D" parent="blocks" unique_id=997011129]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, 198.74829, 9.810013, -131.06355)
+size = Vector3(30, 20, 89.50874)
+
+[node name="b10" type="CSGBox3D" parent="blocks" unique_id=154445096]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, 128.46497, 9.810013, -202.9896)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b11" type="CSGBox3D" parent="blocks" unique_id=556633708]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, -52.38501, 9.810013, -202.9896)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b12" type="CSGBox3D" parent="blocks" unique_id=1130427107]
+transform = Transform3D(0.40311405, 0, -0.91514975, 0, 1, 0, 0.91514975, 0, 0.40311405, 74.65378, 10, 83.127045)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b13" type="CSGBox3D" parent="blocks" unique_id=312476637]
+transform = Transform3D(-0.67173356, 0, -0.7407928, 0, 1, 0, 0.7407928, 0, -0.67173356, -124.809555, 10, 70.5777)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b14" type="CSGBox3D" parent="blocks" unique_id=2135801122]
+transform = Transform3D(-0.03224814, 0, -0.9994799, 0, 1, 0, 0.9994799, 0, -0.03224814, -110.03548, 10, -39.632202)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b15" type="CSGBox3D" parent="blocks" unique_id=1181506975]
+transform = Transform3D(-0.03224814, 0, -0.9994799, 0, 1, 0, 0.9994799, 0, -0.03224814, 17.931, 10, -39.632202)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b16" type="CSGBox3D" parent="blocks" unique_id=1666806051]
+transform = Transform3D(-0.03224814, 0, -0.9994799, 0, 1, 0, 0.9994799, 0, -0.03224814, -13.995911, 10, 34.919647)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b17" type="CSGBox3D" parent="blocks" unique_id=1524793366]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215.92355, 10, 72.92392)
+size = Vector3(30, 20, 93.38782)
