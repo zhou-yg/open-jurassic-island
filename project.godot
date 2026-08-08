@@ -50,8 +50,8 @@ InputHelper="*uid://cholww48njaeh"
 
 [display]
 
-window/size/viewport_width=1400
-window/size/viewport_height=1000
+window/size/viewport_width=2000
+window/size/viewport_height=1400
 window/stretch/mode="canvas_items"
 
 [editor_plugins]

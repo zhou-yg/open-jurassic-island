@@ -11,19 +11,113 @@
 [ext_resource type="Texture2D" uid="uid://fq0hpn7li082" path="res://scenes-3d/gray-box/proto-csg-colors/Light/texture_07.png" id="9_gmtgu"]
 [ext_resource type="Texture2D" uid="uid://bbmxpnvb4opf0" path="res://scenes-3d/gray-box/proto-csg-colors/Light/texture_06.png" id="10_w2yeq"]
 [ext_resource type="Texture2D" uid="uid://cwctin57gsuif" path="res://scenes-3d/gray-box/proto-csg-colors/Light/texture_03.png" id="11_w2yeq"]
+[ext_resource type="PackedScene" uid="uid://ducsr1os52prt" path="res://scenes-3d/gray-box/dinosaour/T-Rex.glb" id="12_ai2yx"]
+[ext_resource type="PackedScene" uid="uid://y34jlb54ycas" path="res://scenes-3d/gray-box/dinosaour/Triceratops.glb" id="13_1jgtl"]
+[ext_resource type="PackedScene" uid="uid://ddfrnx4ecci66" path="res://scenes-3d/gray-box/dinosaour/Apatosaurus.glb" id="14_sk1xi"]
+[ext_resource type="PackedScene" uid="uid://btqdn5er3sgar" path="res://scenes-3d/gray-box/dinosaour/Stegosaurus.glb" id="15_sk1xi"]
+[ext_resource type="PackedScene" uid="uid://bp8rjpjrr6p8l" path="res://scenes-3d/gray-box/dinosaour/Parasaurolophus.glb" id="16_7xnfb"]
+[ext_resource type="PackedScene" uid="uid://tayjrr5ecstl" path="res://scenes-3d/gray-box/dinosaour/Velociraptor.glb" id="17_7xnfb"]
+[ext_resource type="Shader" uid="uid://cvd0x7lon1ur6" path="res://addons/sky_3d/shaders/SkyMaterial.gdshader" id="18_7w1oc"]
+[ext_resource type="Texture2D" uid="uid://cfqk60lpl5ljv" path="res://addons/sky_3d/assets/resources/SNoise.tres" id="19_5ksbv"]
+[ext_resource type="Texture2D" uid="uid://cecwdqjol0ckd" path="res://addons/sky_3d/assets/textures/noiseClouds.png" id="20_nn1ly"]
+[ext_resource type="Texture2D" uid="uid://2r8ylu6rg5dp" path="res://addons/sky_3d/assets/thirdparty/textures/moon/MoonMap.png" id="21_8cegp"]
+[ext_resource type="Texture2D" uid="uid://djpfuyxkryegn" path="res://addons/sky_3d/assets/textures/noise.jpg" id="22_eesf6"]
+[ext_resource type="Texture2D" uid="uid://bm7dot7t7u1q4" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/StarField.jpg" id="23_ueh1k"]
+[ext_resource type="Texture2D" uid="uid://c1vwcdcdvb74a" path="res://addons/sky_3d/assets/thirdparty/textures/milkyway/Milkyway.jpg" id="24_2oj16"]
+[ext_resource type="Script" uid="uid://deo0gxkmk2ahd" path="res://addons/sky_3d/src/Sky3D.gd" id="25_jcyup"]
+[ext_resource type="Script" uid="uid://b4tkplvh7fq40" path="res://addons/sky_3d/src/SkyDome.gd" id="26_wd2c2"]
+[ext_resource type="Script" uid="uid://cjmkcj8hwm7ts" path="res://addons/sky_3d/src/TimeOfDay.gd" id="27_a5ts7"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_f0r7u"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_o2p1w"]
+shader = ExtResource("18_7w1oc")
+shader_parameter/sky_visible = true
+shader_parameter/color_correction = Vector2(0, 1)
+shader_parameter/ground_color = Color(0.3, 0.3, 0.3, 1)
+shader_parameter/horizon_offset = 0.0
+shader_parameter/atm_darkness = 0.5
+shader_parameter/atm_sun_intensity = 18.0
+shader_parameter/atm_day_tint = Color(0.807843, 0.909804, 1, 1)
+shader_parameter/atm_horizon_light_tint = Color(0.980392, 0.635294, 0.462745, 1)
+shader_parameter/atm_night_tint = Color(0.168627, 0.2, 0.25098, 1)
+shader_parameter/atm_level_params = Vector3(1, 0, 0)
+shader_parameter/atm_thickness = 0.7
+shader_parameter/atm_beta_ray = Vector3(5.804544e-06, 1.3562913e-05, 3.311258e-05)
+shader_parameter/atm_beta_mie = Vector3(3.038e-08, 3.038e-08, 3.038e-08)
+shader_parameter/sun_light_color = Color(0.98, 0.523, 0.294, 1)
+shader_parameter/sun_disk_color = Color(0.996094, 0.541334, 0.140076, 1)
+shader_parameter/sun_disk_intensity = 30.0
+shader_parameter/sun_disk_size = 0.02
+shader_parameter/atm_sun_mie_tint = Color(1, 1, 1, 1)
+shader_parameter/atm_sun_mie_intensity = 1.0
+shader_parameter/atm_sun_partial_mie_phase = Vector3(0.36, 1.64, 1.6)
+shader_parameter/moon_color = Color(1, 1, 1, 1)
+shader_parameter/moon_texture = ExtResource("21_8cegp")
+shader_parameter/moon_texture_alignment = Vector3(7, 1.4, 4.8)
+shader_parameter/moon_texture_flip_u = false
+shader_parameter/moon_texture_flip_v = false
+shader_parameter/moon_size = 0.07
+shader_parameter/atm_moon_mie_tint = Color(0.137255, 0.184314, 0.292196, 1)
+shader_parameter/atm_moon_mie_intensity = 0.0
+shader_parameter/atm_moon_partial_mie_phase = Vector3(0.36, 1.64, 1.6)
+shader_parameter/starmap_color = Color(0.709804, 0.709804, 0.709804, 0.854902)
+shader_parameter/starmap_texture = ExtResource("24_2oj16")
+shader_parameter/starmap_flip_u = false
+shader_parameter/starmap_flip_v = false
+shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
+shader_parameter/star_rotation_offset = 9.38899
+shader_parameter/star_rotation = -14.09956757486868
+shader_parameter/star_tilt = -1.2915436464758039
+shader_parameter/star_field_color = Color(1, 1, 1, 1)
+shader_parameter/star_field_texture = ExtResource("23_ueh1k")
+shader_parameter/star_scintillation = 0.75
+shader_parameter/star_scintillation_speed = 0.01
+shader_parameter/noise_tex = ExtResource("22_eesf6")
+shader_parameter/clouds_night_color = Color(0.090196, 0.094118, 0.129412, 1)
+shader_parameter/cirrus_visible = true
+shader_parameter/cirrus_intensity = 2.0
+shader_parameter/cirrus_coverage = 0.5
+shader_parameter/cirrus_thickness = 1.7
+shader_parameter/cirrus_absorption = 2.0
+shader_parameter/cirrus_sky_tint_fade = 0.5
+shader_parameter/cirrus_size = 1.0
+shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
+shader_parameter/cirrus_position1 = Vector2(0.10125263, 0.047909666)
+shader_parameter/cirrus_position2 = Vector2(0.10125263, 0.047909666)
+shader_parameter/cirrus_texture = ExtResource("19_5ksbv")
+shader_parameter/cumulus_visible = true
+shader_parameter/cumulus_intensity = 0.6
+shader_parameter/cumulus_coverage = 0.55
+shader_parameter/cumulus_thickness = 0.0243
+shader_parameter/cumulus_absorption = 2.0
+shader_parameter/cumulus_noise_freq = 2.7
+shader_parameter/cumulus_sky_tint_fade = 0.0
+shader_parameter/cumulus_size = 0.5
+shader_parameter/cumulus_position = Vector2(15.50414, 0.23954909)
+shader_parameter/cumulus_texture = ExtResource("20_nn1ly")
+shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
+shader_parameter/cumulus_mie_intensity = 1.0
+shader_parameter/show_azimuthal_grid = false
+shader_parameter/azimuthal_grid_color = Color(0.87058824, 0.72156864, 0.5294118, 1)
+shader_parameter/azimuthal_grid_rotation_offset = 0.03
+shader_parameter/show_equatorial_grid = false
+shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
+shader_parameter/equatorial_grid_rotation_offset = 0.03
+shader_parameter/moon_matrix = Basis(-0.5784247, 0.7841357, 0.22484729, -0.25811315, 0.085541435, -0.9623203, -0.77382344, -0.61466587, 0.15291646)
 
-[sub_resource type="Sky" id="Sky_6rb87"]
-sky_material = SubResource("ProceduralSkyMaterial_f0r7u")
+[sub_resource type="Sky" id="Sky_0j4pb"]
+sky_material = SubResource("ShaderMaterial_o2p1w")
 
-[sub_resource type="Environment" id="Environment_2k2pl"]
+[sub_resource type="Environment" id="Environment_450ne"]
 background_mode = 2
-sky = SubResource("Sky_6rb87")
-tonemap_mode = 2
-glow_enabled = true
+sky = SubResource("Sky_0j4pb")
+ambient_light_source = 3
+ambient_light_color = Color(0.23515604, 0.27890667, 0.35, 1)
+ambient_light_sky_contribution = 0.7
+reflected_light_source = 2
+tonemap_mode = 3
+tonemap_white = 6.0
+
+[sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_jqipy"]
 
 [sub_resource type="Resource" id="Resource_w2yeq"]
 resource_local_to_scene = true
@@ -80,17 +174,53 @@ _surfaces = [{
 [sub_resource type="ConvexPolygonShape3D" id="ConvexPolygonShape3D_w2yeq"]
 points = PackedVector3Array(32.427338, 7.8634186, 0, 31.044147, -0.24587631, 0, 32.427338, 7.8634186, -200, -3.437317, 19.092255, 0, -0.0004043579, -0.0016888678, 0, 31.044147, -0.24587631, -200, -3.437317, 19.092255, -200, -0.0004043579, -0.0016888678, -200)
 
+[sub_resource type="BoxShape3D" id="BoxShape3D_ai2yx"]
+
 [node name="JurassicGrayBox" type="Node3D" unique_id=318402509]
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1337117843]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
-shadow_enabled = true
+[node name="Sky3D" type="WorldEnvironment" parent="." unique_id=1496412331]
+environment = SubResource("Environment_450ne")
+camera_attributes = SubResource("CameraAttributesPractical_jqipy")
+script = ExtResource("25_jcyup")
+current_time = 22.80126565788215
+minutes_per_day = 1.0
+wind_speed = 7.000000000000001
+wind_direction = 1.5708
+metadata/_custom_type_script = "uid://deo0gxkmk2ahd"
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=248324828]
-environment = SubResource("Environment_2k2pl")
+[node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=1285104522]
+transform = Transform3D(0.4502602, -0.8556622, -0.25516248, 0, 0.2857691, -0.9582985, 0.89289737, 0.43148366, 0.12867045, -0.25516248, -0.9582985, 0.12867045)
+light_color = Color(0.98, 0.523, 0.294, 1)
+light_energy = 0.0
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 600.0
+
+[node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=779245828]
+transform = Transform3D(0, -0.6334015, -0.7738233, 0.24142098, 0.750934, -0.6146658, 0.9704205, -0.18681718, 0.15291642, -0.7738233, -0.6146658, 0.15291642)
+light_color = Color(0.572549, 0.776471, 0.956863, 1)
+light_energy = 0.0
+directional_shadow_blend_splits = true
+directional_shadow_max_distance = 256.0
+
+[node name="SkyDome" type="Node" parent="Sky3D" unique_id=1637657925]
+script = ExtResource("26_wd2c2")
+sun_azimuth = -4.2453322
+sun_altitude = -2.8517838
+moon_azimuth = -4.517291
+moon_altitude = -2.2327585
+fog_density = 0.01
+wind_speed = 7.000000000000001
+wind_direction = 1.5708
+
+[node name="TimeOfDay" type="Node" parent="Sky3D" unique_id=75963137]
+script = ExtResource("27_a5ts7")
+dome_path = NodePath("../SkyDome")
+minutes_per_day = 1.0
+current_time = 22.80126565788215
+day = 2
 
 [node name="CogitoPlayer" parent="." unique_id=1005686144 instance=ExtResource("1_qyeeg")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.10422, 2, 480.42874)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.10422, 2, 417.1119)
 inventory_data = SubResource("Resource_w2yeq")
 JUMP_VELOCITY = 40.0
 WALKING_SPEED = 50.0
@@ -626,7 +756,7 @@ size = Vector3(200, 10, 200)
 material = SubResource("StandardMaterial3D_1jgtl")
 
 [node name="hill-base4" type="CSGBox3D" parent="hill-corner-2" unique_id=77541519]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80.64137, 35, -37.212997)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 80.68117, 35.07399, -37.24138)
 use_collision = true
 size = Vector3(100, 10, 100)
 material = SubResource("StandardMaterial3D_sk1xi")
@@ -742,7 +872,7 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 159.90024, 10, -30.63852)
 size = Vector3(30, 20, 93.38782)
 
 [node name="b2" type="CSGBox3D" parent="blocks" unique_id=1888368762]
-transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, 118.35193, 10, 146.61786)
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, 118.35193, 10, 175.20953)
 size = Vector3(30, 20, 176.48785)
 
 [node name="b3" type="CSGBox3D" parent="blocks" unique_id=2008643299]
@@ -782,7 +912,7 @@ transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.0
 size = Vector3(30, 20, 119.2753)
 
 [node name="b12" type="CSGBox3D" parent="blocks" unique_id=1130427107]
-transform = Transform3D(0.40311405, 0, -0.91514975, 0, 1, 0, 0.91514975, 0, 0.40311405, 74.65378, 10, 83.127045)
+transform = Transform3D(0.40311405, 0, -0.91514975, 0, 1, 0, 0.91514975, 0, 0.40311405, 115.9216, 10, 112.35031)
 size = Vector3(30, 20, 93.38782)
 
 [node name="b13" type="CSGBox3D" parent="blocks" unique_id=312476637]
@@ -798,9 +928,152 @@ transform = Transform3D(-0.03224814, 0, -0.9994799, 0, 1, 0, 0.9994799, 0, -0.03
 size = Vector3(30, 20, 93.38782)
 
 [node name="b16" type="CSGBox3D" parent="blocks" unique_id=1666806051]
-transform = Transform3D(-0.03224814, 0, -0.9994799, 0, 1, 0, 0.9994799, 0, -0.03224814, -13.995911, 10, 34.919647)
+transform = Transform3D(-0.03224814, 0, -0.9994799, 0, 1, 0, 0.9994799, 0, -0.03224814, 34.14621, 10, 59.190216)
 size = Vector3(30, 20, 93.38782)
 
 [node name="b17" type="CSGBox3D" parent="blocks" unique_id=1524793366]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215.92355, 10, 72.92392)
 size = Vector3(30, 20, 93.38782)
+
+[node name="b18" type="CSGBox3D" parent="blocks" unique_id=2128217126]
+transform = Transform3D(-0.99861306, 0, 0.052649666, 0, 1, 0, -0.052649666, 0, -0.99861306, -269.98154, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b19" type="CSGBox3D" parent="blocks" unique_id=1360765698]
+transform = Transform3D(-0.99861306, 0, 0.052649666, 0, 1, 0, -0.052649666, 0, -0.99861306, -273.89963, 10, 40.82196)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b20" type="CSGBox3D" parent="blocks" unique_id=282423984]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, -87.66464, 9.810013, -264.3728)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b21" type="CSGBox3D" parent="blocks" unique_id=1831414791]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, 48.848846, 9.810013, -264.3728)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b22" type="CSGBox3D" parent="blocks" unique_id=1366595057]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, 181.991, 9.810013, -264.3728)
+size = Vector3(30, 20, 119.2753)
+
+[node name="dinosaurs" type="Node3D" parent="." unique_id=2119522656]
+
+[node name="CharacterBody3D" type="CharacterBody3D" parent="dinosaurs" unique_id=1109125512]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 79.06452, 0, 30.482025)
+
+[node name="Root Scene" parent="dinosaurs/CharacterBody3D" unique_id=320414918 instance=ExtResource("14_sk1xi")]
+transform = Transform3D(3.7597008, 0, -1.3655218, 0, 4, 0, 1.3655218, 0, 3.7597008, 0, 0, 0)
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="dinosaurs/CharacterBody3D" unique_id=2042825397]
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, 0.27624512, 0)
+shape = SubResource("BoxShape3D_ai2yx")
+
+[node name="Root Scene2" parent="dinosaurs" unique_id=1243509197 instance=ExtResource("12_ai2yx")]
+transform = Transform3D(2.8136284, 0, -2.8431487, 0, 4, 0, 2.8431487, 0, 2.8136284, 180.121, 0, 329.669)
+
+[node name="Root Scene3" parent="dinosaurs" unique_id=2049227608 instance=ExtResource("13_1jgtl")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, -180.13428, 40.23248, 263.92535)
+
+[node name="Root Scene" parent="dinosaurs" unique_id=1164394336 instance=ExtResource("15_sk1xi")]
+transform = Transform3D(0.28334358, 0, -3.9899518, 0, 4, 0, 3.9899518, 0, 0.28334358, 40.716, 0, 477.109)
+
+[node name="Root Scene4" parent="dinosaurs" unique_id=2033213378 instance=ExtResource("16_7xnfb")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, -111.67548, 20.00943, 377.75958)
+
+[node name="Root Scene5" parent="dinosaurs" unique_id=1431130425 instance=ExtResource("17_7xnfb")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 94.685, 0, 275.231)
+
+[node name="Root Scene6" parent="dinosaurs" unique_id=1951238862 instance=ExtResource("17_7xnfb")]
+transform = Transform3D(4, 0, 0, 0, 4, 0, 0, 0, 4, 82.18092, 0, 304.06314)
+
+[node name="blocks2" type="Node3D" parent="." unique_id=734308217]
+transform = Transform3D(0.0009599486, 0, 0.9999995, 0, 1, 0, -0.9999995, 0, 0.0009599486, 305.06287, 0, -266.1539)
+
+[node name="b1" type="CSGBox3D" parent="blocks2" unique_id=1323024971]
+transform = Transform3D(0.46179506, 0, -0.88698673, 0, 1, 0, 0.88698673, 0, 0.46179506, 159.90027, 10, -30.63852)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b2" type="CSGBox3D" parent="blocks2" unique_id=1007245709]
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, 118.35193, 10, 175.20953)
+size = Vector3(30, 20, 176.48785)
+
+[node name="b3" type="CSGBox3D" parent="blocks2" unique_id=763729153]
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, -65.041595, 10, 146.87747)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b4" type="CSGBox3D" parent="blocks2" unique_id=1807728575]
+transform = Transform3D(-0.009075561, 0, -0.9999588, 0, 1, 0, 0.9999588, 0, -0.009075561, -202.33405, 10, 146.87747)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b5" type="CSGBox3D" parent="blocks2" unique_id=151579778]
+transform = Transform3D(-0.99861306, 0, 0.052649666, 0, 1, 0, -0.052649666, 0, -0.99861306, -202.33405, 10, 30.870789)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b6" type="CSGBox3D" parent="blocks2" unique_id=860776595]
+transform = Transform3D(-0.99861306, 0, 0.052649666, 0, 1, 0, -0.052649666, 0, -0.99861306, -202.33405, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b7" type="CSGBox3D" parent="blocks2" unique_id=1340165277]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, -98.703384, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b8" type="CSGBox3D" parent="blocks2" unique_id=74573716]
+transform = Transform3D(0.69162655, 0, 0.7222554, 0, 1, 0, -0.7222554, 0, 0.69162655, 62.81436, 10, -134.0347)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b9" type="CSGBox3D" parent="blocks2" unique_id=1376162002]
+transform = Transform3D(0.99961555, 0, -0.027729707, 0, 1, 0, 0.027729707, 0, 0.99961555, 198.74829, 9.810013, -131.06355)
+size = Vector3(30, 20, 89.50874)
+
+[node name="b10" type="CSGBox3D" parent="blocks2" unique_id=1730076808]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, 128.46497, 9.810013, -202.9896)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b11" type="CSGBox3D" parent="blocks2" unique_id=1031551616]
+transform = Transform3D(-0.006056264, 0, 0.9999817, 0, 1, 0, -0.9999817, 0, -0.006056264, -52.38501, 9.810013, -202.9896)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b12" type="CSGBox3D" parent="blocks2" unique_id=1217165288]
+transform = Transform3D(0.40311405, 0, -0.91514975, 0, 1, 0, 0.91514975, 0, 0.40311405, 115.9216, 10, 112.35031)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b13" type="CSGBox3D" parent="blocks2" unique_id=1520669836]
+transform = Transform3D(-0.67173356, 0, -0.7407928, 0, 1, 0, 0.7407928, 0, -0.67173356, -124.809555, 10, 70.5777)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b14" type="CSGBox3D" parent="blocks2" unique_id=487280583]
+transform = Transform3D(-0.9213213, 0, -0.38880235, 0, 1, 0, 0.38880235, 0, -0.9213213, -110.03549, 10, -39.632202)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b15" type="CSGBox3D" parent="blocks2" unique_id=319363459]
+transform = Transform3D(-0.93898624, 0, -0.3439548, 0, 1, 0, 0.3439548, 0, -0.93898624, 17.930695, 10, -39.954163)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b16" type="CSGBox3D" parent="blocks2" unique_id=1390465794]
+transform = Transform3D(-0.29125315, 0, 0.9566461, 0, 1, 0, -0.9566461, 0, -0.29125315, 34.14621, 10, 59.190247)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b17" type="CSGBox3D" parent="blocks2" unique_id=502152729]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 215.92355, 10, 72.92392)
+size = Vector3(30, 20, 93.38782)
+
+[node name="b20" type="CSGBox3D" parent="blocks2" unique_id=686579454]
+transform = Transform3D(-0.6886461, 0, 0.72509825, 0, 1, 0, -0.72509825, 0, -0.6886461, -69.14371, 9.810013, -294.27878)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b21" type="CSGBox3D" parent="blocks2" unique_id=285625093]
+transform = Transform3D(-0.61817545, 0, 0.78604066, 0, 1, 0, -0.78604066, 0, -0.61817545, 59.03299, 9.810013, -312.1246)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b22" type="CSGBox3D" parent="blocks2" unique_id=1295216249]
+transform = Transform3D(-0.52544224, 0, 0.85082984, 0, 1, 0, -0.85082984, 0, -0.52544224, 158.59134, 9.810013, -299.38507)
+size = Vector3(30, 20, 119.2753)
+
+[node name="b23" type="CSGBox3D" parent="blocks2" unique_id=985609867]
+transform = Transform3D(-0.9960432, 0, -0.08887706, 0, 1, 0, 0.08887706, 0, -0.9960432, -172.93805, 9.810013, -273.30847)
+size = Vector3(30, 20, 119.2753)
+
+[node name="ReflectionProbe" type="ReflectionProbe" parent="." unique_id=2082572039]
+update_mode = 1
+blend_distance = 8.0
+size = Vector3(2000, 2000, 2000)
+origin_offset = Vector3(0, 5, 0)
