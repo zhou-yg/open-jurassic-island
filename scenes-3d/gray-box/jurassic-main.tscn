@@ -57,7 +57,7 @@ shader_parameter/moon_texture_flip_u = false
 shader_parameter/moon_texture_flip_v = false
 shader_parameter/moon_size = 0.07
 shader_parameter/atm_moon_mie_tint = Color(0.137255, 0.184314, 0.292196, 1)
-shader_parameter/atm_moon_mie_intensity = 0.0
+shader_parameter/atm_moon_mie_intensity = 0.7
 shader_parameter/atm_moon_partial_mie_phase = Vector3(0.36, 1.64, 1.6)
 shader_parameter/starmap_color = Color(0.709804, 0.709804, 0.709804, 0.854902)
 shader_parameter/starmap_texture = ExtResource("24_2oj16")
@@ -65,7 +65,7 @@ shader_parameter/starmap_flip_u = false
 shader_parameter/starmap_flip_v = false
 shader_parameter/starmap_alignment = Vector3(2.68288, -0.25891, 0.40101)
 shader_parameter/star_rotation_offset = 9.38899
-shader_parameter/star_rotation = -14.09956757486868
+shader_parameter/star_rotation = -13.768148891627781
 shader_parameter/star_tilt = -1.2915436464758039
 shader_parameter/star_field_color = Color(1, 1, 1, 1)
 shader_parameter/star_field_texture = ExtResource("23_ueh1k")
@@ -81,8 +81,8 @@ shader_parameter/cirrus_absorption = 2.0
 shader_parameter/cirrus_sky_tint_fade = 0.5
 shader_parameter/cirrus_size = 1.0
 shader_parameter/cirrus_uv = Vector2(0.16, 0.11)
-shader_parameter/cirrus_position1 = Vector2(0.10125263, 0.047909666)
-shader_parameter/cirrus_position2 = Vector2(0.10125263, 0.047909666)
+shader_parameter/cirrus_position1 = Vector2(0.7884461, 2.8959585e-06)
+shader_parameter/cirrus_position2 = Vector2(0.7884461, 2.8959585e-06)
 shader_parameter/cirrus_texture = ExtResource("19_5ksbv")
 shader_parameter/cumulus_visible = true
 shader_parameter/cumulus_intensity = 0.6
@@ -92,7 +92,7 @@ shader_parameter/cumulus_absorption = 2.0
 shader_parameter/cumulus_noise_freq = 2.7
 shader_parameter/cumulus_sky_tint_fade = 0.0
 shader_parameter/cumulus_size = 0.5
-shader_parameter/cumulus_position = Vector2(15.50414, 0.23954909)
+shader_parameter/cumulus_position = Vector2(3.9420464, 1.4480682e-05)
 shader_parameter/cumulus_texture = ExtResource("20_nn1ly")
 shader_parameter/cumulus_partial_mie_phase = Vector3(0.957564, 1.042436, 0.412)
 shader_parameter/cumulus_mie_intensity = 1.0
@@ -102,7 +102,7 @@ shader_parameter/azimuthal_grid_rotation_offset = 0.03
 shader_parameter/show_equatorial_grid = false
 shader_parameter/equatorial_grid_color = Color(0, 0.75, 1, 1)
 shader_parameter/equatorial_grid_rotation_offset = 0.03
-shader_parameter/moon_matrix = Basis(-0.5784247, 0.7841357, 0.22484729, -0.25811315, 0.085541435, -0.9623203, -0.77382344, -0.61466587, 0.15291646)
+shader_parameter/moon_matrix = Basis(-0.06518984, 0.95921713, 0.2750511, -0.22493768, 0.2544175, -0.9405717, -0.97219, -0.12318505, 0.19917864)
 
 [sub_resource type="Sky" id="Sky_0j4pb"]
 sky_material = SubResource("ShaderMaterial_o2p1w")
@@ -119,7 +119,7 @@ tonemap_white = 6.0
 
 [sub_resource type="CameraAttributesPractical" id="CameraAttributesPractical_jqipy"]
 
-[sub_resource type="Resource" id="Resource_w2yeq"]
+[sub_resource type="Resource" id="Resource_7w1oc"]
 resource_local_to_scene = true
 script = ExtResource("3_xbr5t")
 grid = true
@@ -182,21 +182,21 @@ points = PackedVector3Array(32.427338, 7.8634186, 0, 31.044147, -0.24587631, 0, 
 environment = SubResource("Environment_450ne")
 camera_attributes = SubResource("CameraAttributesPractical_jqipy")
 script = ExtResource("25_jcyup")
-current_time = 22.80126565788215
+current_time = 21.473265657881544
 minutes_per_day = 1.0
 wind_speed = 7.000000000000001
 wind_direction = 1.5708
 metadata/_custom_type_script = "uid://deo0gxkmk2ahd"
 
 [node name="SunLight" type="DirectionalLight3D" parent="Sky3D" unique_id=1285104522]
-transform = Transform3D(0.4502602, -0.8556622, -0.25516248, 0, 0.2857691, -0.9582985, 0.89289737, 0.43148366, 0.12867045, -0.25516248, -0.9582985, 0.12867045)
+transform = Transform3D(0.29197288, -0.78702945, -0.5434488, 0, 0.5682076, -0.8228853, 0.9564267, 0.24026018, 0.16590118, -0.5434488, -0.8228853, 0.16590118)
 light_color = Color(0.98, 0.523, 0.294, 1)
 light_energy = 0.0
 directional_shadow_blend_splits = true
 directional_shadow_max_distance = 600.0
 
 [node name="MoonLight" type="DirectionalLight3D" parent="Sky3D" unique_id=779245828]
-transform = Transform3D(0, -0.6334015, -0.7738233, 0.24142098, 0.750934, -0.6146658, 0.9704205, -0.18681718, 0.15291642, -0.7738233, -0.6146658, 0.15291642)
+transform = Transform3D(0, -0.23419362, -0.97219, 0.8504867, 0.5113686, -0.12318504, 0.5259965, -0.8268347, 0.19917858, -0.97218996, -0.12318503, 0.19917856)
 light_color = Color(0.572549, 0.776471, 0.956863, 1)
 light_energy = 0.0
 directional_shadow_blend_splits = true
@@ -204,10 +204,10 @@ directional_shadow_max_distance = 256.0
 
 [node name="SkyDome" type="Node" parent="Sky3D" unique_id=1637657925]
 script = ExtResource("26_wd2c2")
-sun_azimuth = -4.2453322
-sun_altitude = -2.8517838
-moon_azimuth = -4.517291
-moon_altitude = -2.2327585
+sun_azimuth = -4.4161
+sun_altitude = -2.5372667
+moon_azimuth = -4.510309
+moon_altitude = -1.694295
 fog_density = 0.01
 wind_speed = 7.000000000000001
 wind_direction = 1.5708
@@ -216,12 +216,12 @@ wind_direction = 1.5708
 script = ExtResource("27_a5ts7")
 dome_path = NodePath("../SkyDome")
 minutes_per_day = 1.0
-current_time = 22.80126565788215
-day = 2
+current_time = 21.473265657881544
+day = 3
 
 [node name="CogitoPlayer" parent="." unique_id=1005686144 instance=ExtResource("1_qyeeg")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35.10422, 2, 417.1119)
-inventory_data = SubResource("Resource_w2yeq")
+inventory_data = SubResource("Resource_7w1oc")
 JUMP_VELOCITY = 40.0
 WALKING_SPEED = 50.0
 SPRINTING_SPEED = 50.0
