@@ -1,12 +1,11 @@
-[gd_scene format=3 uid="uid://h5d7p7skkj3k"]
+[gd_scene format=3]
 
-[ext_resource type="Texture2D" uid="uid://raq6p1476215" path="res://scenes-3d/jurassic-island/3d-data/Grass_17-128x128.png" id="1_ouc68"]
-[ext_resource type="Texture2D" uid="uid://b0bkmtf6tptbm" path="res://scenes-3d/jurassic-island/Grass_11-128x128.png" id="2_5rlgv"]
-[ext_resource type="Texture2D" uid="uid://cxgo78s6w58i0" path="res://scenes-3d/jurassic-island/Grass_15-128x128.png" id="3_l5kiy"]
-[ext_resource type="PackedScene" uid="uid://kicjwmh02uwf" path="res://addons/cogito/PackedScenes/cogito_player.tscn" id="4_m4yw2"]
-[ext_resource type="Script" uid="uid://btnha2whsheir" path="res://addons/cogito/InventoryPD/cogito_inventory.gd" id="5_ajl58"]
-[ext_resource type="Script" uid="uid://di15gqemrkk0x" path="res://addons/cogito/InventoryPD/CustomResources/InventorySlotPD.gd" id="5_isw5y"]
-[ext_resource type="Material" uid="uid://fkhkir6t1hml" path="res://terrain-demo/assets/materials/M_crystal_blue.tres" id="7_isw5y"]
+[ext_resource type="Texture2D" path="res://scenes-3d/jurassic-island/3d-data/Grass_17-128x128.png" id="1_ouc68"]
+[ext_resource type="Texture2D" path="res://scenes-3d/jurassic-island/Grass_11-128x128.png" id="2_5rlgv"]
+[ext_resource type="Texture2D" path="res://scenes-3d/jurassic-island/Grass_15-128x128.png" id="3_l5kiy"]
+[ext_resource type="PackedScene" path="res://addons/cogito/PackedScenes/cogito_player.tscn" id="4_m4yw2"]
+[ext_resource type="PackedScene" path="res://scenes/ui/top_bar/top_bar.tscn" id="6_isw5y"]
+[ext_resource type="Material" path="res://terrain-demo/assets/materials/M_crystal_blue.tres" id="7_isw5y"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_isw5y"]
 sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
@@ -139,13 +138,6 @@ normal_texture = SubResource("ImageTexture_nq2ao")
 mesh_list = Array[Terrain3DMeshAsset]([SubResource("Terrain3DMeshAsset_m4yw2")])
 texture_list = Array[Terrain3DTextureAsset]([SubResource("Terrain3DTextureAsset_5rlgv"), SubResource("Terrain3DTextureAsset_isw5y"), SubResource("Terrain3DTextureAsset_ilgf2")])
 
-[sub_resource type="Resource" id="Resource_ilgf2"]
-resource_local_to_scene = true
-script = ExtResource("5_ajl58")
-grid = true
-inventory_size = Vector2i(6, 3)
-inventory_slots = Array[ExtResource("5_isw5y")]([null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null, null])
-
 [node name="JurassicIsland" type="Node3D" unique_id=2128539011]
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1362458145]
@@ -163,11 +155,20 @@ label_size = 24
 top_level = true
 metadata/_edit_lock_ = true
 
-[node name="CogitoPlayer" parent="." unique_id=1005686144 instance=ExtResource("4_m4yw2")]
+[node name="CogitoPlayer" type="CharacterBody3D" parent="." unique_id=1005686144 groups=["Player"] instance=ExtResource("4_m4yw2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5128574, -494.3361)
-inventory_data = SubResource("Resource_ilgf2")
 
 [node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=2131096372]
 transform = Transform3D(0.9999969, -0.0009545854, -0.0022787924, 0.000959624, 0.99999714, 0.0022229345, 0.0022766762, -0.0022250977, 0.99999493, 0, 4.707508, -503.87982)
 size = Vector3(200, 1, 1)
 material = ExtResource("7_isw5y")
+
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1286035532]
+
+[node name="TopBar" type="Control" parent="HUDLayer" unique_id=1139506717 instance=ExtResource("6_isw5y")]
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+grow_horizontal = 2
+auto_advance_time = true
+day_length_seconds = 120.0

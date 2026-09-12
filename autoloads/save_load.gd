@@ -64,6 +64,7 @@ func save_game() -> int:
 		return 1
 	serialize(GameData)
 	serialize(PlayerData)
+	serialize(Resources)
 	close_file()
 	return 0
 
@@ -78,5 +79,6 @@ func load_game() -> int:
 		return 1
 	deserialize(GameData)
 	deserialize(PlayerData)
+	deserialize(Resources)
 	close_file()
 	return 0
