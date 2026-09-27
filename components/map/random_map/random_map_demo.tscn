@@ -1,0 +1,44 @@
+[gd_scene format=3 uid="uid://d224gsverje3l"]
+
+[ext_resource type="PackedScene" uid="uid://xqs2mmlo216h" path="res://components/map/random_map/random_map.tscn" id="1_map"]
+[ext_resource type="Script" uid="uid://dj6bgq5aoba6t" path="res://components/map/random_map/random_map_demo.gd" id="2_demo"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_demo"]
+sky_horizon_color = Color(0.7, 0.78, 0.86, 1)
+ground_bottom_color = Color(0.24, 0.26, 0.24, 1)
+ground_horizon_color = Color(0.7, 0.78, 0.86, 1)
+
+[sub_resource type="Sky" id="Sky_demo"]
+sky_material = SubResource("ProceduralSkyMaterial_demo")
+
+[sub_resource type="Environment" id="Environment_demo"]
+background_mode = 2
+sky = SubResource("Sky_demo")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.6
+tonemap_mode = 2
+fog_enabled = true
+fog_light_color = Color(0.66, 0.72, 0.8, 1)
+fog_density = 0.004
+
+[node name="RandomMapDemo" type="Node3D" unique_id=89169715]
+script = ExtResource("2_demo")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=619799531]
+environment = SubResource("Environment_demo")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1253595733]
+transform = Transform3D(0.7880108, 0.48514786, -0.37903908, 0, 0.6156615, 0.7880107, 0.6156615, -0.62096095, 0.4851479, 0, 30, 0)
+shadow_enabled = true
+
+[node name="Camera3D" type="Camera3D" parent="." unique_id=1051327480]
+transform = Transform3D(0.8192319, -0.31434396, 0.47963208, 0, 0.8363794, 0.548151, -0.5734623, -0.44906282, 0.6851887, 14, 16, 20)
+current = true
+far = 500.0
+
+[node name="RandomMap" parent="." unique_id=594501295 instance=ExtResource("1_map")]
+map_length = 64.0
+map_width = 64.0
+entrance_count = 12
+exit_count = 2
+center_room_radius = 4

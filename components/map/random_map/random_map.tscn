@@ -1,0 +1,26 @@
+[gd_scene format=3 uid="uid://xqs2mmlo216h"]
+
+[ext_resource type="Script" uid="uid://cjt5cqqivajkq" path="res://components/map/random_map/random_map.gd" id="1_map"]
+[ext_resource type="Script" uid="uid://7renirq84npc" path="res://components/map/random_map/maze_ca_config.gd" id="2_ca_config"]
+[ext_resource type="Script" uid="uid://n3xndunpyepp" path="res://components/map/random_map/terrain_height_config.gd" id="3_height_config"]
+
+[sub_resource type="Resource" id="Resource_ca_config"]
+script = ExtResource("2_ca_config")
+
+[sub_resource type="Resource" id="Resource_height_config"]
+script = ExtResource("3_height_config")
+
+[node name="RandomMap" type="Node3D" unique_id=204373001]
+script = ExtResource("1_map")
+map_length = 32.0
+map_width = 32.0
+ca_config = SubResource("Resource_ca_config")
+height_config = SubResource("Resource_height_config")
+
+[node name="Walls" type="Node3D" parent="." unique_id=280900835]
+
+[node name="Floors" type="Node3D" parent="." unique_id=1637594275]
+
+[node name="Entrances" type="Node3D" parent="." unique_id=767844089]
+
+[node name="Exits" type="Node3D" parent="." unique_id=1756577285]
