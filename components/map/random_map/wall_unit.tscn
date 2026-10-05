@@ -1,11 +1,9 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene format=3 uid="uid://c0q0iqd4tayxp"]
 
 [sub_resource type="StandardMaterial3D" id="StandardMaterial3D_wall"]
 albedo_color = Color(0.45, 0.47, 0.52, 1)
-metallic = 0.0
 roughness = 0.9
 
-[node name="WallUnit" type="CSGBox3D"]
-size = Vector3(1, 1, 1)
-material = SubResource("StandardMaterial3D_wall")
+[node name="WallUnit" type="CSGBox3D" unique_id=1817385661]
 use_collision = true
+material = SubResource("StandardMaterial3D_wall")

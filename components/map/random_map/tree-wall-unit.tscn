@@ -1,0 +1,8 @@
+[gd_scene format=3 uid="uid://bnbvlahkf6j6t"]
+
+[ext_resource type="PackedScene" uid="uid://yvs1jxm0egw" path="res://components/map/random_map/oak-tree-2.glb" id="1_m7lc0"]
+
+[node name="TreeWallUnit" type="Node3D" unique_id=473471724]
+
+[node name="oak-tree-2" parent="." unique_id=2070277920 instance=ExtResource("1_m7lc0")]
+transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, -0.002326, -3.1928153)

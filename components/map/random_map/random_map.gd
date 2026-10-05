@@ -3,8 +3,8 @@ class_name RandomMap
 extends Node3D
 ## 迷宫般风格的随机地图组件。
 ##
-## 用元胞自动机生成"较为稀疏、像迷宫一样"的平面布局，再叠加一张连续起伏的
-## 高度场，最后按格子实例化墙壁 / 地板单元。地图四周是封闭的矩形边缘，
+## 用元胞自动机生成"较为稀疏、像迷宫一样"的平面布局，再按格子实例化墙壁 /
+## 地板单元。地图是平的（所有格子地面高度为 0），四周是封闭的矩形边缘，
 ## 边缘上有多个入口，中心是出口目标。
 ##
 ## 使用方式：
@@ -18,7 +18,7 @@ extends Node3D
 ## [/codeblock]
 ##
 ## 约束：
-## [br]- 地势连续：任意相邻格子的高差不超过 [member TerrainHeightConfig.max_step_height]；
+## [br]- 地图平整：所有格子地面高度均为 0，没有起伏；
 ## [br]- 入口在矩形边缘，数量为 [member entrance_count]；
 ## [br]- 出口集中在中心房间，数量为 [member exit_count]；
 ## [br]- 所有空地一定连通（可走通）。
@@ -28,23 +28,15 @@ signal map_generated(map: RandomMap)
 ## [method clear] 清空地图后发出。
 signal map_cleared()
 
-## 子节点容器名称。
-const CONTAINER_WALLS: StringName = &"Walls"
+## 子节点容器名称。顺序即生成顺序：先铺地板，再在地板上摆墙。
 const CONTAINER_FLOORS: StringName = &"Floors"
+const CONTAINER_WALLS: StringName = &"Walls"
 const CONTAINER_ENTRANCES: StringName = &"Entrances"
 const CONTAINER_EXITS: StringName = &"Exits"
 const CONTAINER_NAMES: Array[StringName] = [
-	CONTAINER_WALLS, CONTAINER_FLOORS, CONTAINER_ENTRANCES, CONTAINER_EXITS
+	CONTAINER_FLOORS, CONTAINER_WALLS, CONTAINER_ENTRANCES, CONTAINER_EXITS
 ]
 
-## 4 邻接方向。
-const NEIGHBOURS_4: Array[Vector2i] = [
-	Vector2i(0, -1), Vector2i(1, 0), Vector2i(0, 1), Vector2i(-1, 0)
-]
-
-## 地面高度场使用 [code]map_seed + TERRAIN_SEED_OFFSET[/code] 作为种子，
-## 避免墙壁和地势出现相同的随机模式。
-const TERRAIN_SEED_OFFSET: int = 7919
 ## 单个单元允许的最小尺寸，防止退化几何导致报错。
 const MIN_UNIT_SIZE: float = 0.001
 ## 地图总长 / 总宽的最小值（米）。
@@ -63,10 +55,13 @@ const MIN_GRID_SIZE: int = 5
 @export var entrance_scene: PackedScene = preload("res://components/map/random_map/entrance_marker.tscn")
 ## 出口标记单元，默认是 Marker3D，位于中心房间。
 @export var exit_scene: PackedScene = preload("res://components/map/random_map/exit_marker.tscn")
-## 非 CSGBox3D / BoxMesh 单元时，单元的原始尺寸（米）。
+## 非 CSGBox3D / BoxMesh 墙壁单元时，单元的原始尺寸（米）。
 @export var wall_scene_size: Vector3 = Vector3.ONE
-## 非 CSGBox3D / BoxMesh 单元时，单元的原始尺寸（米）。
+## 非 CSGBox3D / BoxMesh 地板单元时，单元的原始尺寸（米）。
 @export var floor_scene_size: Vector3 = Vector3.ONE
+## 自定义墙壁场景（非 CSGBox3D / BoxMesh）是否按 [member wall_scene_size] 缩放到格子尺寸。
+## 关闭时保留场景自身的缩放与位置，只把它摆到地板顶面上，适合树木 / 石头等装饰墙。
+@export var scale_custom_wall_scene: bool = false
 
 @export_group("尺寸")
 ## 地图总长度（沿 X 方向，单位：米）。
@@ -89,7 +84,7 @@ const MIN_GRID_SIZE: int = 5
 		_update_map_size()
 ## 墙壁高度，默认 2m。
 @export_range(0.1, 20.0, 0.1) var wall_height: float = 2.0
-## 地板单元的最小厚度（米），用于填满相邻格子的高度差。
+## 地板厚度（米）。地图是平的，地板从地面向下延伸这个厚度。
 @export_range(0.01, 4.0, 0.01) var floor_thickness: float = 0.2
 
 @export_group("出入口")
@@ -103,10 +98,6 @@ const MIN_GRID_SIZE: int = 5
 @export_group("元胞自动机")
 ## 元胞自动机参数（墙壁疏密、生长 / 存活阈值等）。
 @export var ca_config: MazeCAConfig
-
-@export_group("地势")
-## 地势参数（高差、坡度上限、平滑次数等）。
-@export var height_config: TerrainHeightConfig
 
 @export_group("生成")
 ## 随机种子。0 表示每次生成都使用随机种子。
@@ -124,10 +115,11 @@ var map_size: Vector2i = Vector2i(32, 32)
 var _last_seed: int = 0
 ## 当前的格子布局。
 var _maze: MazeCellularAutomata
-## 当前的高度场。
-var _height_field: TerrainHeightField
 var _fallback_wall_scene: PackedScene
 var _fallback_floor_scene: PackedScene
+## 生成中标记：防止 wall_scene / floor_scene 误指向本组件（或包含本组件的场景）
+## 时无限递归生成、耗尽引擎资源。
+var _generating: bool = false
 
 
 func _ready() -> void:
@@ -145,16 +137,21 @@ func generate() -> void:
 
 ## 用固定种子生成地图，便于复现与联机同步。
 func generate_with_seed(p_seed: int) -> void:
+	if _generating:
+		push_warning("RandomMap: 检测到嵌套生成（wall_scene / floor_scene 引用了本组件？），已跳过。")
+		return
+	if not _validate_unit_scenes():
+		return
+	_generating = true
 	_clear_generated()
 	_update_map_size()
 	_last_seed = p_seed
 	_maze = MazeCellularAutomata.new(map_size, ca_config)
 	_maze.generate(p_seed, entrance_count, exit_count, center_room_radius)
-	_height_field = TerrainHeightField.new()
-	_height_field.generate(map_size, _collect_flat_anchors(), p_seed + TERRAIN_SEED_OFFSET)
 	_ensure_containers()
 	_build_units()
 	_build_markers()
+	_generating = false
 	if print_debug_stats:
 		_print_stats()
 	map_generated.emit(self)
@@ -201,11 +198,6 @@ func get_last_seed() -> int:
 ## 取底层格子布局（高级用法，例如自己做寻路）。
 func get_maze() -> MazeCellularAutomata:
 	return _maze
-
-
-## 取高度场（高级用法）。
-func get_height_field() -> TerrainHeightField:
-	return _height_field
 
 
 ## 地图格子数（不是米）。总尺寸用 [method get_actual_map_size]。
@@ -285,14 +277,13 @@ func get_goal_position() -> Vector3:
 	return get_cell_surface_position(_maze.exit_cells[0])
 
 
-## 某一格中心的"地面表面"位置（本地坐标，y = 该格地面高度）。
+## 某一格中心的"地面表面"位置（本地坐标，y = 0，因为地图是平的）。
 func get_cell_surface_position(cell: Vector2i) -> Vector3:
 	var half_x: float = float(map_size.x) * cell_size.x * 0.5
 	var half_z: float = float(map_size.y) * cell_size.y * 0.5
-	var height: float = _height_field.height_at(cell) if _height_field != null else 0.0
 	return Vector3(
 		(float(cell.x) + 0.5) * cell_size.x - half_x,
-		height,
+		0.0,
 		(float(cell.y) + 0.5) * cell_size.y - half_z
 	)
 
@@ -316,18 +307,6 @@ func _resolve_seed() -> int:
 	if map_seed != 0:
 		return map_seed
 	return randi()
-
-
-func _collect_flat_anchors() -> Array[Vector2i]:
-	var anchors: Array[Vector2i] = []
-	if _maze == null:
-		return anchors
-	anchors.append(_maze.center_cell)
-	for cell in _maze.exit_cells:
-		anchors.append(cell)
-	for cell in _maze.entrance_cells:
-		anchors.append(cell)
-	return anchors
 
 
 func _ensure_containers() -> void:
@@ -355,10 +334,12 @@ func _clear_generated() -> void:
 			container.remove_child(child)
 			child.queue_free()
 	_maze = null
-	_height_field = null
 
 
-## 把整张地图实例化成墙壁与地板。
+## 把整张地图实例化成地板与墙壁。
+##
+## 分两趟进行：先给所有格子（墙壁格也包含在内）铺一层地板，再在地板顶面上
+## 摆墙壁单元。这样墙壁是"立在地板上"的，不会出现地板缺口。
 func _build_units() -> void:
 	var walls := _container(CONTAINER_WALLS)
 	var floors := _container(CONTAINER_FLOORS)
@@ -366,37 +347,124 @@ func _build_units() -> void:
 	var floor_packed := _resolve_unit_scene(floor_scene, false)
 	var half_x: float = float(map_size.x) * cell_size.x * 0.5
 	var half_z: float = float(map_size.y) * cell_size.y * 0.5
+	var wall_packed_is_box: bool = _unit_scene_is_box(wall_packed)
+	# 第一趟：所有格子都铺地板。
+	for y in map_size.y:
+		for x in map_size.x:
+			_spawn_floor(Vector2i(x, y), _cell_base(Vector2i(x, y), half_x, half_z), floors, floor_packed)
+	# 第二趟：在墙壁格的地板顶面上摆墙壁。
 	for y in map_size.y:
 		for x in map_size.x:
 			var cell := Vector2i(x, y)
-			var base := Vector3(
-				(float(x) + 0.5) * cell_size.x - half_x,
-				0.0,
-				(float(y) + 0.5) * cell_size.y - half_z
+			if not _maze.is_wall(cell):
+				continue
+			_spawn_wall(
+				cell,
+				_cell_base(cell, half_x, half_z),
+				walls,
+				wall_packed,
+				wall_packed_is_box
 			)
-			if _maze.is_wall(cell):
-				_spawn_wall(cell, base, walls, wall_packed)
-			else:
-				_spawn_floor(cell, base, floors, floor_packed)
+
+
+## 某一格中心的本地坐标（y = 地面高度 0）。
+func _cell_base(cell: Vector2i, half_x: float, half_z: float) -> Vector3:
+	return Vector3(
+		(float(cell.x) + 0.5) * cell_size.x - half_x,
+		0.0,
+		(float(cell.y) + 0.5) * cell_size.y - half_z
+	)
+
+
+## 单元场景是否为"可用尺寸直接控制的盒子"（CSGBox3D / BoxMesh）。
+func _unit_scene_is_box(packed: PackedScene) -> bool:
+	if packed == null:
+		return false
+	var instance := packed.instantiate()
+	var is_box := instance is CSGBox3D
+	if not is_box and instance is MeshInstance3D:
+		is_box = (instance as MeshInstance3D).mesh is BoxMesh
+	instance.free()
+	return is_box
+
+
+## 校验基本单元场景：不能包含 RandomMap（含本组件自身或任何引用它的场景），
+## 否则会嵌套生成、无限递归直到耗尽引擎资源。返回 false 表示拒绝生成。
+func _validate_unit_scenes() -> bool:
+	var self_scene := _own_packed_scene()
+	for scene in [wall_scene, floor_scene]:
+		if scene == null or scene == self_scene:
+			if scene == self_scene and scene != null:
+				push_warning("RandomMap: wall_scene / floor_scene 不能是本组件场景，已拒绝生成。")
+				return false
+			continue
+		if _scene_contains_random_map(scene):
+			push_warning(
+				"RandomMap: wall_scene / floor_scene 引用了 RandomMap 组件（%s），会嵌套生成，已拒绝生成。"
+				% scene.resource_path
+			)
+			return false
+	return true
+
+
+## 本节点对应的 PackedScene（如果是场景实例化出来的）。
+func _own_packed_scene() -> PackedScene:
+	var current: Node = self
+	while current != null:
+		if current.scene_file_path != "":
+			return load(current.scene_file_path) as PackedScene
+		current = current.get_parent()
+	return null
+
+
+## 场景里是否（递归地）包含 RandomMap 节点或带 RandomMap 子场景的节点。
+func _scene_contains_random_map(scene: PackedScene) -> bool:
+	if scene == null:
+		return false
+	var instance := scene.instantiate()
+	var found := _tree_contains_random_map(instance)
+	instance.free()
+	return found
+
+
+func _tree_contains_random_map(node: Node) -> bool:
+	if node is RandomMap:
+		return true
+	for child in node.get_children():
+		if _tree_contains_random_map(child):
+			return true
+	return false
 
 
 func _spawn_wall(
 	cell: Vector2i,
 	base: Vector3,
 	container: Node3D,
-	packed: PackedScene
+	packed: PackedScene,
+	packed_is_box: bool
 ) -> void:
 	if packed == null or container == null:
 		return
-	# 墙顶 = 本格地面 + 墙高；墙底 = 相邻最低地面（补上高度差，避免出现缝隙）。
-	var top: float = _height_field.height_at(cell) + wall_height
-	var bottom: float = _lowest_neighbour_height(cell)
-	var height: float = maxf(top - bottom, MIN_UNIT_SIZE)
 	var instance := _instantiate_unit(packed, container, "Wall_%d_%d" % [cell.x, cell.y])
 	if instance == null:
 		return
-	instance.position = base + Vector3(0.0, (top + bottom) * 0.5, 0.0)
-	_apply_unit_size(instance, Vector3(cell_size.x, height, cell_size.y), wall_scene_size)
+	# 场景自己声明的锚点偏移（相对格子中心的地面），保留作者的摆放意图。
+	var anchor: Vector3 = instance.position
+	if packed_is_box:
+		# 盒子墙：铺满整格，从地板底面一直砌到 wall_height。
+		var top: float = wall_height
+		var bottom: float = -floor_thickness
+		var height: float = maxf(top - bottom, MIN_UNIT_SIZE)
+		instance.position = base + anchor + Vector3(0.0, (top + bottom) * 0.5, 0.0)
+		_apply_unit_size(instance, Vector3(cell_size.x, height, cell_size.y), wall_scene_size)
+		return
+	if not scale_custom_wall_scene:
+		# 自定义场景：保留自身尺寸，摆在格子中心的地板顶面上（y = 0）。
+		instance.position = base + anchor
+		return
+	var size := Vector3(cell_size.x, maxf(wall_height, MIN_UNIT_SIZE), cell_size.y)
+	instance.position = base + anchor + Vector3(0.0, wall_height * 0.5, 0.0)
+	_apply_unit_size(instance, size, wall_scene_size)
 
 
 func _spawn_floor(
@@ -407,9 +475,9 @@ func _spawn_floor(
 ) -> void:
 	if packed == null or container == null:
 		return
-	# 地板顶面 = 本格地面高度；向下至少 floor_thickness，并填到相邻最低地面。
-	var top: float = _height_field.height_at(cell)
-	var bottom: float = minf(top - floor_thickness, _lowest_neighbour_height(cell))
+	# 地板顶面 = 地面高度 0，向下延伸 floor_thickness。
+	var top: float = 0.0
+	var bottom: float = -floor_thickness
 	var height: float = maxf(top - bottom, MIN_UNIT_SIZE)
 	var instance := _instantiate_unit(packed, container, "Floor_%d_%d" % [cell.x, cell.y])
 	if instance == null:
@@ -502,15 +570,6 @@ func _apply_unit_size(unit: Node3D, target_size: Vector3, native_size: Vector3) 
 	)
 
 
-func _lowest_neighbour_height(cell: Vector2i) -> float:
-	var lowest: float = _height_field.height_at(cell)
-	for direction in NEIGHBOURS_4:
-		var neighbour: Vector2i = cell + direction
-		if _maze.is_inside(neighbour):
-			lowest = minf(lowest, _height_field.height_at(neighbour))
-	return lowest
-
-
 ## 基本单元为空时用代码生成的替代品，保证组件始终可用。
 func _resolve_unit_scene(scene: PackedScene, is_wall: bool) -> PackedScene:
 	if scene != null:
@@ -541,11 +600,11 @@ func _build_fallback_unit(color: Color) -> PackedScene:
 
 
 func _print_stats() -> void:
-	if _maze == null or _height_field == null:
+	if _maze == null:
 		return
 	var actual_size := get_actual_map_size()
 	print(
-		"[RandomMap] seed=%d 尺寸=%d格x%d格（%.1fm x %.1fm）空地=%.0f%% 入口=%d 出口=%d 高差=%.2fm 相邻最大高差上限=%.2fm"
+		"[RandomMap] seed=%d 尺寸=%d格x%d格（%.1fm x %.1fm）空地=%.0f%% 入口=%d 出口=%d"
 		% [
 			_last_seed,
 			map_size.x,
@@ -555,7 +614,5 @@ func _print_stats() -> void:
 			_maze.floor_ratio() * 100.0,
 			_maze.entrance_cells.size(),
 			_maze.exit_cells.size(),
-			_height_field.height_range(),
-			height_config.max_step_height if height_config != null else 0.0,
 		]
 	)

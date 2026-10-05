@@ -29,11 +29,11 @@ func _process(_delta: float) -> bool:
 func _run_all() -> void:
 	print("=== RandomMap 组件自检 ===")
 	_test_generation_invariants()
-	_test_height_field()
 	_test_determinism()
 	_test_component_default()
 	_test_component_custom_config()
 	_test_component_without_scenes()
+	_test_two_pass_layering()
 	_test_regenerate_and_clear()
 	_test_map_extent_parameters()
 	_test_split_blocks_config()
@@ -197,43 +197,7 @@ func _open_block_count(maze: MazeCellularAutomata, block: int) -> int:
 	return count
 
 
-## ---------------- 2. 高度场连续性 ----------------
-
-func _test_height_field() -> void:
-	_section("地势连续性")
-	var size := Vector2i(32, 32)
-	var config := TerrainHeightConfig.new()
-	for seed in SEEDS:
-		var maze := MazeCellularAutomata.new(size, MazeCAConfig.new())
-		maze.generate(seed, 4, 1, 1)
-		var anchors: Array[Vector2i] = [maze.center_cell]
-		for cell in maze.entrance_cells:
-			anchors.append(cell)
-		var field := TerrainHeightField.new()
-		field.generate(size, anchors, seed)
-		_check(field.height_range() > 0.0,
-			"seed=%d 地势有起伏（高差 %.2fm）" % [seed, field.height_range()])
-		_check(field.min_height >= -EPSILON, "seed=%d 最低点归零（%.3f）" % [seed, field.min_height])
-		var worst: float = 0.0
-		var violations: int = 0
-		for y in size.y:
-			for x in size.x:
-				var cell := Vector2i(x, y)
-				for direction in TerrainHeightField.NEIGHBOURS_4:
-					var neighbour: Vector2i = cell + direction
-					if not field.is_inside(neighbour):
-						continue
-					var difference: float = absf(field.height_at(cell) - field.height_at(neighbour))
-					worst = maxf(worst, difference)
-					if difference > config.max_step_height + EPSILON:
-						violations += 1
-		_check(violations == 0,
-			"seed=%d 相邻格高差不超过 %.2fm（实际最大 %.3f，违例 %d 处）"
-			% [seed, config.max_step_height, worst, violations])
-		print("   seed=%d 高差=%.2fm 最大相邻高差=%.3f" % [seed, field.height_range(), worst])
-
-
-## ---------------- 3. 可复现性 ----------------
+## ---------------- 2. 可复现性 ----------------
 
 func _test_determinism() -> void:
 	_section("可复现性")
@@ -248,14 +212,8 @@ func _test_determinism() -> void:
 	third.generate(20260102, 4, 1, 1)
 	_check(first.cells != third.cells, "不同种子生成不同的格子布局")
 
-	var field_a := TerrainHeightField.new()
-	field_a.generate(size, [], 555)
-	var field_b := TerrainHeightField.new()
-	field_b.generate(size, [], 555)
-	_check(field_a.heights == field_b.heights, "相同种子的高度场完全一致")
 
-
-## ---------------- 4. 组件（默认参数） ----------------
+## ---------------- 3. 组件（默认参数） ----------------
 
 func _test_component_default() -> void:
 	_section("组件：默认参数（32x32 / 4 入口 / 1 出口）")
@@ -270,8 +228,15 @@ func _test_component_default() -> void:
 
 	var cell_total: int = map.get_map_size().x * map.get_map_size().y
 	_check(map.get_maze() != null, "固定种子重新生成成功")
-	_check(_child_count(map, &"Walls") + _child_count(map, &"Floors") == cell_total,
-		"墙壁 + 地板实例数 = 格子总数（%d）" % cell_total)
+	# 第一趟铺满地板：所有格子都有地板
+	_check(_child_count(map, &"Floors") == cell_total,
+		"地板铺满所有格子（%d）" % cell_total)
+	# 第二趟在地板上摆墙：墙数 = 墙壁格数，且墙与地板都有
+	var wall_cell_count: int = map.get_maze().get_wall_cells().size()
+	_check(_child_count(map, &"Walls") == wall_cell_count,
+		"墙壁数量 = 墙壁格数（%d）" % wall_cell_count)
+	_check(_child_count(map, &"Walls") > 0 and wall_cell_count < cell_total,
+		"墙壁格同时也是地板格，两者不是互斥关系")
 	_check(_child_count(map, &"Entrances") == 4, "入口标记 4 个")
 	_check(_child_count(map, &"Exits") == 1, "出口标记 1 个")
 
@@ -282,30 +247,47 @@ func _test_component_default() -> void:
 		_check(map.is_entrance_cell(cell), "入口标记位置落在入口格上（%s）" % cell)
 	_check(map.is_exit_cell(map.get_center_cell()), "中心格就是出口")
 
-	# 墙壁尺寸：墙高 = wall_height + 与最低邻格的高差
-	var wall_height: float = 0.0
+	# 墙壁尺寸：地图是平的，墙高恒为 wall_height + 地板厚度（墙底与地板底面齐平）
+	var tallest_wall: float = 0.0
+	var wall_bottom_lowest: float = INF
 	for child in map.get_node(NodePath("Walls")).get_children():
 		if child is CSGBox3D:
-			wall_height = maxf(wall_height, (child as CSGBox3D).size.y)
-	_check(wall_height > 0.0, "墙壁单元生成了有效高度（最大 %.2fm）" % wall_height)
-	_check(wall_height >= 2.0 - EPSILON, "墙壁单元至少 2m 高（实际 %.2fm）" % wall_height)
+			var box := child as CSGBox3D
+			tallest_wall = maxf(tallest_wall, box.size.y)
+			wall_bottom_lowest = minf(wall_bottom_lowest, box.position.y - box.size.y * 0.5)
+	_check(tallest_wall > 0.0, "墙壁单元生成了有效高度（最大 %.2fm）" % tallest_wall)
+	_check(is_equal_approx(tallest_wall, map.wall_height + map.floor_thickness),
+		"平地地图墙高 = wall_height + floor_thickness（实际 %.2fm）" % tallest_wall)
+	_check(is_equal_approx(wall_bottom_lowest, -map.floor_thickness),
+		"墙底与地板底面齐平（实际 %.2f）" % wall_bottom_lowest)
 
-	# 地板顶面高度 = 高度场高度
-	var floor_field := map.get_height_field()
-	_check(floor_field != null, "高度场存在")
-	if floor_field != null:
-		_check(
-			is_equal_approx(map.get_cell_surface_position(map.get_center_cell()).y,
-				floor_field.height_at(map.get_center_cell())),
-			"取格地面坐标 = 高度场高度"
-		)
+	# 墙在地板上：抽样检查地板顶面在 y = 0，且每个墙壁格下方都能找到同名地板
+	var floors := map.get_node(NodePath("Floors"))
+	var sampled_cells: Array[Vector2i] = [
+		map.get_center_cell(), Vector2i(5, 7), map.get_entrance_cells()[0]
+	]
+	var wall_cells: Array[Vector2i] = map.get_maze().get_wall_cells()
+	if not wall_cells.is_empty():
+		sampled_cells.append(wall_cells[0])
+	for cell in sampled_cells:
+		var floor_node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [cell.x, cell.y]))
+		_check(floor_node != null, "格 %s 铺了地板" % cell)
+		var floor_box := floor_node as CSGBox3D
+		if floor_box != null:
+			_check(is_equal_approx(floor_box.position.y + floor_box.size.y * 0.5, 0.0),
+				"格 %s 的地板顶面在 y = 0" % cell)
+
+	# 地面是平的：所有格子的地面坐标 y 都是 0
+	for cell in [map.get_center_cell(), Vector2i(5, 7), map.get_entrance_cells()[0]]:
+		_check(is_zero_approx(map.get_cell_surface_position(cell).y),
+			"格 %s 的地面高度为 0" % cell)
 	var cell_round_trip := map.get_cell_from_world(map.to_global(map.get_cell_surface_position(Vector2i(5, 7))))
 	_check(cell_round_trip == Vector2i(5, 7), "世界坐标与格子坐标可以互相转换")
 	print("   32x32 组件生成耗时 = %.0fms" % elapsed)
 	_free_map(map)
 
 
-## ---------------- 5. 组件（自定义参数） ----------------
+## ---------------- 4. 组件（自定义参数） ----------------
 
 func _test_component_custom_config() -> void:
 	_section("组件：自定义参数（16x16 / 2 入口 / 2 出口 / 房间半径 0）")
@@ -319,9 +301,6 @@ func _test_component_custom_config() -> void:
 	map.entrance_count = 2
 	map.exit_count = 2
 	map.center_room_radius = 0
-	map.height_config = TerrainHeightConfig.new()
-	map.height_config.max_step_height = 0.25
-	map.height_config.height_variation = 6.0
 	map.ca_config = MazeCAConfig.new()
 	map.ca_config.wall_fill_ratio = 0.5
 	map.ca_config.birth_limit = 5
@@ -343,7 +322,8 @@ func _test_component_custom_config() -> void:
 			_check(reachable.has(exit_cell), "入口 %s 能走到出口 %s" % [entrance, exit_cell])
 	_check(map.get_cell_from_world(map.to_global(map.get_spawn_position())) == maze.entrance_cells[0],
 		"出生点坐标对应第一个入口")
-	_check(map.to_global(map.get_goal_position()) != Vector3.ZERO, "目标点坐标有效")
+	_check(map.get_cell_from_world(map.to_global(map.get_goal_position())) == maze.exit_cells[0],
+		"目标点坐标落在第一个出口格上")
 	_free_map(map)
 
 
@@ -368,7 +348,60 @@ func _test_component_without_scenes() -> void:
 	_free_map(map)
 
 
-## ---------------- 7. 重新生成与清空 ----------------
+## ---------------- 7. 两趟分层：先铺地板，再在地板上放墙 ----------------
+
+func _test_two_pass_layering() -> void:
+	_section("两趟分层：先铺地板，再在地板上放墙")
+	var map := _spawn_map()
+	if map == null:
+		_check(false, "组件实例化成功")
+		return
+	map.set_map_size_in_cells(Vector2i(20, 20))
+	map.generate_with_seed(4242)
+	var maze := map.get_maze()
+	var cell_total: int = map.get_map_size().x * map.get_map_size().y
+
+	# 1. 每一格都有地板，包括墙壁格
+	var floors := map.get_node(NodePath("Floors"))
+	var walls := map.get_node(NodePath("Walls"))
+	var missing_floor: int = 0
+	var checked_wall_floors: int = 0
+	for y in map.get_map_size().y:
+		for x in map.get_map_size().x:
+			var cell := Vector2i(x, y)
+			var floor_node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [cell.x, cell.y]))
+			if floor_node == null:
+				missing_floor += 1
+			elif maze.is_wall(cell):
+				checked_wall_floors += 1
+	_check(_child_count(map, &"Floors") == cell_total, "地板覆盖全部 %d 格" % cell_total)
+	_check(missing_floor == 0, "没有缺失的地板格（缺失 %d）" % missing_floor)
+	_check(checked_wall_floors == maze.get_wall_cells().size(),
+		"每个墙壁格都铺了地板（%d 格）" % checked_wall_floors)
+
+	# 2. 墙壁立在地板顶面上：墙底不高于 y = 0，墙顶高于 y = 0
+	var wall_below: int = 0
+	var wall_above: int = 0
+	for child in walls.get_children():
+		var box := child as CSGBox3D
+		if box == null:
+			continue
+		var bottom: float = box.position.y - box.size.y * 0.5
+		var top: float = box.position.y + box.size.y * 0.5
+		if bottom > EPSILON:
+			wall_below += 1
+		if top <= EPSILON:
+			wall_above += 1
+	_check(wall_below == 0, "没有悬空在地板之上的墙（%d 个）" % wall_below)
+	_check(wall_above == 0, "所有墙都高出地面（%d 个没有）" % wall_above)
+
+	# 3. 容器顺序体现两趟：Floors 先于 Walls 生成
+	_check(floors.get_index() < walls.get_index(),
+		"Floors 容器排在 Walls 之前（%d < %d）" % [floors.get_index(), walls.get_index()])
+	_free_map(map)
+
+
+## ---------------- 8. 重新生成与清空 ----------------
 
 func _test_regenerate_and_clear() -> void:
 	_section("重新生成与清空")
@@ -382,8 +415,10 @@ func _test_regenerate_and_clear() -> void:
 	map.generate_with_seed(2)
 	_check(map.get_last_seed() == 2 and first_seed == 1, "重新生成会更新种子")
 	var cell_total: int = 14 * 14
-	_check(_child_count(map, &"Walls") + _child_count(map, &"Floors") == cell_total,
-		"重新生成后实例数量不累积（仍为 %d）" % cell_total)
+	_check(_child_count(map, &"Floors") == cell_total,
+		"重新生成后地板仍铺满 %d 格（不累积）" % cell_total)
+	_check(_child_count(map, &"Walls") == map.get_maze().get_wall_cells().size(),
+		"重新生成后墙壁数量 = 墙壁格数")
 	map.clear()
 	_check(map.get_maze() == null, "clear() 清空地图数据")
 	_check(_child_count(map, &"Walls") == 0 and _child_count(map, &"Floors") == 0,
@@ -393,7 +428,7 @@ func _test_regenerate_and_clear() -> void:
 	_free_map(map)
 
 
-## ---------------- 8. 地图总长度 / 总宽度 ----------------
+## ---------------- 9. 地图总长度 / 总宽度 ----------------
 
 func _test_map_extent_parameters() -> void:
 	_section("尺寸参数：地图总长度 / 地图总宽度")
@@ -447,8 +482,10 @@ func _test_map_extent_parameters() -> void:
 	map.generate_with_seed(20260101)
 	_check(map.get_map_size() == Vector2i(16, 12),
 		"24m x 18m（1.5m 单元）→ 16 x 12 格（实际 %s）" % map.get_map_size())
-	_check(_child_count(map, &"Walls") + _child_count(map, &"Floors") == 16 * 12,
-		"单元数量 = 格子总数（%d）" % (16 * 12))
+	_check(_child_count(map, &"Floors") == 16 * 12,
+		"地板数量 = 格子总数（%d）" % (16 * 12))
+	_check(_child_count(map, &"Walls") == map.get_maze().get_wall_cells().size(),
+		"墙壁数量 = 墙壁格数（%d）" % map.get_maze().get_wall_cells().size())
 	var bounds := _unit_bounds(map)
 	_check(
 		is_equal_approx(bounds.position.x, -12.0) and is_equal_approx(bounds.end.x, 12.0),
@@ -471,7 +508,7 @@ func _test_map_extent_parameters() -> void:
 	_free_map(map)
 
 
-## ---------------- 9. 防大块后处理参数 ----------------
+## ---------------- 10. 防大块后处理参数 ----------------
 
 func _test_split_blocks_config() -> void:
 	_section("防大块后处理参数")
