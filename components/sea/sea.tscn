@@ -1,0 +1,18 @@
+[gd_scene format=3 uid="uid://d3ledm0mpxvo2"]
+
+[ext_resource type="Shader" uid="uid://cmhgncxp44q84" path="res://components/sea/ocean_visual_shader.tres" id="1_tbqem"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_dkw63"]
+render_priority = 0
+shader = ExtResource("1_tbqem")
+shader_parameter/WaterColor = Color(0.23988676, 0.4627605, 1, 1)
+shader_parameter/WaveColor = Color(1, 1, 1, 1)
+shader_parameter/WaveCutoff = 0.75
+shader_parameter/WaveSpeed = Vector2(0.01, 0.01)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_pusyl"]
+material = SubResource("ShaderMaterial_dkw63")
+size = Vector2(500, 500)
+
+[node name="Sea" type="MeshInstance3D" unique_id=330008000]
+mesh = SubResource("PlaneMesh_pusyl")
