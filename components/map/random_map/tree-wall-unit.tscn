@@ -1,8 +1,18 @@
-[gd_scene format=3 uid="uid://bnbvlahkf6j6t"]
+[gd_scene load_steps=3 format=3 uid="uid://bnbvlahkf6j6t"]
 
 [ext_resource type="PackedScene" uid="uid://yvs1jxm0egw" path="res://components/map/random_map/oak-tree-2.glb" id="1_m7lc0"]
 
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_trunk"]
+radius = 0.3
+height = 2.8
+
 [node name="TreeWallUnit" type="Node3D" unique_id=473471724]
 
+[node name="Trunk" type="StaticBody3D" parent="." unique_id=930127465]
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trunk" unique_id=1440152301]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("CylinderShape3D_trunk")
+
 [node name="oak-tree-2" parent="." unique_id=2070277920 instance=ExtResource("1_m7lc0")]
-transform = Transform3D(0.2, 0, 0, 0, 0.2, 0, 0, 0, 0.2, 0, -0.002326, -3.1928153)
+transform = Transform3D(0.4, 0, 0, 0, 0.4, 0, 0, 0, 0.4, 0, -0.005427, -6.385648)

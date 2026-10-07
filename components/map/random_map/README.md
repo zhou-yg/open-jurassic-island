@@ -73,3 +73,16 @@
 每个入口都能走到中心、出口在中心房间、地图平整（地面高度恒为 0）、
 同种子可复现、不同尺寸、无 3x3 及以上实心墙块、无 4x4 及以上整块空地、
 关闭大块打散后可复现旧行为等。
+
+## 在主场景中的用法
+
+侏罗纪岛主场景（`scenes-3d/jurassic-island/jurassic-island.tscn`）就是本组件的一个用法示例：
+
+- `wall_scene` 指向 `tree-wall-unit.tscn`，于是地图里的每一面墙都是一棵树，
+  整座岛因此长满树木；
+- `cell_size` 设为 2m x 2m，配合 0.5m 半径的玩家胶囊，保证 1 格宽的通道可以走通；
+- `map_length` / `map_width` = 44m，正好铺满岛屿顶部的平整台面。
+
+> 注意：`tree-wall-unit.tscn` 自带一根树干碰撞体。自定义墙壁场景若要真正挡人，
+> 必须像它一样在自己的场景里放好 `CollisionShape3D`——`RandomMap` 不会替
+> `wall_scene` 生成碰撞。

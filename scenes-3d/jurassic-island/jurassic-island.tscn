@@ -1,35 +1,63 @@
 [gd_scene format=3 uid="uid://dnc7mnbatx4bq"]
 
-[ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="6_isw5y"]
+[ext_resource type="Script" uid="uid://qspdn88ptptu" path="res://scenes-3d/jurassic-island/jurassic-island.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/island/sky-island-basic.glb" id="2_island"]
+[ext_resource type="PackedScene" uid="uid://xqs2mmlo216h" path="res://components/map/random_map/random_map.tscn" id="3_map"]
+[ext_resource type="PackedScene" uid="uid://bnbvlahkf6j6t" path="res://components/map/random_map/tree-wall-unit.tscn" id="4_tree"]
+[ext_resource type="PackedScene" uid="uid://d3ledm0mpxvo2" path="res://components/sea/sea.tscn" id="5_sea"]
+[ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://scenes-3d/player/player.tscn" id="6_player"]
+[ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="7_topbar"]
 
-[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_isw5y"]
-sky_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
-ground_horizon_color = Color(0.66224277, 0.6717428, 0.6867428, 1)
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_main"]
+sky_horizon_color = Color(0.64, 0.7, 0.78, 1)
+ground_bottom_color = Color(0.24, 0.27, 0.3, 1)
+ground_horizon_color = Color(0.64, 0.7, 0.78, 1)
 
-[sub_resource type="Sky" id="Sky_6rb87"]
-sky_material = SubResource("ProceduralSkyMaterial_isw5y")
+[sub_resource type="Sky" id="Sky_main"]
+sky_material = SubResource("ProceduralSkyMaterial_main")
 
-[sub_resource type="Environment" id="Environment_nq2ao"]
+[sub_resource type="Environment" id="Environment_main"]
 background_mode = 2
-sky = SubResource("Sky_6rb87")
+sky = SubResource("Sky_main")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.6
 tonemap_mode = 2
-glow_enabled = true
+fog_enabled = true
+fog_light_color = Color(0.66, 0.72, 0.8, 1)
+fog_density = 0.0012
 
-[node name="JurassicIsland" type="Node3D" unique_id=2128539011]
+[node name="JurassicIsland" type="Node3D" unique_id=384099776]
+script = ExtResource("1_main")
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="." unique_id=1362458145]
-transform = Transform3D(-0.8660254, -0.43301278, 0.25, 0, 0.49999997, 0.86602545, -0.50000006, 0.75, -0.43301266, 0, 0, 0)
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1508984891]
+environment = SubResource("Environment_main")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=687188717]
+transform = Transform3D(0.7880108, 0.48514786, -0.37903908, 0, 0.6156615, 0.7880107, 0.6156615, -0.62096095, 0.4851479, 0, 40, 0)
 shadow_enabled = true
+directional_shadow_max_distance = 200.0
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1475716725]
-environment = SubResource("Environment_nq2ao")
+[node name="Island" type="Node3D" parent="." unique_id=326285652]
+transform = Transform3D(14, 0, 0, 0, 14, 0, 0, 0, 14, 0, -8, 0)
 
-[node name="CSGBox3D" type="CSGBox3D" parent="." unique_id=2131096372]
-transform = Transform3D(0.9999969, -0.0009545854, -0.0022787924, 0.000959624, 0.99999714, 0.0022229345, 0.0022766762, -0.0022250977, 0.99999493, 0, 4.707508, -503.87982)
-size = Vector3(200, 1, 1)
+[node name="sky-island-basic" parent="Island" unique_id=1301358028 instance=ExtResource("2_island")]
 
-[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1286035532]
+[node name="Sea" parent="." unique_id=1773263633 instance=ExtResource("5_sea")]
 
-[node name="TopBar" parent="HUDLayer" unique_id=1139506717 instance=ExtResource("6_isw5y")]
+[node name="RandomMap" parent="." unique_id=1034090998 instance=ExtResource("3_map")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+wall_scene = ExtResource("4_tree")
+map_length = 44.0
+map_width = 44.0
+cell_size = Vector2(2, 2)
+entrance_count = 8
+exit_count = 2
+center_room_radius = 3
+
+[node name="Player" parent="." unique_id=1691824920 instance=ExtResource("6_player")]
+
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=615637729]
+
+[node name="TopBar" parent="HUDLayer" unique_id=1748306951 instance=ExtResource("7_topbar")]
 auto_advance_time = true
 day_length_seconds = 120.0
