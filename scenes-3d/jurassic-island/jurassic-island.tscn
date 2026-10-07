@@ -38,17 +38,17 @@ shadow_enabled = true
 directional_shadow_max_distance = 200.0
 
 [node name="Island" type="Node3D" parent="." unique_id=326285652]
-transform = Transform3D(14, 0, 0, 0, 14, 0, 0, 0, 14, 0, -8, 0)
+transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, -12.964321, 0)
 
 [node name="sky-island-basic" parent="Island" unique_id=1301358028 instance=ExtResource("2_island")]
 
 [node name="Sea" parent="." unique_id=1773263633 instance=ExtResource("5_sea")]
 
 [node name="RandomMap" parent="." unique_id=1034090998 instance=ExtResource("3_map")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2, 0)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2417679, 0)
 wall_scene = ExtResource("4_tree")
-map_length = 44.0
-map_width = 44.0
+map_length = 64.0
+map_width = 64.0
 cell_size = Vector2(2, 2)
 entrance_count = 8
 exit_count = 2
