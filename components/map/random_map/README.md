@@ -86,3 +86,29 @@
 > 注意：`tree-wall-unit.tscn` 自带一根树干碰撞体。自定义墙壁场景若要真正挡人，
 > 必须像它一样在自己的场景里放好 `CollisionShape3D`——`RandomMap` 不会替
 > `wall_scene` 生成碰撞。
+
+## TreeWalls · 填充岛屿剩余部分
+
+`random_map.tscn` 生成的是规整矩形，而岛屿是不规则形状，矩形之外会露出一圈
+光秃秃的岩石。`tree-walls.tscn`（`class_name TreeWalls`）用来补上这部分：
+
+- 以自身原点为基准，在 `fill_extent` 范围内按 `spacing` 打网格；
+- 每个格点向下打射线，只保留落在"本节点所在高度"附近、且四角同样平整的地面
+  （坡度大的岩壁与悬崖会被自动舍弃，所以填充范围贴着岛屿真实轮廓）；
+- 跳过 `maze_path` 指向的随机地图实际占用的矩形（外扩 `maze_margin`）；
+- 其余格点各摆一个 `floor_unit.tscn` + 一棵 `tree-wall-unit.tscn`。
+
+| 入参 | 默认值 | 说明 |
+| --- | --- | --- |
+| `tree_scene` / `floor_scene` | 复用随机地图的树 / 地板单元 | PackedScene |
+| `spacing` | 3m | 唯一的疏密参数，越小越密 |
+| `fill_extent` | 120m x 120m | 以本节点为中心的铺设范围 |
+| `maze_path` | 空 | 指向 `RandomMap`，自动读取它的实际矩形并跳过 |
+| `maze_margin` | 1m | 跳过区域额外外扩的边距 |
+| `ground_tolerance` | 0.1m | 允许的地面高度误差，超出即视为非台地 |
+| `edge_check` | 开 | 检查格子四角，避免地板探出崖边 |
+| `jitter` / `random_rotation` | 0.18 / 开 | 位置抖动与随机朝向，破掉网格感 |
+| `fill_seed` | 0 | 固定种子可复现 |
+
+> 本组件放在 `RandomMap` 之后、并以同一高度对齐即可工作；主场景
+> `scenes-3d/jurassic-island/jurassic-island.tscn` 就是这么用的。

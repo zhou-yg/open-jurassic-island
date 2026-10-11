@@ -2,8 +2,6 @@
 
 [ext_resource type="Script" uid="uid://qspdn88ptptu" path="res://scenes-3d/jurassic-island/jurassic-island.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/island/sky-island-basic.glb" id="2_island"]
-[ext_resource type="PackedScene" uid="uid://xqs2mmlo216h" path="res://components/map/random_map/random_map.tscn" id="3_map"]
-[ext_resource type="PackedScene" uid="uid://bnbvlahkf6j6t" path="res://components/map/random_map/tree-wall-unit.tscn" id="4_tree"]
 [ext_resource type="PackedScene" uid="uid://d3ledm0mpxvo2" path="res://components/sea/sea.tscn" id="5_sea"]
 [ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://scenes-3d/player/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="7_topbar"]
@@ -44,16 +42,6 @@ transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, -12.964321, 0)
 
 [node name="Sea" parent="." unique_id=1773263633 instance=ExtResource("5_sea")]
 
-[node name="RandomMap" parent="." unique_id=1034090998 instance=ExtResource("3_map")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2417679, 0)
-wall_scene = ExtResource("4_tree")
-map_length = 64.0
-map_width = 64.0
-cell_size = Vector2(2, 2)
-entrance_count = 8
-exit_count = 2
-center_room_radius = 3
-
 [node name="Player" parent="." unique_id=1691824920 instance=ExtResource("6_player")]
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=615637729]
@@ -61,3 +49,5 @@ center_room_radius = 3
 [node name="TopBar" parent="HUDLayer" unique_id=1748306951 instance=ExtResource("7_topbar")]
 auto_advance_time = true
 day_length_seconds = 120.0
+
+[node name="terrain" type="Node3D" parent="." unique_id=2007347347]

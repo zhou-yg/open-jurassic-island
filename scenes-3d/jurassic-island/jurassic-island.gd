@@ -14,6 +14,8 @@ extends Node3D
 @onready var random_map: RandomMap = $RandomMap
 ## 岛屿节点（其子节点是 sky-island-basic.glb 实例）。
 @onready var island: Node3D = $Island
+## 填充岛屿剩余部分的树墙组件。
+@onready var tree_walls: TreeWalls = $TreeWalls
 ## 玩家（第一人称）。
 @onready var player: CharacterBody3D = $Player
 
@@ -38,15 +40,19 @@ func _ready() -> void:
 		_on_map_generated(random_map)
 
 
-## 把随机地图摆到"岛屿台面正上方"。
+## 把随机地图摆到"岛屿台面正上方"，并让填充用的树墙以同一台面为基准。
 ##
 ## 岛屿台面的世界高度 = 岛屿节点 y + 局部台面高度 x 节点缩放，
-## 所以只要改岛屿的缩放 / 位置，随机地图会自动跟着对齐。
+## 所以只要改岛屿的缩放 / 位置，随机地图与树墙会自动跟着对齐。
 func _align_maze_to_island() -> void:
-	var plateau_height: float = (
-		island.position.y + island_plateau_local_height * island.scale.y
-	)
+	var plateau_height := get_plateau_height()
 	random_map.position.y = plateau_height + maze_clearance
+	tree_walls.position.y = plateau_height
+
+
+## 岛屿台面的世界高度。
+func get_plateau_height() -> float:
+	return island.position.y + island_plateau_local_height * island.scale.y
 
 
 ## 地图（重新）生成后：把玩家放到第一个入口，并朝向地图中心。

@@ -1,0 +1,11 @@
+[gd_scene load_steps=3 format=3 uid="uid://ctreewallsfill01"]
+
+[ext_resource type="Script" path="res://components/map/random_map/tree_walls.gd" id="1_tree_walls"]
+
+[node name="TreeWalls" type="Node3D"]
+script = ExtResource("1_tree_walls")
+spacing = 3.0
+
+[node name="Floors" type="Node3D" parent="."]
+
+[node name="Trees" type="Node3D" parent="."]
