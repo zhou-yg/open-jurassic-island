@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cbananabunch001"]
+
+[ext_resource type="Script" uid="uid://calkwmie84ou4" path="res://components/vegetation/banana_bunch/banana_bunch.gd" id="1_bunch"]
+
+[node name="BananaBunch" type="Node3D"]
+script = ExtResource("1_bunch")
+
+[node name="Bananas" type="Node3D" parent="."]
+
+[node name="Rachis" type="Node3D" parent="."]
