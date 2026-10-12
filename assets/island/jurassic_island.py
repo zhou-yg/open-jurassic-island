@@ -102,6 +102,21 @@ MAT_ORDER = ["grass_a", "grass_b", "grass_c", "grass_d",
 SLOPE_ROCK = 0.42       # face slope above which rock takes over
 SAND_MAX_Z = 9.0
 
+# --- vegetation (low-poly conifer blobs, as in the reference) --------------
+TREE_SPACING = 9.5      # plan px between candidate positions
+TREE_DENSITY = 0.42     # fraction of candidates that become a tree
+TREE_HEIGHT = 6.5       # metres, before per-tree jitter (ref: ~3-7 m)
+TREE_CLUMP = 0.42       # noise threshold: trees grow in patches
+TREE_MIN_Z = 1.4        # no trees at or below this elevation
+TREE_MAX_SLOPE = 1.75   # reject trees on steeper ground
+TREE_COLOR_A = "#2C6B3A"
+TREE_COLOR_B = "#3C8040"
+
+# --- waterfall: a ribbon from the ridge ledge down the cliff --------------
+WATERFALL_TOP = (10.0, -215.0)
+WATERFALL_BASE = (-52.0, -150.0)
+WATERFALL_W = 9.0       # plan px
+
 # --- render ----------------------------------------------------------------
 RES_X, RES_Y = 1536, 1024
 SUN_ENERGY = 3.2
@@ -384,6 +399,132 @@ def assign_materials(obj, masks, gxs, gys):
     mesh.update()
 
 
+# ==========================================================================
+# scatter: forests and the waterfall
+# ==========================================================================
+def height_at(gx, gy, h, X, Y):
+    i = int(np.clip(np.searchsorted(gx, X), 0, len(gx) - 1))
+    j = int(np.clip(np.searchsorted(gy, Y), 0, len(gy) - 1))
+    return float(h[i, j])
+
+
+def build_forests(gx, gy, h, masks, gxs, gys):
+    """Low-poly conifer blobs scattered on the grass, denser on the ridges.
+
+    Each tree is a 5-sided cone plus a short trunk; all trees of one group are
+    joined into a single mesh so the export stays tidy.
+    """
+    sx = gx[-1] - gx[0]
+    sy = gy[-1] - gy[0]
+    rng = np.random.default_rng(SEED + 31)
+    verts, faces, mats = [], [], []
+    step = TREE_SPACING
+    n = 0
+    ii = 0
+    for X in np.arange(gx[0], gx[-1], step):
+        ii += 1
+        for Y in np.arange(gy[0], gy[-1], step):
+            if rng.random() > TREE_DENSITY:
+                continue
+            # jitter so the grid does not read as rows
+            px = X + (rng.random() - 0.5) * step * 0.9
+            py = Y + (rng.random() - 0.5) * step * 0.9
+            gi, gj = int((px - gx[0]) / sx * (GRID - 1)), int((py - gy[0]) / sy * (GRID - 1))
+            if not (0 <= gi < GRID and 0 <= gj < GRID):
+                continue
+            z = h[gi, gj]
+            if z < TREE_MIN_Z:
+                continue
+            # no trees on cliffs, beaches, the lagoon or the dry plateau
+            if bilinear(masks["SAND"], gxs, gys, np.array([px]), np.array([py]))[0] > 0.35:
+                continue
+            if bilinear(masks["LAGOON"], gxs, gys, np.array([px]), np.array([py]))[0] > 0.2:
+                continue
+            if bilinear(masks["DRY"], gxs, gys, np.array([px]), np.array([py]))[0] > 0.45:
+                continue
+            gxx = [h[min(max(gi + a, 0), GRID - 1), min(max(gj + b, 0), GRID - 1)]
+                   for a, b in ((1, 0), (-1, 0), (0, 1), (0, -1))]
+            slope = (max(gxx) - min(gxx)) / (step * SCALE)
+            if slope > TREE_MAX_SLOPE:
+                continue
+
+            scale = TREE_HEIGHT * (0.72 + 0.55 * rng.random())
+            wx, wy = px * SCALE, py * SCALE
+            base = len(verts)
+            seg = 5
+            verts.append((wx, wy, z + scale))          # tip
+            for s in range(seg):
+                a = 2 * math.pi * s / seg + rng.random() * 0.4
+                r = scale * 0.38
+                verts.append((wx + math.cos(a) * r, wy + math.sin(a) * r,
+                              z + scale * 0.30))
+            for s in range(seg):
+                a = 2 * math.pi * s / seg + 0.3
+                r = scale * 0.26
+                verts.append((wx + math.cos(a) * r, wy + math.sin(a) * r, z))
+            for s in range(seg):
+                faces.append((base, base + 1 + s, base + 1 + (s + 1) % seg))
+            for s in range(seg):
+                faces.append((base + 1 + s, base + 1 + seg + s,
+                              base + 1 + seg + (s + 1) % seg))
+                faces.append((base + 1 + s, base + 1 + seg + (s + 1) % seg,
+                              base + 1 + (s + 1) % seg))
+            mats.extend([TREE_MAT] * (2 * seg))
+            n += 1
+    print("trees: %d" % n)
+    if not n:
+        return []
+    mesh = bpy.data.meshes.new("Forest")
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new("Forest", mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    # one material for the whole forest, with two tone slots per face
+    for name, col in (("tree_a", TREE_COLOR_A), ("tree_b", TREE_COLOR_B)):
+        obj.data.materials.append(make_material(name, hex_to_linear(col)))
+    rng2 = np.random.default_rng(SEED + 99)
+    idx = (rng2.random(len(mesh.polygons)) < 0.5).astype(np.int32)
+    mesh.polygons.foreach_set("material_index", idx)
+    mesh.update()
+    for p in mesh.polygons:
+        p.use_smooth = False
+    return [obj]
+
+
+def build_waterfall(h, gx, gy):
+    """A flat ribbon of water from the ridge ledge down the cliff face."""
+    X0, Y0 = WATERFALL_TOP
+    X1, Y1 = WATERFALL_BASE
+    steps = 26
+    verts, faces = [], []
+    width = WATERFALL_W
+    for i in range(steps + 1):
+        t = i / steps
+        X = X0 + (X1 - X0) * t
+        Y = Y0 + (Y1 - Y0) * t
+        # hug the terrain, but never rise above the ridge line
+        z = height_at(gx, gy, h, X, Y) + 0.5
+        # the ribbon hangs slightly off the slope so it reads as water
+        nx, ny = -(Y1 - Y0), (X1 - X0)
+        ln = math.hypot(nx, ny) or 1.0
+        nx, ny = nx / ln, ny / ln
+        a = (X + nx * width / 2, Y + ny * width / 2, z)
+        b = (X - nx * width / 2, Y - ny * width / 2, z)
+        verts.append((a[0] * SCALE, a[1] * SCALE, a[2]))
+        verts.append((b[0] * SCALE, b[1] * SCALE, b[2]))
+    for i in range(steps):
+        faces.append((2 * i, 2 * i + 2, 2 * i + 3, 2 * i + 1))
+    mesh = bpy.data.meshes.new("Waterfall")
+    mesh.from_pydata(verts, [], faces)
+    mesh.update()
+    obj = bpy.data.objects.new("Waterfall", mesh)
+    bpy.context.scene.collection.objects.link(obj)
+    obj.data.materials.append(make_material("waterfall", hex_to_linear("#DCEFF5"), 0.25))
+    for p in obj.data.polygons:
+        p.use_smooth = False
+    return obj
+
+
 def build_islets(shapes, footprint_mask, gxs, gys):
     """Low-poly cones for lagoon islets and offshore rocks."""
     objs = []
@@ -556,6 +697,8 @@ def main():
 
     assign_materials(obj, masks, gxs, gys)
     islets = build_islets(shapes, masks["FOOTPRINT"], gxs, gys)
+    forests = build_forests(gx, gy, h, masks, gxs, gys)
+    fall = build_waterfall(h, gx, gy)
     sea = add_sea()
 
     xs = [v.co.x for v in obj.data.vertices]
@@ -566,9 +709,10 @@ def main():
     tris = sum(len(p.vertices) - 2 for p in obj.data.polygons)
     print("triangles: %d" % tris)
 
-    cam = setup_render([obj] + islets + [sea], framing_objs=[obj] + islets)
+    land = [obj] + islets + forests + [fall]
+    cam = setup_render(land + [sea], framing_objs=[obj] + islets)
     render = os.path.join(ASSET_DIR, "jurassic_island_preview.png")
-    render_to(render, cam, objs=[obj] + islets + [sea])
+    render_to(render, cam, objs=land + [sea])
     top = os.path.join(ASSET_DIR, "jurassic_island_top.png")
     render_to(top, cam, top=True, objs=[obj] + islets)
 
