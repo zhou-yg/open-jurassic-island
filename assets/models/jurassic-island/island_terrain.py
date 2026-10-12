@@ -14,10 +14,9 @@
 #          分形噪声」解析式地算出每个顶点高度，再抖动顶点、三角化、按坡度/高度
 #          分配材质，最后硬边着色(flat shading) 得到 low-poly 观感。
 #
-#   海水不是一块半透明平面，而是「按水深分色」的水面网格：
-#   取地形中完全没入水下的三角面，在 z=0 处复制一份，按水深分成
-#   白浪 / 浅青 / 中蓝 / 深蓝 四档 —— 于是水岸线天然与地形完全吻合，
-#   并复刻参考图那种「近岸青绿、远海深蓝」的渐变。
+#   只输出岛屿本体（单个 Island 物体），不含水面等任何附加物。
+#   潟湖与水道仍然是地形的一部分（挖在海平面之下）：将来要加水时，
+#   直接在 z=0 铺一张水面即可，岸线天然吻合。
 #
 #   坐标系：Z 轴向上，海平面 = z = 0，原点 = 岛屿中心（导出 GLB 时自动转成 Y-up）
 import bpy
@@ -40,39 +39,33 @@ ELL_B = 60.0             # Y（南北）方向半轴
 # 网格范围与精度
 GRID_X = 122.0           # 地形向外延伸半宽（含外海海底）
 GRID_Y = 112.0
-OCEAN_PAD = 165.0        # 外海深水平面再向外延伸的距离（够预览取景用，又不至于过大）
-CELL = 2.0               # 单元格边长（米）：面片大而均匀，低多边形的硬边才干净
+CELL = 3.2               # 单元格边长（米）：面片要大，low-poly 的切面才看得出来
 
 SEA_LEVEL = 0.0          # 海平面高度
 SEA_DEPTH = 18.0         # 远离海岸处海底深度
 CLIFF_H = 9.5            # 海岸崖壁高度（从海平面算起）
 CLIFF_W = 0.030          # 崖壁水平过渡宽度（归一化半径，越小越陡）
 
-JITTER = 0.10            # 顶点抖动比例（相对单元格）：轻微即可，抖动大了表面会显得很碎
+# 顶点抖动只留极小量：切面要干净利落，抖动大了碎面会破坏 low-poly 的块面感
+JITTER = 0.08            # 顶点抖动比例（相对单元格）：轻微即可，抖动大了表面会显得很碎
+
 
 # 材质配色（低多边形分层色，对着参考图取的）
 COLORS = {
-    "grass_light": (0.295, 0.575, 0.190),   # 亮黄绿（向阳草坡）
-    "grass_mid":   (0.195, 0.455, 0.160),   # 中绿（主色，占绝大部分）
-    "grass_dark":  (0.125, 0.350, 0.120),   # 深绿（背阴 / 密林）
-    "rock_light":  (0.470, 0.455, 0.428),   # 浅灰岩
-    "rock_dark":   (0.335, 0.325, 0.315),   # 深灰岩（崖壁阴影）
-    "rock_tan":    (0.660, 0.560, 0.380),   # 黄褐岩土（东侧台地）
-    "sand":        (0.792, 0.706, 0.494),   # 沙滩
-    "seabed":      (0.700, 0.670, 0.530),   # 浅海海底（水面之下）
-    # ---- 水面（另一物体，按水深分档）----
-    "surf":        (0.870, 0.960, 0.950),   # 贴岸白浪
-    "water_shallow": (0.145, 0.760, 0.780), # 浅滩青绿（参考图最醒目的那一圈）
-    "water_mid":   (0.075, 0.455, 0.730),   # 中蓝
-    "water_deep":  (0.045, 0.300, 0.635),   # 深海蓝（比天空背景深，但依然通透）
+    # 全岛统一用「自然土色系」：岩灰、土黄、沙色，不含任何绿色。
+    # 分区只按地貌（山顶裸岩 / 山坡土 / 台地土黄 / 沙滩），
+    # 每个区内部是单一颜色 —— 切面的立体感完全交给光影，不再靠杂色堆砌。
+    "soil_high":   (0.430, 0.372, 0.288),   # 高处山坡土（偏灰的土色）
+    "soil_low":    (0.505, 0.432, 0.325),   # 低处缓坡土（略暖）
+    "rock_light":  (0.455, 0.440, 0.412),   # 浅岩灰（向阳岩面）
+    "rock_dark":   (0.296, 0.285, 0.272),   # 深岩灰（崖壁 / 背阴）
+    "rock_tan":    (0.560, 0.468, 0.310),   # 土黄岩土（东侧台地）
+    "sand":        (0.706, 0.632, 0.455),   # 沙色（南侧沙滩）
+    "base":        (0.255, 0.250, 0.245),   # 岛体底座（切面 / 底面）
 }
-GEO_MATS = ["sand", "seabed", "grass_light", "grass_mid", "grass_dark",
-            "rock_light", "rock_dark", "rock_tan"]
-WATER_MATS = ["surf", "water_shallow", "water_mid", "water_deep"]
+GEO_MATS = ["sand", "soil_high", "soil_low", "rock_light", "rock_dark",
+            "rock_tan", "base"]
 MI = {name: i for i, name in enumerate(GEO_MATS)}
-
-# 水深分档阈值（米）
-W_SURF, W_SHALLOW, W_MID = 0.7, 3.4, 8.0
 
 
 # ==================== 1. 噪声工具（确定性 value noise + fbm） ====================
@@ -189,9 +182,7 @@ PLATEAU_H = 19.0         # 台地顶面高度（参考图里台地相当高，�
 BEACH_H = 2.4            # 沙滩最高点
 
 # 外海礁石：(x, y, 高度, 半径)
-REEFS = [(-96.0, -38.0, 9.0, 10.0), (70.0, -74.0, 7.0, 9.0),
-         (92.0, -48.0, 5.5, 7.5), (-78.0, 50.0, 8.0, 8.0),
-         (34.0, -88.0, 5.5, 8.0)]
+REEFS = []   # 外海礁石属于散落的装饰小景，不算「岛体」，故不生成
 
 
 def island_height(x, y):
@@ -333,58 +324,36 @@ cz = (p0[:, 2] + p1[:, 2] + p2[:, 2]) / 3.0     # 面心高度
 cx = (p0[:, 0] + p1[:, 0] + p2[:, 0]) / 3.0
 cy = (p0[:, 1] + p1[:, 1] + p2[:, 1]) / 3.0
 
-# 低多边形的「拼块质感」：每个面给一个稳定的随机明暗。
-# 关键在于三种绿彼此非常接近，所以呈现的是细腻的明暗拼块，
-# 而不是高对比的杂色噪点。再叠加一点大尺度的向阳/背阴偏移，
-# 让色调整体仍跟着山体形态走，不会像随机撒点。
-fv = hash2(np.round(cx / 2.0).astype(np.int64),
-           np.round(cy / 2.0).astype(np.int64), SEED + 555)
-bias = (sfbm(cx, cy, 0.0090, 2, SEED + 555) * 0.5 + 0.5)   # 大尺度阴阳面
-tone = np.clip(0.62 * fv + 0.38 * bias, 0.0, 1.0)
+# 按「地貌分区」上色，每个区内部是单一颜色 —— 不再用逐面随机数，
+# 所以不会出现绿块/色块交织的拼布感。切面的明暗完全由光照产生，
+# 这正是 low-poly 干净的观感来源。
+mat_idx = np.full(len(faces), MI["soil_low"], dtype=np.int32)
 
-mat_idx = np.full(len(faces), MI["grass_mid"], dtype=np.int32)
-mat_idx[tone < 0.47] = MI["grass_dark"]
-mat_idx[tone > 0.72] = MI["grass_light"]
+# 山坡：越高越偏灰的土色，用连续高度过渡（不是随机）
+mat_idx[cz > 14.0] = MI["soil_high"]
 
-# 陡坡 -> 岩石（用同一个 shade 量决定深浅，边界同样连续）
+# 陡坡 -> 岩石；近垂直的崖壁用深岩灰
 steep = nz < 0.42
 mat_idx[steep] = MI["rock_light"]
-mat_idx[steep & (tone > 0.50)] = MI["rock_dark"]
 mat_idx[nz < 0.26] = MI["rock_dark"]
-mat_idx[(nz < 0.26) & (tone < 0.30)] = MI["rock_light"]
 
-# 高海拔山脊 -> 裸岩（参考图里只有主峰顶部是灰岩，山腰仍是大片绿）
-mat_idx[(cz > 34.0) & (nz > 0.72)] = MI["rock_light"]
-mat_idx[(cz > 30.0) & (nz < 0.78)] = MI["rock_dark"]
+# 高海拔山脊 -> 裸岩
+mat_idx[(cz > 30.0) & (nz > 0.60)] = MI["rock_light"]
+mat_idx[(cz > 26.0) & (nz < 0.72)] = MI["rock_dark"]
 
-# 东侧台地 -> 干枯黄褐岩土
+# 东侧台地 -> 土黄岩土
 plateau_f = plateau_field(cx, cy)
 mat_idx[(plateau_f > 0.50) & (cz > 5.0)] = MI["rock_tan"]
 
-# 沙滩：低平且平缓
+# 南侧沙滩 -> 沙色（低平且平缓）
 beach_f = beach_field(cx, cy)
-mat_idx[(beach_f > 0.30) & (cz < 3.0)] = MI["sand"]
+mat_idx[(beach_f > 0.30) & (cz < 3.0) & (nz > 0.55)] = MI["sand"]
 
-# 水下：浅处海底用沙色，深处压暗（水面不透明，基本看不到）
-mat_idx[cz < 0.20] = MI["sand"]
-mat_idx[cz < -3.5] = MI["seabed"]
-mat_idx[cz < -10.0] = MI["rock_dark"]
+# 海平面以下：没有水面遮挡，直接当岩壁处理
+mat_idx[cz < 0.30] = MI["rock_light"]
+mat_idx[cz < -1.2] = MI["rock_dark"]
 
-# ==================== 6. 水面：把完全没入水下的三角面复制到 z=0 ====================
-underwater = (p0[:, 2] < SEA_LEVEL) & (p1[:, 2] < SEA_LEVEL) & (p2[:, 2] < SEA_LEVEL)
-water_faces = faces[underwater]
-depth = -cz[underwater]
-
-wmat = np.full(len(water_faces), 3, dtype=np.int32)      # 默认深海
-wmat[depth < W_MID] = 2
-wmat[depth < W_SHALLOW] = 1
-wmat[depth < W_SURF] = 0                                 # 贴岸白浪
-
-# 水面顶点：沿用同一批 xy，高度统一压到海平面
-water_verts = verts.copy()
-water_verts[:, 2] = SEA_LEVEL
-
-# ==================== 7. 构建 Blender 物体 ====================
+# ==================== 6. 构建 Blender 物体 ====================
 bpy.ops.wm.read_factory_settings(use_empty=True)
 scene = bpy.context.scene
 scene.unit_settings.system = 'METRIC'
@@ -404,63 +373,90 @@ def make_material(name, color):
 
 MATS = {k: make_material(k, v) for k, v in COLORS.items()}
 
+# ---- 裁剪 + 封闭成一块实心岛体 ----
+# 把地形裁到「岛体」的范围：低于 CLIP_Z 的深海部分全部丢弃，
+# 只保留岛屿本身和它脚下很窄的一圈浅滩；再用一圈垂直侧壁 + 平底封口。
+# 于是导出的是参考图那种「一块岛」的实体，而不是一大片海床。
+CLIP_Z = -4.5            # 裁剪平面：略低于潟湖底(-3.4m)，保证湖盆完整保留
+BOTTOM_Z = -22.0         # 平底高度
+
+z_clip = np.maximum(verts[:, 2], CLIP_Z)
+keep = ~np.all(verts[faces, 2] < CLIP_Z, axis=1)     # 三个顶点都在面下的三角面整片丢弃
+faces_kept = faces[keep]
+mat_kept = mat_idx[keep]
+
+verts_list = verts.copy()
+verts_list[:, 2] = z_clip
+verts_list = verts_list.tolist()
+faces_list = [tuple(int(x) for x in f) for f in faces_kept.tolist()]
+mat_list = [int(m) for m in mat_kept.tolist()]
+
+# 找开口边界：只被一个三角面用到的边，且两端都落在裁剪平面上
+edge_use = {}
+for tri in faces_kept:
+    for k in range(3):
+        a, b = int(tri[k]), int(tri[(k + 1) % 3])
+        key = (a, b) if a < b else (b, a)
+        edge_use[key] = edge_use.get(key, 0) + 1
+border = [e for e, n in edge_use.items() if n == 1
+          and abs(z_clip[e[0]] - CLIP_Z) < 1e-6 and abs(z_clip[e[1]] - CLIP_Z) < 1e-6]
+
+# 侧壁：每条边界边向下拉一个四边形
+base_i = {}
+for a, b in border:
+    if a not in base_i:
+        base_i[a] = len(verts_list)
+        verts_list.append([verts_list[a][0], verts_list[a][1], BOTTOM_Z])
+    if b not in base_i:
+        base_i[b] = len(verts_list)
+        verts_list.append([verts_list[b][0], verts_list[b][1], BOTTOM_Z])
+    faces_list.append((a, b, base_i[b]))
+    mat_list.append(MI["base"])
+    faces_list.append((a, base_i[b], base_i[a]))
+    mat_list.append(MI["base"])
+
+# 平底：沿边界环扇形三角化
+if border:
+    ring = [e[0] for e in border]
+    cx_b = float(np.mean([verts_list[i][0] for i in ring]))
+    cy_b = float(np.mean([verts_list[i][1] for i in ring]))
+    ctr = len(verts_list)
+    verts_list.append([cx_b, cy_b, BOTTOM_Z])
+    m = len(ring)
+    for k in range(m):
+        a = base_i[ring[k]]
+        b = base_i[ring[(k + 1) % m]]
+        faces_list.append((ctr, b, a))
+        mat_list.append(MI["base"])
+
+print("裁剪：保留 %d / %d 个三角面，边界 %d 条边" % (
+    keep.sum(), len(faces), len(border)))
+
 mesh = bpy.data.meshes.new("Island")
-mesh.from_pydata(verts.tolist(), [], [tuple(f) for f in faces.tolist()])
+mesh.from_pydata(verts_list, [], faces_list)
 mesh.update()
 for name in GEO_MATS:
     mesh.materials.append(MATS[name])
-mesh.polygons.foreach_set("material_index", mat_idx)
+mesh.polygons.foreach_set("material_index", np.array(mat_list, dtype=np.int32))
 mesh.polygons.foreach_set("use_smooth", np.zeros(len(mesh.polygons), dtype=bool))
 mesh.update()
 
 island = bpy.data.objects.new("Island", mesh)
 scene.collection.objects.link(island)
 
-# --- 水面物体：网格内的部分按水深上色，外面再补一圈深蓝外海 ---
-wverts = water_verts.tolist()
-wfaces = [tuple(int(v) for v in f) for f in water_faces.tolist()]
-wfaces_mat = wmat.tolist()
 
-ox, oy = GRID_X + OCEAN_PAD, GRID_Y + OCEAN_PAD
-ring = [(-ox, -oy), (ox, -oy), (ox, oy), (-ox, oy)]
-base_i = len(wverts)
-for x, y in ring:
-    wverts.append([x, y, SEA_LEVEL])
-# 网格矩形四角 -> 外圈大矩形，拼 4 条环带
-grid_corners = [(-GRID_X, -GRID_Y), (GRID_X, -GRID_Y), (GRID_X, GRID_Y), (-GRID_X, GRID_Y)]
-gc = [len(wverts) + i for i in range(4)]
-for x, y in grid_corners:
-    wverts.append([x, y, SEA_LEVEL])
-for k in range(4):
-    k2 = (k + 1) % 4
-    wfaces.append((gc[k], gc[k2], base_i + k2, base_i + k))
-    wfaces_mat.append(3)                                 # 外海一律深蓝
-
-wmesh = bpy.data.meshes.new("Water")
-wmesh.from_pydata(wverts, [], wfaces)
-wmesh.update()
-for name in WATER_MATS:
-    wmesh.materials.append(MATS[name])
-wmesh.polygons.foreach_set("material_index", np.array(wfaces_mat, dtype=np.int32))
-wmesh.polygons.foreach_set("use_smooth", np.zeros(len(wmesh.polygons), dtype=bool))
-wmesh.update()
-
-water = bpy.data.objects.new("Water", wmesh)
-scene.collection.objects.link(water)
-
-
-# ==================== 8. 预览渲染（等距视角，仿参考图） ====================
+# ==================== 7. 预览渲染（等距视角，仿参考图） ====================
 def setup_preview():
     world = bpy.data.worlds.new("World")
     scene.world = world
     world.use_nodes = True
     bg = world.node_tree.nodes["Background"]
-    bg.inputs[0].default_value = (0.10, 0.32, 0.60, 1.0)
-    bg.inputs[1].default_value = 0.85
+    bg.inputs[0].default_value = (0.22, 0.26, 0.34, 1.0)
+    bg.inputs[1].default_value = 0.30
 
     # 主光：左上方，让面与面之间有明显明暗差别
     sun_data = bpy.data.lights.new("Sun", type='SUN')
-    sun_data.energy = 4.2
+    sun_data.energy = 3.0
     sun_data.angle = math.radians(2.0)
     sun = bpy.data.objects.new("Sun", sun_data)
     sun.rotation_euler = (math.radians(50.0), 0.0, math.radians(-128.0))
@@ -468,7 +464,7 @@ def setup_preview():
 
     # 补光：从相反方向低角度补一盏，避免背光面变成死黑（参考图的暗部依然通透）
     fill_data = bpy.data.lights.new("Fill", type='SUN')
-    fill_data.energy = 1.5
+    fill_data.energy = 0.55
     fill_data.angle = math.radians(20.0)
     fill = bpy.data.objects.new("Fill", fill_data)
     fill.rotation_euler = (math.radians(62.0), 0.0, math.radians(52.0))
@@ -476,7 +472,7 @@ def setup_preview():
 
     # 第三盏更弱的正面光，进一步托起暗部
     front_data = bpy.data.lights.new("Front", type='SUN')
-    front_data.energy = 0.8
+    front_data.energy = 0.25
     front_data.angle = math.radians(25.0)
     front = bpy.data.objects.new("Front", front_data)
     front.rotation_euler = (math.radians(78.0), 0.0, math.radians(-95.0))
@@ -526,7 +522,7 @@ render_preview(f"{OUT_DIR}/island_terrain_preview.png")
 for ob in helpers:
     bpy.data.objects.remove(ob, do_unlink=True)
 
-# ==================== 9. 保存 .blend 与 .glb ====================
+# ==================== 8. 保存 .blend 与 .glb ====================
 bpy.ops.wm.save_as_mainfile(filepath=f"{OUT_DIR}/island_terrain.blend")
 bpy.ops.export_scene.gltf(
     filepath=f"{OUT_DIR}/island_terrain.glb",
@@ -535,11 +531,10 @@ bpy.ops.export_scene.gltf(
     export_yup=True,
 )
 
-# ==================== 10. 自检输出 ====================
+# ==================== 9. 自检输出 ====================
 v = np.array([t.co[:] for t in mesh.vertices])
 print("DONE: island terrain built")
-print("陆地: %d 顶点 / %d 三角面  水面: %d 三角面" % (
-    len(mesh.vertices), len(mesh.polygons), len(wmesh.polygons)))
+print("岛屿本体: %d 顶点 / %d 三角面" % (len(mesh.vertices), len(mesh.polygons)))
 print("网格范围: X %.1f  Y %.1f  Z %.1f (海平面 = 0)" % (
     np.ptp(v[:, 0]), np.ptp(v[:, 1]), np.ptp(v[:, 2])))
 print("最高点 %.2f m   外海最深处 %.2f m" % (v[:, 2].max(), v[:, 2].min()))
@@ -550,9 +545,4 @@ counts = {}
 for p in mesh.polygons:
     n = GEO_MATS[p.material_index]
     counts[n] = counts.get(n, 0) + 1
-print("陆地材质面数:", counts)
-wcounts = {}
-for p in wmesh.polygons:
-    n = WATER_MATS[p.material_index]
-    wcounts[n] = wcounts.get(n, 0) + 1
-print("水面材质面数:", wcounts)
+print("材质面数:", counts)
