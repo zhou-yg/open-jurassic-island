@@ -343,11 +343,14 @@ func _test_bananas_do_not_penetrate_stalk(tolerance: float = 0.02) -> void:
 				var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 				for v in verts:
 					var local := to_tree * v
-					var radius := sqrt(local.x * local.x + local.z * local.z)
-					var stalk_r := _stalk_radius_at(stalk_profile, local.y)
+					var sample := _stalk_profile_at(stalk_profile, local.y)
 					# 只检查确实落在假茎高度范围内的顶点
-					if stalk_r <= 0.0:
+					if sample.is_empty():
 						continue
+					# 距离要相对"该高度处的中轴"量，树干是弯的
+					var center := sample["center"] as Vector3
+					var stalk_r := sample["radius"] as float
+					var radius := Vector2(local.x - center.x, local.z - center.z).length()
 					var penetration := stalk_r - radius
 					if penetration > worst:
 						worst = penetration
@@ -361,12 +364,15 @@ func _test_bananas_do_not_penetrate_stalk(tolerance: float = 0.02) -> void:
 	tree.queue_free()
 
 
-## 假茎在每个高度上的最大半径。返回 {y: radius} 采样表。
+## 假茎在每个高度上的"中轴偏移 + 最大半径"。返回 {y: {"center": Vector3, "radius": float}}。
+##
+## 假茎是弯的，所以中轴不能假定为世界 Y 轴：按高度分层取包围盒中心当中轴，
+## 再取到中心的最大距离当半径，与 banana_tree.gd 里的实现保持一致。
 func _stalk_radius_profile(tree: BananaTree) -> Dictionary:
-	var profile := {}
+	var buckets := {}
 	var model := tree.get_node_or_null("Tree/TreeModel")
 	if model == null:
-		return profile
+		return buckets
 	for node in _collect_mesh_instances(model):
 		var mesh_instance := node as MeshInstance3D
 		# 只取假茎：节点名包含 Stalk 的部分
@@ -379,30 +385,55 @@ func _stalk_radius_profile(tree: BananaTree) -> Dictionary:
 			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			for v in verts:
 				var local := to_tree * v
-				var radius := sqrt(local.x * local.x + local.z * local.z)
 				var key := snappedf(local.y, 0.02)
-				if not profile.has(key) or profile[key] < radius:
-					profile[key] = radius
+				if not buckets.has(key):
+					buckets[key] = PackedVector3Array()
+				buckets[key].append(local)
+	var profile := {}
+	for key in buckets.keys():
+		var points: PackedVector3Array = buckets[key]
+		var lo := Vector3(INF, INF, INF)
+		var hi := Vector3(-INF, -INF, -INF)
+		for p in points:
+			lo = lo.min(p)
+			hi = hi.max(p)
+		var center := (lo + hi) * 0.5
+		var radius := 0.0
+		for p in points:
+			radius = maxf(radius, Vector2(p.x - center.x, p.z - center.z).length())
+		profile[key] = {"center": Vector3(center.x, 0.0, center.z), "radius": radius}
 	return profile
 
 
-## 查某个高度上的假茎半径。取最近的两个采样点做线性插值；
-## 超出假茎高度范围（顶部 / 底部之外）返回 0，表示该处没有假茎。
-func _stalk_radius_at(profile: Dictionary, y: float) -> float:
+## 查某个高度上的假茎剖面。相邻两层线性插值；
+## 超出假茎高度范围返回空字典，表示该处没有假茎。
+func _stalk_profile_at(profile: Dictionary, y: float) -> Dictionary:
 	if profile.is_empty():
-		return 0.0
+		return {}
 	var keys := profile.keys()
 	keys.sort()
 	var lowest: float = keys[0]
 	var highest: float = keys[keys.size() - 1]
 	# 上下各留一点余量，避免果串挂在梢头附近时被误判
 	if y < lowest - 0.05 or y > highest + 0.05:
-		return 0.0
-	var best_y: float = keys[0]
-	for key in keys:
-		if absf(key - y) < absf(best_y - y):
-			best_y = key
-	return profile[best_y]
+		return {}
+	if y <= lowest:
+		return profile[lowest]
+	if y >= highest:
+		return profile[highest]
+	for i in range(keys.size() - 1):
+		var y0: float = keys[i]
+		var y1: float = keys[i + 1]
+		if y <= y1:
+			var span: float = maxf(y1 - y0, 0.0001)
+			var t: float = clampf((y - y0) / span, 0.0, 1.0)
+			var a: Dictionary = profile[y0]
+			var b: Dictionary = profile[y1]
+			return {
+				"center": (a["center"] as Vector3).lerp(b["center"] as Vector3, t),
+				"radius": lerpf(a["radius"], b["radius"], t),
+			}
+	return profile[highest]
 
 
 ## 收集一个节点下所有 MeshInstance3D。

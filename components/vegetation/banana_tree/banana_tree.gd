@@ -304,9 +304,11 @@ func _build_bunches() -> void:
 			+ deg_to_rad(rng.randf_range(-bunch_random_yaw_degrees, bunch_random_yaw_degrees))
 		)
 		var outward := Vector3(sin(azimuth), 0.0, cos(azimuth))
+		# 假茎是弯的：果串要围着"该高度处的中轴"往外挂，而不是围着世界 Y 轴
+		var axis := _stalk_center_at(height)
 
 		instance.name = "Bunch_%02d" % index
-		instance.position = Vector3(0.0, height, 0.0) + outward * bunch_outset
+		instance.position = axis + Vector3(0.0, height, 0.0) + outward * bunch_outset
 
 		var scale: float = bunch_scale * pow(1.0 - bunch_scale_falloff, float(index))
 		instance.bunch_scale = maxf(scale, 0.05)
@@ -334,8 +336,10 @@ func _add_peduncle(container: Node3D, index: int, height: float, outward: Vector
 	var stalk_radius: float = _stalk_radius_at(height)
 	if stalk_radius <= 0.0:
 		return
-	var inner := Vector3(0.0, height, 0.0) + outward * (stalk_radius * (1.0 - peduncle_inset))
-	var tip := Vector3(0.0, height, 0.0) + outward * bunch_outset
+	# 果柄要从"该高度处的中轴"量起，才能真的连到弯树干上
+	var axis := _stalk_center_at(height) + Vector3(0.0, height, 0.0)
+	var inner := axis + outward * (stalk_radius * (1.0 - peduncle_inset))
+	var tip := axis + outward * bunch_outset
 	var span := tip - inner
 	var length: float = span.length()
 	if length <= 0.001:
@@ -360,10 +364,15 @@ func _add_peduncle(container: Node3D, index: int, height: float, outward: Vector
 	container.add_child(node)
 
 
-## 扫描树模型里的假茎网格，得到"每个高度上的最大半径"剖面。
+## 扫描树模型里的假茎网格，得到每个高度上的"中轴偏移 + 最大半径"剖面。
+##
+## 假茎是弯的（建模脚本让中轴沿高度逐渐倾斜），所以挂果串时不能假定中轴就是
+## 世界 Y 轴：那样树干一侧的果串会悬空、另一侧会插进树干。这里对每个高度层
+## 取所有顶点的包围盒中心当作中轴，再取到该中心的最大距离当作半径。
+##
 ## 只认名字里含 stalk 的节点（建模脚本导出的假茎节点就叫 Stalk）。
 func _build_stalk_profile(model: Node3D) -> Dictionary:
-	var profile := {}
+	var buckets := {}
 	for node in _collect_mesh_instances(model):
 		var mesh_instance := node as MeshInstance3D
 		if not mesh_instance.name.to_lower().contains("stalk"):
@@ -377,26 +386,67 @@ func _build_stalk_profile(model: Node3D) -> Dictionary:
 			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
 			for v in verts:
 				var local := to_local * v
-				var radius := sqrt(local.x * local.x + local.z * local.z)
 				var key := snappedf(local.y, 0.02)
-				if not profile.has(key) or profile[key] < radius:
-					profile[key] = radius
+				if not buckets.has(key):
+					buckets[key] = PackedVector3Array()
+				buckets[key].append(local)
+
+	var profile := {}
+	for key in buckets.keys():
+		var points: PackedVector3Array = buckets[key]
+		var lo := Vector3(INF, INF, INF)
+		var hi := Vector3(-INF, -INF, -INF)
+		for p in points:
+			lo = lo.min(p)
+			hi = hi.max(p)
+		var center := (lo + hi) * 0.5
+		var radius := 0.0
+		for p in points:
+			radius = maxf(radius, Vector2(p.x - center.x, p.z - center.z).length())
+		profile[key] = {"center": Vector3(center.x, 0.0, center.z), "radius": radius}
 	return profile
+
+
+## 在剖面表里按高度找相邻两层做线性插值，返回 {"center": Vector3, "radius": float}。
+## 超出假茎高度范围返回空字典。
+func _stalk_sample(profile: Dictionary, y: float) -> Dictionary:
+	if profile.is_empty():
+		return {}
+	var keys := profile.keys()
+	keys.sort()
+	var lowest: float = keys[0]
+	var highest: float = keys[keys.size() - 1]
+	if y < lowest - 0.05 or y > highest + 0.05:
+		return {}
+	if y <= lowest:
+		return profile[lowest]
+	if y >= highest:
+		return profile[highest]
+	for i in range(keys.size() - 1):
+		var y0: float = keys[i]
+		var y1: float = keys[i + 1]
+		if y <= y1:
+			var span: float = maxf(y1 - y0, 0.0001)
+			var t: float = clampf((y - y0) / span, 0.0, 1.0)
+			var a: Dictionary = profile[y0]
+			var b: Dictionary = profile[y1]
+			return {
+				"center": (a["center"] as Vector3).lerp(b["center"] as Vector3, t),
+				"radius": lerpf(a["radius"], b["radius"], t),
+			}
+	return profile[highest]
+
+
+## 某个高度上的假茎中轴偏移（模型局部坐标，y 分量恒为 0）。
+func _stalk_center_at(y: float) -> Vector3:
+	var sample := _stalk_sample(_stalk_profile, y)
+	return sample["center"] as Vector3 if sample.has("center") else Vector3.ZERO
 
 
 ## 某个高度上的假茎半径；超出假茎高度范围返回 0。
 func _stalk_radius_at(y: float) -> float:
-	if _stalk_profile.is_empty():
-		return 0.0
-	var keys := _stalk_profile.keys()
-	keys.sort()
-	if y < float(keys[0]) - 0.05 or y > float(keys[keys.size() - 1]) + 0.05:
-		return 0.0
-	var best_key: float = keys[0]
-	for key in keys:
-		if absf(float(key) - y) < absf(best_key - y):
-			best_key = key
-	return _stalk_profile[best_key]
+	var sample := _stalk_sample(_stalk_profile, y)
+	return sample["radius"] as float if sample.has("radius") else 0.0
 
 
 ## 收集一个节点下所有 MeshInstance3D。

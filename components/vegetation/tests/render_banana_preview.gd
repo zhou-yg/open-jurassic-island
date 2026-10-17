@@ -123,7 +123,9 @@ func _render_case(parent: Node3D, name: String, height: float, bunches: int,
 
 	var camera := Camera3D.new()
 	camera.projection = Camera3D.PROJECTION_ORTHOGONAL
-	camera.size = height * 1.35
+	# 树冠比树高还宽，取景要同时照顾高度和横向，否则叶片会被裁掉
+	var span: float = maxf(height, _visual_width(tree))
+	camera.size = span * 1.42
 	parent.add_child(camera)
 	camera.position = Vector3(height * 0.75, height * 0.55, height * 1.55)
 	camera.look_at(Vector3(0.0, height * 0.5, 0.0))
@@ -137,3 +139,28 @@ func _render_case(parent: Node3D, name: String, height: float, bunches: int,
 	camera.queue_free()
 	tree.queue_free()
 	await process_frame
+
+
+## 一个节点下所有可视几何的横向（XZ 平面）跨度，用于取景。
+func _visual_width(node: Node) -> float:
+	var box := _visual_aabb(node)
+	return maxf(box.size.x, box.size.z)
+
+
+## 一个节点下所有可视几何在自身坐标系里的合并包围盒。
+func _visual_aabb(node: Node) -> AABB:
+	var result := AABB()
+	var first := true
+	for child in node.get_children():
+		if child is VisualInstance3D:
+			var box: AABB = (child as VisualInstance3D).get_aabb()
+			box = (child as Node3D).transform * box
+			result = box if first else result.merge(box)
+			first = false
+		var sub := _visual_aabb(child)
+		if sub.has_volume():
+			var offset := (child as Node3D).transform if child is Node3D else Transform3D.IDENTITY
+			sub = offset * sub
+			result = sub if first else result.merge(sub)
+			first = false
+	return result
