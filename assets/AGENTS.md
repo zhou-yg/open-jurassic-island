@@ -98,7 +98,10 @@ print(c.use_location_x, c.use_rotation_x, c.use_scale_x)   # True True False  �
 | 香蕉 `banana` | `models/banana/banana.py` | 0.29 × 0.46 × 0.11 | 长 **0.55 m**（沿 -Z 生长，含弯曲） | 必须与香蕉树上果串里的单根同尺寸 |
 | 草丛 `grass_tuft` / `grass_clump` | `models/grass/low_poly_grass.py` | 0.63×0.77×0.61 / 0.56×0.41×0.48 | 高 **0.6–0.8 m** | 造景小物，便于批量播撒 |
 | 侏罗纪岛地形 `island_terrain` | `models/jurassic-island/island_terrain.py` | 199 × 56 × 150 | 长边 **≈200 m**，海平面 z=0 | 主地图地形，玩家活动区 |
+| 平原地形块 `plain_terrain` | `models/plain-terrain/plain_terrain.py` | 9.91 × 9.88 × 0.84 | **≈10 m 包络**，起伏 ≤ 0.85 m，轮廓处渐入到 z=0 | **有机轮廓，无矩形平边**（外面那圈平地已切掉，平面填充率 0.82）；4 个绿色分层材质槽；原点在铺装中心 |
 | 山体洞窟岛 `low_poly_mountain_cave_island` | `models/mountain-cave-island/…` | 15.5 × 7.6 × 10.9 | 长边 **24 m**（模型常数 `SIZE=24`） | ⚠️ 实测偏小，统一时对齐到 24 m |
+| 鸟巢山 `low_poly_nest_mountain` | `models/nest-mountain/low_poly_nest_mountain.py` | 97.2 × 90.5 × 62.0 | 山脚占地 **≈97 m**，主峰 **53 m**（含水下裙边 −9 m） | 多层台地山体，山脚 / 山腰各一个**平整切口**的圆柱山洞；山顶 Ø 23 m 平台上预留 Ø 11.5 m 鸟巢坑（坑底 z=44） |
+| 石头 `low_poly_rock` | `models/low-poly-rock/low_poly_rock.py` | 2.92 × 2.55 × 1.34 | 长边 **≈2.9 m**，底面 z=0 | 洞口 / 路边点缀用的独立巨石；**25 棱面 / 80 三角面**，平底接触 3.56 m² |
 | 天空岛 `sky-island-basic` | `assets/island/sky-island-basic.glb` | 507 × 509 × 326 | 长边 **≈500 m**（远景，无 `apply_root_scale`） | 外部资产；如重做请按此尺度 |
 
 主地图整体尺度：侏罗纪岛地形约 **200 m × 150 m**，海平面 `y = 0`（Godot）。
@@ -189,6 +192,12 @@ assert abs(min(zs)) < 0.02, "根部必须落在 z=0"
 5. 打印的高度 / 跨度与 §2 表格一致，把实测数字留在脚本输出里。
 6. 顶点色资产（草、香蕉树）颜色为**线性空间**（先做 sRGB→linear），否则 Godot 里会发白发灰。
 7. **导出节点里不含非 1 的 `scale`**（见下方自动校验）；这条同时兜住"约束/参考物没清干净"的情况。
+8. **棱面质量（低多边形"边缘干净"的关键）**：形体必须由平面切割得到，每刀都先在副本上验收，
+   门槛见 `low_poly_rock.py`：棱面紧凑度 `4πA/P² ≥ 0.46`（挡掉又长又窄的刀面 sliver）、
+   棱面面积 `≥ 0.05 m²`、最短棱边 `≥ 0.09 m`、三角面最小角 `≥ 4°`（只兜退化）。
+   量的是**棱面**不是三角面：同一棱面内三角形共面同色，面内细长三角不可见。
+9. **顶点色按棱面上色，不按三角面上色**：同一平面的所有三角形必须同色，否则面内碎切会渲染成脏斑，
+   棱线也糊成一团（`low_poly_rock.py` 的 `plane_groups()` 就干这件事）。
 
 ### 尺寸审计（一条命令核对全部资产）
 

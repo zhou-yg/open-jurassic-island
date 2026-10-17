@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://dnc7mnbatx4bq"]
 
 [ext_resource type="Script" uid="uid://qspdn88ptptu" path="res://scenes-3d/jurassic-island/jurassic-island.gd" id="1_main"]
-[ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/island/sky-island-basic.glb" id="2_island"]
+[ext_resource type="PackedScene" uid="uid://byexlo2qp8k2y" path="res://components/island/island.tscn" id="2_m4yw2"]
 [ext_resource type="PackedScene" uid="uid://d3ledm0mpxvo2" path="res://components/sea/sea.tscn" id="5_sea"]
 [ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://scenes-3d/player/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="7_topbar"]
@@ -38,11 +38,12 @@ directional_shadow_max_distance = 200.0
 [node name="Island" type="Node3D" parent="." unique_id=326285652]
 transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, -12.964321, 0)
 
-[node name="sky-island-basic" parent="Island" unique_id=1301358028 instance=ExtResource("2_island")]
+[node name="Island" parent="Island" unique_id=1030798146 instance=ExtResource("2_m4yw2")]
 
 [node name="Sea" parent="." unique_id=1773263633 instance=ExtResource("5_sea")]
 
 [node name="Player" parent="." unique_id=1691824920 instance=ExtResource("6_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 322.05682, 95.81578, 0)
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=615637729]
 
