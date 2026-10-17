@@ -74,22 +74,17 @@ Island (Node3D, island.gd)
 
 如果只想要视觉、不想要碰撞，把 `Island.build_collision` 设为 `false` 即可。
 
-## 单独查看 / 接入世界
+## 展示版 / 地形版
 
-- 单独打开场景时，`PreviewCamera` 已设为 current，直接按 F6 就能看到预览图的角度。
-- 接入主世界时，可以删除 `WorldEnvironment`、`Sun`、`FillLight`、`BounceLight`、
-  `PreviewCamera`，只保留 `IslandBase` / `Ground` / `Mountain` / `Scatter`；
-  也可以把整个场景作为子场景实例化，再按需覆盖环境光。
-- 当前是约 116 块地形 + 66 块石头 + 922 丛草。要上手机端正式关卡，
-  建议把 `Scatter/Grass` 换成 `MultiMeshInstance3D`（顶点色和材质不变），
-  或者按距离删减草和岛缘碎块；地形块也可以合并成更少的网格。
+- **`island.tscn`**：完整展示版，包含 WorldEnvironment、三盏灯、PreviewCamera、
+  922 丛草和 66 块石头，适合单独打开预览。
+- **`island_terrain.tscn`**：主场景用的地形版，只保留 `IslandBase` / `Ground` /
+  `Mountain` 和 `island.gd`，没有展示节点和巨型草石。文件从 260 KB 降到 27 KB。
 
-## 自检
+主场景 `scenes-3d/jurassic-island/jurassic-island.tscn` 实例化的是地形版，
+再实例化烘焙好的 `local_scatter.tscn`（720 草 + 180 石，静态节点）。
+主场景本身没有运行时脚本；地形/山体碰撞仍由 `island.gd` 在组件内补齐，
+本地草石碰撞已经烘进 `local_scatter.tscn`。
 
-```bash
-/Applications/Godot.app/Contents/MacOS/Godot --headless \
-  --script res://components/island/tests/verify_island.gd
-```
-
-29 项检查：结构完整、台面高度、山体尺度与居中、碰撞补齐、
-石头/草贴地、环境与相机设置。全部通过时退出码为 0。
+完整展示版的 `show_presentation` / `show_scatter` 导出开关保留，
+其他场景如果直接实例化 `island.tscn` 可以用它们隐藏展示节点和草石。

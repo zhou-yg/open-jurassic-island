@@ -1,6 +1,6 @@
 [gd_scene format=3 uid="uid://byexlo2qp8k2y"]
 
-[ext_resource type="Script" uid="uid://cx7i5landsc4e" path="res://components/island/island.gd" id="1_script"]
+[ext_resource type="Script" path="res://components/island/island.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/models/island/sky-island-basic.glb" id="2_island"]
 [ext_resource type="PackedScene" uid="uid://cqftpc1asrmak" path="res://assets/models/plain-terrain/plain_terrain.glb" id="3_terrain"]
 [ext_resource type="PackedScene" uid="uid://d4dgjus3mwlu7" path="res://assets/models/nest-mountain/low_poly_nest_mountain.glb" id="4_mountain"]

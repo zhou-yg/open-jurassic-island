@@ -1,0 +1,369 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/island/island.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/models/island/sky-island-basic.glb" id="2_island"]
+[ext_resource type="PackedScene" uid="uid://cqftpc1asrmak" path="res://assets/models/plain-terrain/plain_terrain.glb" id="3_terrain"]
+[ext_resource type="PackedScene" uid="uid://d4dgjus3mwlu7" path="res://assets/models/nest-mountain/low_poly_nest_mountain.glb" id="4_mountain"]
+
+[node name="Island" type="Node3D" unique_id=1030798146]
+script = ExtResource("1_script")
+
+[node name="IslandBase" type="Node3D" parent="." unique_id=350273794]
+transform = Transform3D(13, 0, 0, 0, 13, 0, 0, 0, 13, 0, -9.23, 0)
+
+[node name="SkyIsland" parent="IslandBase" unique_id=785939420 instance=ExtResource("2_island")]
+
+[node name="Ground" type="Node3D" parent="." unique_id=405707074]
+
+[node name="TerrainPatch_00" parent="Ground" unique_id=1048004841 instance=ExtResource("3_terrain")]
+transform = Transform3D(-1.773265, 0, -0.257127, 0, 1.910083, 0, 0.257127, 0, -1.773265, 10.631301, -0.013802, -10.674508)
+
+[node name="TerrainPatch_01" parent="Ground" unique_id=661070542 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.259996, 0, 1.619721, 0, 2.531899, 0, -1.619721, 0, 1.259996, -1.277162, 0.001044, -16.497154)
+
+[node name="TerrainPatch_02" parent="Ground" unique_id=443499214 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.179911, 0, -2.351305, 0, 2.580904, 0, 2.351305, 0, 0.179911, 5.25577, 0.047874, 15.105681)
+
+[node name="TerrainPatch_03" parent="Ground" unique_id=1002913677 instance=ExtResource("3_terrain")]
+transform = Transform3D(2.13264, 0, -0.970932, 0, 2.404625, 0, 0.970932, 0, 2.13264, -15.653516, -0.041006, -10.271519)
+
+[node name="TerrainPatch_04" parent="Ground" unique_id=759833019 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.510424, 0, 1.763912, 0, 1.829153, 0, -1.763912, 0, 0.510424, 20.412397, -0.022826, 2.97417)
+
+[node name="TerrainPatch_05" parent="Ground" unique_id=231585265 instance=ExtResource("3_terrain")]
+transform = Transform3D(-2.067133, 0, -0.915271, 0, 2.688426, 0, 0.915271, 0, -2.067133, 11.725047, -0.027878, 4.217385)
+
+[node name="TerrainPatch_06" parent="Ground" unique_id=986596174 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.509245, 0, -1.75118, 0, 2.084307, 0, 1.75118, 0, 1.509245, -4.68644, -0.008066, 12.363729)
+
+[node name="TerrainPatch_07" parent="Ground" unique_id=639946812 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.032808, 0, -2.11483, 0, 2.744313, 0, 2.11483, 0, 1.032808, 5.633279, 0.004659, 3.722527)
+
+[node name="TerrainPatch_08" parent="Ground" unique_id=793897934 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.030211, 0, -0.31007, 0, 1.051252, 0, 0.31007, 0, 1.030211, -12.191186, -0.010744, -26.39369)
+
+[node name="TerrainPatch_09" parent="Ground" unique_id=208349168 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.350458, 0, -1.213358, 0, 1.744923, 0, 1.213358, 0, -0.350458, 1.217843, 0.022514, -26.036621)
+
+[node name="TerrainPatch_10" parent="Ground" unique_id=2094001151 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.99668, 0, -1.042932, 0, 1.460321, 0, 1.042932, 0, 0.99668, -0.479087, 0.038244, 11.203601)
+
+[node name="TerrainPatch_11" parent="Ground" unique_id=1097079141 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.940963, 0, -0.484834, 0, 1.128793, 0, 0.484834, 0, 0.940963, 2.424944, 0.005349, -9.925464)
+
+[node name="TerrainPatch_12" parent="Ground" unique_id=1807406194 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.930609, 0, -0.409098, 0, 1.301735, 0, 0.409098, 0, 0.930609, -19.498201, -0.007122, 16.885187)
+
+[node name="TerrainPatch_13" parent="Ground" unique_id=264085594 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.729462, 0, 1.201613, 0, 1.591248, 0, -1.201613, 0, -0.729462, -7.799124, -0.024311, -2.738527)
+
+[node name="TerrainPatch_14" parent="Ground" unique_id=1251362712 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.754373, 0, 0.707848, 0, 1.233663, 0, -0.707848, 0, 0.754373, -10.030218, -0.012208, 3.436978)
+
+[node name="TerrainPatch_15" parent="Ground" unique_id=748667794 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.433598, 0, -1.276203, 0, 1.379162, 0, 1.276203, 0, -0.433598, 15.440034, -0.038932, 21.295307)
+
+[node name="TerrainPatch_16" parent="Ground" unique_id=426909672 instance=ExtResource("3_terrain")]
+transform = Transform3D(-1.358967, 0, 0.451686, 0, 1.492941, 0, -0.451686, 0, -1.358967, 18.030094, 0.024579, -10.119883)
+
+[node name="TerrainPatch_17" parent="Ground" unique_id=1069715301 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.444346, 0, -1.186329, 0, 1.725095, 0, 1.186329, 0, -0.444346, 7.66604, 0.03419, -7.676781)
+
+[node name="TerrainPatch_18" parent="Ground" unique_id=445383006 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.892138, 0, 0.73227, 0, 1.367175, 0, -0.73227, 0, 0.892138, 11.724953, -0.03016, 5.247591)
+
+[node name="TerrainPatch_19" parent="Ground" unique_id=495352975 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.905975, 0, 0.716858, 0, 1.068392, 0, -0.716858, 0, -0.905975, -13.178986, 0.018946, 22.91083)
+
+[node name="TerrainPatch_20" parent="Ground" unique_id=219845454 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.439014, 0, 1.073395, 0, 1.329159, 0, -1.073395, 0, 0.439014, 6.866645, -0.030378, 2.838676)
+
+[node name="TerrainPatch_21" parent="Ground" unique_id=2078753792 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.297445, 0, -0.644594, 0, 1.9572, 0, 0.644594, 0, 1.297445, 8.393611, 0.006221, -7.170325)
+
+[node name="TerrainPatch_22" parent="Ground" unique_id=1319742239 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.767696, 0, -0.693253, 0, 1.125126, 0, 0.693253, 0, 0.767696, 6.836146, 0.006524, 6.056904)
+
+[node name="TerrainPatch_23" parent="Ground" unique_id=1255147640 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.702179, 0, -1.046267, 0, 1.453108, 0, 1.046267, 0, 0.702179, -4.01237, 0.039444, 10.051011)
+
+[node name="TerrainPatch_24" parent="Ground" unique_id=925182841 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.363319, 0, -1.108865, 0, 1.274554, 0, 1.108865, 0, 0.363319, -18.248758, -0.008425, 0.430814)
+
+[node name="TerrainPatch_25" parent="Ground" unique_id=1191992991 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.777997, 0, -0.34168, 0, 0.870267, 0, 0.34168, 0, 0.777997, -23.777601, 0.045528, 0.581369)
+
+[node name="TerrainPatch_26" parent="Ground" unique_id=2087381790 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.098819, 0, -0.778251, 0, 0.838624, 0, 0.778251, 0, 0.098819, -23.226158, -0.002977, 11.484953)
+
+[node name="TerrainPatch_27" parent="Ground" unique_id=1771700464 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.83247, 0, -0.276035, 0, 0.900604, 0, 0.276035, 0, 0.83247, -21.824812, 0.043544, 6.060785)
+
+[node name="TerrainPatch_28" parent="Ground" unique_id=767496681 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.794852, 0, -0.067165, 0, 0.842579, 0, 0.067165, 0, 0.794852, -18.478247, 0.03617, 10.838269)
+
+[node name="TerrainPatch_29" parent="Ground" unique_id=998090863 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.643492, 0, -0.182617, 0, 0.612593, 0, 0.182617, 0, -0.643492, -9.234391, -0.037147, 29.833502)
+
+[node name="TerrainPatch_30" parent="Ground" unique_id=426509001 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.549233, 0, -0.40928, 0, 0.553557, 0, 0.40928, 0, -0.549233, -27.637707, 0.020224, 0.957016)
+
+[node name="TerrainPatch_31" parent="Ground" unique_id=486078102 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.346206, 0, -0.552259, 0, 0.544632, 0, 0.552259, 0, 0.346206, 1.166737, -0.035137, 29.930834)
+
+[node name="TerrainPatch_32" parent="Ground" unique_id=803659414 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.571008, 0, -0.34677, 0, 0.632572, 0, 0.34677, 0, -0.571008, -27.554186, -0.01432, -5.601759)
+
+[node name="TerrainPatch_33" parent="Ground" unique_id=2021132397 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.538537, 0, 0.264969, 0, 0.614513, 0, -0.264969, 0, -0.538537, 10.87661, 0.022549, -25.239202)
+
+[node name="TerrainPatch_34" parent="Ground" unique_id=1259904980 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.813412, 0, -0.085676, 0, 0.849612, 0, 0.085676, 0, -0.813412, -2.125331, -0.007493, 27.354551)
+
+[node name="TerrainPatch_35" parent="Ground" unique_id=1295662137 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.57199, 0, -0.305724, 0, 0.591813, 0, 0.305724, 0, -0.57199, 8.682284, -0.038918, -24.641047)
+
+[node name="TerrainPatch_36" parent="Ground" unique_id=1590164048 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.679663, 0, -0.398169, 0, 0.852315, 0, 0.398169, 0, -0.679663, 8.449716, 0.000449, 29.172302)
+
+[node name="TerrainPatch_37" parent="Ground" unique_id=130182030 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.702821, 0, -0.629762, 0, 1.015687, 0, 0.629762, 0, 0.702821, -29.639101, -0.039682, 3.778035)
+
+[node name="TerrainPatch_38" parent="Ground" unique_id=616535956 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.185182, 0, 0.93152, 0, 0.764943, 0, -0.93152, 0, -0.185182, -6.390576, 0.032489, 24.589088)
+
+[node name="TerrainPatch_39" parent="Ground" unique_id=307692420 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.540708, 0, 0.634159, 0, 0.838909, 0, -0.634159, 0, 0.540708, 8.098576, 0.010643, 24.474133)
+
+[node name="TerrainPatch_40" parent="Ground" unique_id=1042015399 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.48809, 0, 0.54633, 0, 0.797824, 0, -0.54633, 0, -0.48809, 17.97112, -0.039146, -18.0276)
+
+[node name="TerrainPatch_41" parent="Ground" unique_id=1042413165 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.822412, 0, -0.300984, 0, 0.916387, 0, 0.300984, 0, 0.822412, 14.584453, -0.038232, -25.665026)
+
+[node name="TerrainPatch_42" parent="Ground" unique_id=803669827 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.773456, 0, 0.013867, 0, 0.6449, 0, -0.013867, 0, 0.773456, 22.633043, -0.008617, 18.85961)
+
+[node name="TerrainPatch_43" parent="Ground" unique_id=1974902709 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.573506, 0, 0.243912, 0, 0.643505, 0, -0.243912, 0, -0.573506, 8.774249, -0.044677, -28.134035)
+
+[node name="TerrainPatch_44" parent="Ground" unique_id=1924793184 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.628238, 0, 0.156181, 0, 0.631597, 0, -0.156181, 0, 0.628238, 23.140064, 0.026352, 15.032334)
+
+[node name="TerrainPatch_45" parent="Ground" unique_id=837615137 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.368226, 0, 0.42622, 0, 0.561885, 0, -0.42622, 0, 0.368226, 25.237068, 0.048868, -10.130379)
+
+[node name="TerrainPatch_46" parent="Ground" unique_id=38958777 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.30284, 0, -0.552573, 0, 0.594182, 0, 0.552573, 0, 0.30284, 19.595125, -0.016222, 15.536719)
+
+[node name="TerrainPatch_47" parent="Ground" unique_id=402195174 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.88196, 0, -0.125632, 0, 0.891304, 0, 0.125632, 0, -0.88196, 26.124193, 0.002605, 12.770661)
+
+[node name="TerrainPatch_48" parent="Ground" unique_id=1652059748 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.162769, 0, -0.744957, 0, 0.921247, 0, 0.744957, 0, -0.162769, 9.392919, 0.029376, -18.878408)
+
+[node name="TerrainPatch_49" parent="Ground" unique_id=1152429883 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.921793, 0, 0.201499, 0, 0.95668, 0, -0.201499, 0, -0.921793, 26.773512, 0.035807, -7.109147)
+
+[node name="TerrainPatch_50" parent="Ground" unique_id=1634910170 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.803163, 0, -0.055769, 0, 0.743339, 0, 0.055769, 0, 0.803163, 25.17187, 0.012141, -12.408882)
+
+[node name="TerrainPatch_51" parent="Ground" unique_id=1481493598 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.622283, 0, 0.794492, 0, 1.081613, 0, -0.794492, 0, -0.622283, -15.549282, 0.008364, -21.890991)
+
+[node name="TerrainPatch_52" parent="Ground" unique_id=199365927 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.198863, 0, -1.013539, 0, 1.08755, 0, 1.013539, 0, 0.198863, -5.956905, 0.031567, -25.35005)
+
+[node name="TerrainPatch_53" parent="Ground" unique_id=1545113588 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.411337, 0, -0.899929, 0, 1.271038, 0, 0.899929, 0, 0.411337, 4.855864, -0.008469, 27.425344)
+
+[node name="TerrainPatch_54" parent="Ground" unique_id=1252996418 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.917839, 0, -0.579845, 0, 1.3702, 0, 0.579845, 0, -0.917839, 17.547224, -0.012494, -22.05468)
+
+[node name="TerrainPatch_55" parent="Ground" unique_id=1457101554 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.580204, 0, 0.75492, 0, 1.159415, 0, -0.75492, 0, 0.580204, -25.326368, -0.004295, 8.263834)
+
+[node name="TerrainPatch_56" parent="Ground" unique_id=1683326766 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.695381, 0, -0.748932, 0, 1.123007, 0, 0.748932, 0, 0.695381, 22.922077, -0.034055, -16.946707)
+
+[node name="TerrainPatch_57" parent="Ground" unique_id=1999680564 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.727095, 0, -0.566697, 0, 0.985715, 0, 0.566697, 0, -0.727095, -18.35568, 0.01449, 6.414553)
+
+[node name="TerrainPatch_58" parent="Ground" unique_id=299496118 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.681664, 0, 0.668741, 0, 0.890154, 0, -0.668741, 0, -0.681664, -28.51188, -0.003053, -9.929315)
+
+[node name="TerrainPatch_59" parent="Ground" unique_id=1457938176 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.18909, 0, -0.075049, 0, 1.278527, 0, 0.075049, 0, 1.18909, 13.679668, 0.021362, 27.390694)
+
+[node name="TerrainPatch_60" parent="Ground" unique_id=559143450 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.598833, 0, 0.423072, 0, 0.723981, 0, -0.423072, 0, -0.598833, 28.174381, 0.030509, 6.852299)
+
+[node name="TerrainPatch_61" parent="Ground" unique_id=1828549025 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.094689, 0, 0.399107, 0, 1.153454, 0, -0.399107, 0, 1.094689, 27.845861, -0.017608, -1.314654)
+
+[node name="TerrainPatch_62" parent="Ground" unique_id=1249095847 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.174062, 0, -1.373143, 0, 1.958254, 0, 1.373143, 0, -0.174062, 14.076199, 1.008523, 1.281953)
+
+[node name="TerrainPatch_63" parent="Ground" unique_id=650277030 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.434515, 0, 0.190765, 0, 2.11871, 0, -0.190765, 0, 1.434515, 11.126542, 0.786553, 5.189624)
+
+[node name="TerrainPatch_64" parent="Ground" unique_id=1471506960 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.389541, 0, 0.247576, 0, 2.498746, 0, -0.247576, 0, 1.389541, 4.793584, 1.35, 9.746737)
+
+[node name="TerrainPatch_65" parent="Ground" unique_id=450147227 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.49252, 0, -1.000525, 0, 1.545128, 0, 1.000525, 0, 0.49252, -1.573654, 1.108618, 10.664065)
+
+[node name="TerrainPatch_66" parent="Ground" unique_id=1200380319 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.415123, 0, 0.135411, 0, 1.782484, 0, -0.135411, 0, 1.415123, -6.247533, 0.442323, 11.877256)
+
+[node name="TerrainPatch_67" parent="Ground" unique_id=942288878 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.088741, 0, -0.360278, 0, 1.513936, 0, 0.360278, 0, 1.088741, -8.424093, 1.238652, 5.376681)
+
+[node name="TerrainPatch_68" parent="Ground" unique_id=731044562 instance=ExtResource("3_terrain")]
+transform = Transform3D(-1.066809, 0, -0.429382, 0, 1.798243, 0, 0.429382, 0, -1.066809, -12.538036, 0.412692, -1.26499)
+
+[node name="TerrainPatch_69" parent="Ground" unique_id=1218177555 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.452777, 0, -1.173122, 0, 1.591676, 0, 1.173122, 0, 0.452777, -8.250158, 0.018627, -5.630694)
+
+[node name="TerrainPatch_70" parent="Ground" unique_id=1983017105 instance=ExtResource("3_terrain")]
+transform = Transform3D(-1.035688, 0, -0.528258, 0, 1.683779, 0, 0.528258, 0, -1.035688, -4.135828, 1.35, -9.870997)
+
+[node name="TerrainPatch_71" parent="Ground" unique_id=1275458771 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.968234, 0, 0.448034, 0, 1.771266, 0, -0.448034, 0, -0.968234, 1.404938, 0.855355, -11.332238)
+
+[node name="TerrainPatch_72" parent="Ground" unique_id=471613944 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.333791, 0, 1.006739, 0, 1.305938, 0, -1.006739, 0, 0.333791, 4.576948, 0.901603, -11.144518)
+
+[node name="TerrainPatch_73" parent="Ground" unique_id=193283605 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.095521, 0, -0.267935, 0, 1.446444, 0, 0.267935, 0, 1.095521, 11.495748, 0.589873, -4.919763)
+
+[node name="TerrainPatch_74" parent="Ground" unique_id=2060305105 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.618072, 0, 0.747016, 0, 1.376145, 0, -0.747016, 0, 0.618072, 8.998325, 1.1, -0.32014)
+
+[node name="TerrainPatch_75" parent="Ground" unique_id=1563196804 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.668841, 0, 0.544691, 0, 1.167028, 0, -0.544691, 0, -0.668841, 7.656751, 1.1, 6.575821)
+
+[node name="TerrainPatch_76" parent="Ground" unique_id=1394407432 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.684821, 0, 0.723746, 0, 1.675407, 0, -0.723746, 0, -0.684821, 0.89642, 1.1, 10.304573)
+
+[node name="TerrainPatch_77" parent="Ground" unique_id=275883547 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.994861, 0, 0.215037, 0, 1.772262, 0, -0.215037, 0, -0.994861, -5.511921, 1.1, 4.426202)
+
+[node name="TerrainPatch_78" parent="Ground" unique_id=1894721208 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.850419, 0, 0.096202, 0, 1.392559, 0, -0.096202, 0, -0.850419, -7.785117, 0.508421, -1.059524)
+
+[node name="TerrainPatch_79" parent="Ground" unique_id=319557821 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.880973, 0, -0.526079, 0, 1.282157, 0, 0.526079, 0, 0.880973, -3.987609, 0.241163, -5.917592)
+
+[node name="TerrainPatch_80" parent="Ground" unique_id=1717271122 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.467753, 0, 0.858201, 0, 1.753887, 0, -0.858201, 0, -0.467753, 1.068108, 0.057015, -7.823326)
+
+[node name="TerrainPatch_81" parent="Ground" unique_id=1660970056 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.65647, 0, 0.523815, 0, 1.391845, 0, -0.523815, 0, -0.65647, 5.591783, 1.1, -4.338461)
+
+[node name="TerrainPatch_82" parent="Ground" unique_id=1542753258 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.556867, 0, -0.427169, 0, 0.814118, 0, 0.427169, 0, -0.556867, 27.975805, -0.072311, -0.689881)
+
+[node name="TerrainPatch_83" parent="Ground" unique_id=306170539 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.137265, 0, 0.683349, 0, 0.708385, 0, -0.683349, 0, -0.137265, 28.089725, -0.058844, 6.972174)
+
+[node name="TerrainPatch_84" parent="Ground" unique_id=133243627 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.727621, 0, -0.122367, 0, 0.654411, 0, 0.122367, 0, 0.727621, 27.59157, -0.055738, 12.918508)
+
+[node name="TerrainPatch_85" parent="Ground" unique_id=1927124539 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.571953, 0, -0.662835, 0, 1.037114, 0, 0.662835, 0, -0.571953, 24.460789, -0.043536, 18.44675)
+
+[node name="TerrainPatch_86" parent="Ground" unique_id=949734233 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.154275, 0, 0.563837, 0, 0.477901, 0, -0.563837, 0, 0.154275, 14.565564, -0.08327, 26.301561)
+
+[node name="TerrainPatch_87" parent="Ground" unique_id=514222353 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.179124, 0, -0.747498, 0, 0.794034, 0, 0.747498, 0, 0.179124, 5.039874, -0.060651, 29.174742)
+
+[node name="TerrainPatch_88" parent="Ground" unique_id=979782405 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.093791, 0, 0.630607, 0, 0.589768, 0, -0.630607, 0, 0.093791, -0.398229, -0.030074, 30.501026)
+
+[node name="TerrainPatch_89" parent="Ground" unique_id=1690930963 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.566601, 0, 0.388723, 0, 0.769095, 0, -0.388723, 0, 0.566601, -7.0668, -0.023354, 28.927921)
+
+[node name="TerrainPatch_90" parent="Ground" unique_id=1636130277 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.244951, 0, 0.672553, 0, 0.610093, 0, -0.672553, 0, 0.244951, -17.207396, -0.059387, 22.289007)
+
+[node name="TerrainPatch_91" parent="Ground" unique_id=110798352 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.325847, 0, 0.570365, 0, 0.588493, 0, -0.570365, 0, -0.325847, -21.346725, -0.052751, 20.04402)
+
+[node name="TerrainPatch_92" parent="Ground" unique_id=685191269 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.515792, 0, 0.684847, 0, 0.933865, 0, -0.684847, 0, -0.515792, -23.41654, -0.045584, 17.623844)
+
+[node name="TerrainPatch_93" parent="Ground" unique_id=1235453627 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.622949, 0, 0.343183, 0, 0.821848, 0, -0.343183, 0, 0.622949, -28.83363, -0.063353, 4.003555)
+
+[node name="TerrainPatch_94" parent="Ground" unique_id=1608718047 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.65558, 0, 0.094926, 0, 0.788235, 0, -0.094926, 0, -0.65558, -30.24118, -0.042663, -1.872179)
+
+[node name="TerrainPatch_95" parent="Ground" unique_id=1762942027 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.066031, 0, -0.794164, 0, 0.806672, 0, 0.794164, 0, 0.066031, -28.083265, -0.033948, -6.450909)
+
+[node name="TerrainPatch_96" parent="Ground" unique_id=1799743932 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.708312, 0, -0.002984, 0, 0.74927, 0, 0.002984, 0, 0.708312, -26.963404, -0.042708, -12.926872)
+
+[node name="TerrainPatch_97" parent="Ground" unique_id=751406999 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.459819, 0, 0.421599, 0, 0.597801, 0, -0.421599, 0, -0.459819, -21.338598, -0.059279, -17.129208)
+
+[node name="TerrainPatch_98" parent="Ground" unique_id=898162092 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.32798, 0, -0.666023, 0, 0.608396, 0, 0.666023, 0, -0.32798, -15.267477, -0.0304, -25.545872)
+
+[node name="TerrainPatch_99" parent="Ground" unique_id=1956952166 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.617582, 0, -0.246995, 0, 0.79275, 0, 0.246995, 0, 0.617582, -5.999613, -0.032466, -27.875885)
+
+[node name="TerrainPatch_100" parent="Ground" unique_id=2118975147 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.234503, 0, -0.836123, 0, 0.939247, 0, 0.836123, 0, -0.234503, 1.766016, -0.051007, -30.388716)
+
+[node name="TerrainPatch_101" parent="Ground" unique_id=2147165712 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.698239, 0, 0.539799, 0, 0.89403, 0, -0.539799, 0, -0.698239, 6.832303, -0.05431, -30.295456)
+
+[node name="TerrainPatch_102" parent="Ground" unique_id=1553052935 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.473918, 0, -0.755612, 0, 1.018718, 0, 0.755612, 0, -0.473918, 15.383066, -0.083333, -24.91274)
+
+[node name="TerrainPatch_103" parent="Ground" unique_id=2097781625 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.170746, 0, -0.814955, 0, 0.757391, 0, 0.814955, 0, -0.170746, 23.51059, -0.044589, -18.4431)
+
+[node name="TerrainPatch_104" parent="Ground" unique_id=837310089 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.597735, 0, 0.473733, 0, 0.631391, 0, -0.473733, 0, 0.597735, 23.971174, -0.092047, -17.50661)
+
+[node name="TerrainPatch_105" parent="Ground" unique_id=1876604412 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.197847, 0, -0.537304, 0, 0.534127, 0, 0.537304, 0, 0.197847, 29.84928, -0.035407, -4.51694)
+
+[node name="TerrainPatch_106" parent="Ground" unique_id=715394897 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.099557, 0, 0.944769, 0, 0.900027, 0, -0.944769, 0, 0.099557, 25.290356, -0.059623, 17.708496)
+
+[node name="TerrainPatch_107" parent="Ground" unique_id=789063189 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.610657, 0, -0.854165, 0, 1.120279, 0, 0.854165, 0, 0.610657, 17.801008, -0.048183, 22.78425)
+
+[node name="TerrainPatch_108" parent="Ground" unique_id=525363582 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.899525, 0, 0.305541, 0, 1.007975, 0, -0.305541, 0, -0.899525, 11.516392, -0.035122, 28.50407)
+
+[node name="TerrainPatch_109" parent="Ground" unique_id=213969399 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.03386, 0, 1.099479, 0, 1.095982, 0, -1.099479, 0, -0.03386, 3.25911, -0.03755, 31.00836)
+
+[node name="TerrainPatch_110" parent="Ground" unique_id=2067221041 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.942306, 0, 0.120659, 0, 0.978243, 0, -0.120659, 0, 0.942306, -5.339387, -0.023017, 30.281166)
+
+[node name="TerrainPatch_111" parent="Ground" unique_id=909241691 instance=ExtResource("3_terrain")]
+transform = Transform3D(1.049881, 0, 0.015804, 0, 1.104678, 0, -0.015804, 0, 1.049881, -12.782237, -0.036129, 26.20747)
+
+[node name="TerrainPatch_112" parent="Ground" unique_id=149212389 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.836111, 0, -0.451019, 0, 0.998575, 0, 0.451019, 0, -0.836111, -19.449062, -0.013381, 21.600372)
+
+[node name="TerrainPatch_113" parent="Ground" unique_id=1195796383 instance=ExtResource("3_terrain")]
+transform = Transform3D(-0.505394, 0, -0.862889, 0, 1.01493, 0, 0.862889, 0, -0.505394, -24.44604, -0.052391, 15.27558)
+
+[node name="TerrainPatch_114" parent="Ground" unique_id=1581742300 instance=ExtResource("3_terrain")]
+transform = Transform3D(0.775513, 0, -0.456706, 0, 0.916496, 0, 0.456706, 0, 0.775513, -28.516157, -0.05973, 9.265461)
+
+[node name="TerrainPatch_115" parent="Ground" unique_id=328519618 instance=ExtResource("3_terrain")]
+transform = Transform3D(3.060175, 0, 0.935589, 0, 2.88, 0, -0.935589, 0, 3.060175, 0, -0.402177, 0)
+
+[node name="Mountain" type="Node3D" parent="." unique_id=1420064557]
+transform = Transform3D(0.285317, 0, -0.092705, 0, 0.3, 0, 0.092705, 0, 0.285317, 0, -0.25, 0)
+
+[node name="NestMountain" parent="Mountain" unique_id=2143380307 instance=ExtResource("4_mountain")]

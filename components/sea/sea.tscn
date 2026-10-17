@@ -12,7 +12,8 @@ shader_parameter/WaveSpeed = Vector2(0.01, 0.01)
 
 [sub_resource type="PlaneMesh" id="PlaneMesh_pusyl"]
 material = SubResource("ShaderMaterial_dkw63")
-size = Vector2(500, 500)
+size = Vector2(12000, 12000)
 
 [node name="Sea" type="MeshInstance3D" unique_id=330008000]
 mesh = SubResource("PlaneMesh_pusyl")
+cast_shadow = 0

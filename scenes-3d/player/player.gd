@@ -7,6 +7,9 @@ extends CharacterBody3D
 @export var gravity: float = 4.0           # 重力加倍（原 2.0），让上升下降更干脆
 @export var mousensity: float = 0.005
 
+# 主岛的基础地形边缘最高约 48°，把可站立坡度放到 50°，玩家不需要跳跃。
+@export var max_floor_angle_deg: float = 50.0
+
 # 视角上下限制（单位：度）
 @export var min_pitch_deg: float = -70.0
 @export var max_pitch_deg: float = 70.0
@@ -18,6 +21,7 @@ var mouse_captured: bool = true
 @onready var camera: Camera3D = $Head/Camera3D
 
 func _ready() -> void:
+	floor_max_angle = deg_to_rad(max_floor_angle_deg)
 	# 捕获鼠标
 	Input.set_mouse_mode(Input.MOUSE_MODE_CAPTURED)
 	current_speed = normal_speed

@@ -1,15 +1,20 @@
 [gd_scene format=3 uid="uid://dnc7mnbatx4bq"]
 
-[ext_resource type="Script" uid="uid://qspdn88ptptu" path="res://scenes-3d/jurassic-island/jurassic-island.gd" id="1_main"]
-[ext_resource type="PackedScene" uid="uid://byexlo2qp8k2y" path="res://components/island/island.tscn" id="2_m4yw2"]
+[ext_resource type="PackedScene" path="res://components/island/island_terrain.tscn" id="2_island"]
 [ext_resource type="PackedScene" uid="uid://d3ledm0mpxvo2" path="res://components/sea/sea.tscn" id="5_sea"]
 [ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://scenes-3d/player/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="7_topbar"]
+[ext_resource type="PackedScene" path="res://scenes-3d/jurassic-island/local_scatter.tscn" id="8_scatter"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_main"]
-sky_horizon_color = Color(0.64, 0.7, 0.78, 1)
-ground_bottom_color = Color(0.24, 0.27, 0.3, 1)
-ground_horizon_color = Color(0.64, 0.7, 0.78, 1)
+sky_top_color = Color(0.05098, 0.2, 0.478431, 1)
+sky_horizon_color = Color(0.721569, 0.870588, 1, 1)
+sky_curve = 0.35
+ground_bottom_color = Color(0.160784, 0.301961, 0.521569, 1)
+ground_horizon_color = Color(0.721569, 0.870588, 1, 1)
+ground_curve = 0.6
+sun_angle_max = 18.0
+sun_curve = 0.12
 
 [sub_resource type="Sky" id="Sky_main"]
 sky_material = SubResource("ProceduralSkyMaterial_main")
@@ -18,37 +23,56 @@ sky_material = SubResource("ProceduralSkyMaterial_main")
 background_mode = 2
 sky = SubResource("Sky_main")
 ambient_light_source = 3
-ambient_light_sky_contribution = 0.6
+ambient_light_sky_contribution = 0.55
+ambient_light_energy = 0.4
 tonemap_mode = 2
+tonemap_exposure = 1.1
+tonemap_white = 5.0
 fog_enabled = true
-fog_light_color = Color(0.66, 0.72, 0.8, 1)
-fog_density = 0.0012
+fog_light_color = Color(0.721569, 0.843137, 0.960784, 1)
+fog_light_energy = 0.9
+fog_density = 0.0005
+fog_sky_affect = 0.15
+adjustment_enabled = true
+adjustment_contrast = 1.1
+adjustment_saturation = 1.35
 
-[node name="JurassicIsland" type="Node3D" unique_id=384099776]
-script = ExtResource("1_main")
+[node name="JurassicIsland" type="Node3D" unique_id=1042504712]
 
-[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1508984891]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=310366870]
 environment = SubResource("Environment_main")
 
-[node name="Sun" type="DirectionalLight3D" parent="." unique_id=687188717]
-transform = Transform3D(0.7880108, 0.48514786, -0.37903908, 0, 0.6156615, 0.7880107, 0.6156615, -0.62096095, 0.4851479, 0, 40, 0)
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=430334664]
+transform = Transform3D(0.453683, 0.547106, -0.703454, 0, 0.789366, 0.613923, 0.891163, -0.278527, 0.358122, 0, 40, 0)
+light_color = Color(1, 0.890196, 0.74902, 1)
+light_energy = 2.7
 shadow_enabled = true
-directional_shadow_max_distance = 200.0
+directional_shadow_max_distance = 2600.0
 
-[node name="Island" type="Node3D" parent="." unique_id=326285652]
-transform = Transform3D(20, 0, 0, 0, 20, 0, 0, 0, 20, 0, -12.964321, 0)
+[node name="FillLight" type="DirectionalLight3D" parent="." unique_id=1394493776]
+transform = Transform3D(-0.573462, -0.336543, 0.746914, 0, 0.911724, 0.410803, -0.819232, 0.23558, -0.52284, 0, 18, 0)
+light_color = Color(0.603922, 0.768627, 1, 1)
+light_energy = 0.3
 
-[node name="Island" parent="Island" unique_id=1030798146 instance=ExtResource("2_m4yw2")]
+[node name="BounceLight" type="DirectionalLight3D" parent="." unique_id=1138168435]
+transform = Transform3D(0.976187, 0.147043, 0.15949, 0, 0.735215, -0.677834, -0.21693, 0.661693, 0.717707, 0, -10, 0)
+light_color = Color(0.501961, 0.639216, 0.807843, 1)
+light_energy = 0.16
 
-[node name="Sea" parent="." unique_id=1773263633 instance=ExtResource("5_sea")]
+[node name="Island" type="Node3D" parent="." unique_id=1736432730]
+transform = Transform3D(32.258, 0, 0, 0, 20.9677, 0, 0, 0, 32.258, 0, -0.5, 0)
 
-[node name="Player" parent="." unique_id=1691824920 instance=ExtResource("6_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 322.05682, 95.81578, 0)
+[node name="IslandComponent" parent="Island" unique_id=1013204167 instance=ExtResource("2_island")]
 
-[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=615637729]
+[node name="Sea" parent="." unique_id=1753163453 instance=ExtResource("5_sea")]
 
-[node name="TopBar" parent="HUDLayer" unique_id=1748306951 instance=ExtResource("7_topbar")]
+[node name="LocalScatter" parent="." unique_id=798422038 instance=ExtResource("8_scatter")]
+
+[node name="Player" parent="." unique_id=245103418 instance=ExtResource("6_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 353.9173, 77.851425)
+
+[node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1711720252]
+
+[node name="TopBar" parent="HUDLayer" unique_id=1400059951 instance=ExtResource("7_topbar")]
 auto_advance_time = true
 day_length_seconds = 120.0
-
-[node name="terrain" type="Node3D" parent="." unique_id=2007347347]

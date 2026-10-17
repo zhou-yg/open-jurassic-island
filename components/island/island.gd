@@ -1,3 +1,4 @@
+@tool
 extends Node3D
 ## 低模岛组件的碰撞补全。
 ##
@@ -12,6 +13,10 @@ extends Node3D
 
 ## 关掉后场景里只有视觉，没有碰撞（例如纯展示 / 截图时）。
 @export var build_collision: bool = true
+## 是否显示组件自带的天空 / 三盏灯 / 预览相机。接进大世界时设为 false。
+@export var show_presentation: bool = true
+## 是否显示组件自带的草石。接进大世界时设为 false（放大后会变成巨型道具）。
+@export var show_scatter: bool = true
 ## 需要补碰撞的节点组（相对本节点）。默认覆盖草地、山体和石头。
 @export var collision_groups: Array[NodePath] = [
 	NodePath("Ground"),
@@ -21,14 +26,35 @@ extends Node3D
 
 
 func _ready() -> void:
-	if not build_collision:
+	_apply_visibility()
+	# 编辑器里只切显示，不往场景树里塞临时碰撞体。
+	if Engine.is_editor_hint() or not build_collision:
 		return
 	for path in collision_groups:
+		if path == NodePath("Scatter/Rocks") and not show_scatter:
+			continue
 		var root := get_node_or_null(path)
 		if root == null:
-			push_warning("[Island] 找不到碰撞组：%s" % path)
 			continue
 		_add_collision_recursive(root)
+
+
+## 组件自带的展示节点 / 草石是否可见。主场景会把这两个开关设为 false。
+func _apply_visibility() -> void:
+	for node_name in ["WorldEnvironment", "Sun", "FillLight", "BounceLight"]:
+		var node := get_node_or_null(node_name)
+		if node == null:
+			continue
+		if node is WorldEnvironment:
+			(node as WorldEnvironment).environment = null if not show_presentation else (node as WorldEnvironment).environment
+		elif node is Node3D:
+			(node as Node3D).visible = show_presentation
+	var preview := get_node_or_null("PreviewCamera")
+	if preview is Camera3D:
+		(preview as Camera3D).current = show_presentation
+	var scatter := get_node_or_null("Scatter")
+	if scatter is Node3D:
+		(scatter as Node3D).visible = show_scatter
 
 
 func _add_collision_recursive(root: Node) -> void:
