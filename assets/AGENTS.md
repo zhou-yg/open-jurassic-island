@@ -102,6 +102,8 @@ print(c.use_location_x, c.use_rotation_x, c.use_scale_x)   # True True False  �
 | 山体洞窟岛 `low_poly_mountain_cave_island` | `models/mountain-cave-island/…` | 15.5 × 7.6 × 10.9 | 长边 **24 m**（模型常数 `SIZE=24`） | ⚠️ 实测偏小，统一时对齐到 24 m |
 | 鸟巢山 `low_poly_nest_mountain` | `models/nest-mountain/low_poly_nest_mountain.py` | 97.2 × 90.5 × 62.0 | 山脚占地 **≈97 m**，主峰 **53 m**（含水下裙边 −9 m） | 多层台地山体，山脚 / 山腰各一个**平整切口**的圆柱山洞；山顶 Ø 23 m 平台上预留 Ø 11.5 m 鸟巢坑（坑底 z=44） |
 | 石头 `low_poly_rock` | `models/low-poly-rock/low_poly_rock.py` | 2.92 × 2.55 × 1.34 | 长边 **≈2.9 m**，底面 z=0 | 洞口 / 路边点缀用的独立巨石；**25 棱面 / 80 三角面**，平底接触 3.56 m² |
+| 侏罗纪公园大门 `low_poly_jurassic_gate` | `models/jurassic-gate/low_poly_jurassic_gate.py` | 10.56 × 1.40 × 6.24 | 总宽 **10.56 m**（含两侧破墙），门洞净宽 **3.20 m**、净高 **2.95 m**，通高 **6.24 m** | 荒废园区入口：中拱 + 匾额 **"dinosaur"**（Arial Bold 凸字）+ 双开绣铁门（静止=**合**）+ 左右残墙苔藓；**2 条内置动画 `Gate_Open` / `Gate_Close`**（各 1.2 s @30fps，左右门扇反向向外开 88°），原点在门洞地面中心。**两翼矮墙的外端是接缝端**，可以怼 `low_poly_ruined_wall` 继续加长 |
+| 破败石墙（可拼接）`low_poly_ruined_wall` | `models/ruined-wall/low_poly_ruined_wall.py` | 2.90 × 2.25 × 0.99 | 单段 **2.90 × 0.99 × 2.25 m**（长 × 厚 × 高），墙厚 0.75 m、压顶 0.20 m，原点在**单段中心**、底面 z=0 | 模块化废墟墙：沿本地 X 逐段拼接加长，相邻段间隔 **2.90 m**。墙体尺寸与大门两翼**同源**（`models/_shared/ruin_kit.py`），所以也能直接接在门上。**接缝三条约**：①长度是砖模数整数倍；②两端强制满高 + 压顶端片取固定满厚度；③基座/压顶在 X 方向不外扩。脚本内 `verify_seams()` 数值校验两端端面完全重合，不过即报错 |
 | 天空岛 `sky-island-basic` | `assets/island/sky-island-basic.glb` | 507 × 509 × 326 | 长边 **≈500 m**（远景，无 `apply_root_scale`） | 外部资产；如重做请按此尺度 |
 
 主地图整体尺度：侏罗纪岛地形约 **200 m × 150 m**，海平面 `y = 0`（Godot）。
@@ -264,6 +266,12 @@ assert abs(measured_height - SIZE_REF["banana_tree_tall_m"]) < 0.02, \
 - `components/vegetation/banana_bunch/`：依赖香蕉单根长 **0.55 m**、原点在蒂。
 - `components/vegetation/tests/verify_banana_tree.gd`：自检里有写死的期望高度与"香蕉不插进假茎"的容差。
 - 草地 / 植被摆放脚本：按 §3 的高度锚点推算密度与间距。
+- `components/island/park_gate/park_gate.gd`：依赖大门 GLB 的节点名 `GateRoot/Gate_Door_L`、
+  `GateRoot/Gate_Door_R`，以及两条动画片段名 **`Gate_Open` / `Gate_Close`**（各 1.2 s）。
+  改片段名或改门轴朝向会直接让组件摆错姿态。
+- `components/island/ruined_wall/ruined_wall_run.gd`：依赖破墙单段长 **2.90 m**
+  （常量 `SEGMENT_LENGTH`）与 GLB 内节点名 `Wall`。改 `WALL_LEN_M` 必须同步改这个常量，
+  否则相邻两段会错位或重叠。
 
 **规则**：改 §2 表格里任何数字前，先 grep 一遍使用方，脚本与组件一起改，并跑一次对应的 `verify_*.gd`。
 
@@ -274,10 +282,13 @@ assert abs(measured_height - SIZE_REF["banana_tree_tall_m"]) < 0.02, \
 ```
 assets/
   models/<资产名>/
-    <name>.py            # 生成脚本（唯一事实来源，提交）
+    <name>.py            # 生成脚本（唯一事实来源，提交。文件名不一定要叫 <name>)
     <name>.blend         # Blender 源文件（提交）
     <name>.glb           # Godot 用资产（提交）
     <name>_preview.png   # 预览图（提交，便于 review）
+    <name>_anim.png      # 可选：带内置动画的接触表（只有含动画的资产才有）
+  models/_shared/        # 跨资产的共享构建代码（不是一个资产，没有 .glb）
+    ruin_kit.py          # 废墟石墙的唯一实现 + 调色板 + 网格工具 + 预览机位
   island/                # 主地图地形与形状数据
     jurassic_island.py         # 地形生成器
     jurassic_island_shapes.py  # 烘焙的形状数据（由脚本导入，勿手改）
@@ -287,5 +298,8 @@ assets/
   （`models/apple-tree/low_poly_tree.py` 里遗留的绝对 `OUT_DIR` 属于待清理项）。
 - 随机造型必须固定 `random.seed(...)` / 固定噪声种子，保证可复现。
 - 预览图渲染用于人眼校验比例：至少一张带地面的正视 / 3/4 视图。
+- **同一个构件被两个以上资产用到时，抽到 `models/_shared/`，不要复制粘贴。**
+  典型：大门两翼的矮墙与 `low_poly_ruined_wall` 必须是同一堵墙，复制一份必然会在
+  基座高度 / 砖缝 / 压顶上慢慢跑偏，拼接处就露出台阶。
 - 用 Blender MCP 工作时：先 `get_scene_info` 确认场景，再用 `look` 看图核对比例；`execute_blender_code`
   里读引擎 / 枚举一律**按 type 查节点**、写进 `try/except TypeError`，不要写死本地化名称。
