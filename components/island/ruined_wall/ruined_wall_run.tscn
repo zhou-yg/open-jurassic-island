@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://components/island/ruined_wall/ruined_wall_run.gd" id="1_wall_run"]
+
+[node name="RuinedWall" type="Node3D"]
+script = ExtResource("1_wall_run")

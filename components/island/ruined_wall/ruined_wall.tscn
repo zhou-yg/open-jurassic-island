@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://components/island/ruined_wall/ruined_wall_single.gd" id="1_wall_one"]
+[ext_resource type="PackedScene" uid="uid://55sqpu4v10b8" path="res://assets/models/ruined-wall/low_poly_ruined_wall.glb" id="2_wall_model"]
+
+[node name="RuinedWallPiece" type="Node3D"]
+script = ExtResource("1_wall_one")
+
+[node name="Model" parent="." instance=ExtResource("2_wall_model")]

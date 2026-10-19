@@ -82,10 +82,14 @@ func _test_structure() -> void:
 		return
 	var rocks := scatter.get_node_or_null("Rocks")
 	var grass := scatter.get_node_or_null("Grass")
-	_check(rocks != null and rocks.find_children("*", "MeshInstance3D", true, false).size() >= 40,
-		"石头数量不足（应 >= 40）")
-	_check(grass != null and grass.find_children("*", "MeshInstance3D", true, false).size() >= 400,
-		"草数量不足（应 >= 400）")
+	_check(rocks != null and _instance_count(rocks) >= 40,
+		"石头数量不足（应 >= 40，实际 %d）" % _instance_count(rocks))
+	_check(grass != null and _instance_count(grass) >= 400,
+		"草数量不足（应 >= 400，实际 %d）" % _instance_count(grass))
+	# 散布合并成 MultiMesh 之后，节点数应该只有几十个 —— 一旦有人把
+	# "每个草一个节点"的旧做法加回来，这里立刻报警。
+	_check(scatter.get_child_count() <= 40,
+		"Scatter 子节点太多（%d），草石应该走 MultiMesh" % scatter.get_child_count())
 	var patches := ground.find_children("*", "MeshInstance3D", true, false).size() if ground else 0
 	_check(patches >= 20, "草地地形块数量不足（实际 %d）" % patches)
 
@@ -120,10 +124,15 @@ func _test_collision() -> void:
 	_section("碰撞")
 	var ground := _scene.get_node_or_null("Ground")
 	var mountain := _scene.get_node_or_null("Mountain")
-	var rocks := _scene.get_node_or_null("Scatter/Rocks")
+	var rock_body := _scene.get_node_or_null("Scatter/RockCollision")
 	_check(_has_static_bodies(ground), "草地地形块没有补齐碰撞")
 	_check(_has_static_bodies(mountain), "山体没有补齐碰撞")
-	_check(_has_static_bodies(rocks), "石头没有补齐碰撞")
+	# 石头现在由 ground_scatter.gd 用**一个** StaticBody3D + N 个共享凸包
+	# CollisionShape3D 补碰撞（MultiMesh 本身不产生碰撞）。
+	_check(rock_body is StaticBody3D, "石头没有补齐碰撞（缺 Scatter/RockCollision）")
+	if rock_body is StaticBody3D:
+		var shapes := (rock_body as StaticBody3D).get_child_count()
+		_check(shapes >= 40, "石头碰撞体太少（%d）" % shapes)
 	# 岛屿本体的台面由 glb 自带的 `-col` 节点提供碰撞
 	var base_body := _scene.get_node_or_null("IslandBase").find_children("*", "StaticBody3D", true, false)
 	_check(base_body.size() > 0, "岛屿本体没有碰撞")
@@ -132,51 +141,46 @@ func _test_collision() -> void:
 ## ---------------- 4. 石头 / 草贴地 ----------------
 func _test_scatter_on_ground() -> void:
 	_section("石头 / 草贴地")
-	var rock_meshes := _scene.get_node_or_null("Scatter/Rocks").find_children("*", "MeshInstance3D", true, false)
+	var rocks := _scene.get_node_or_null("Scatter/Rocks")
+	var rock_body := _scene.get_node_or_null("Scatter/RockCollision")
 	var excluded: Array[RID] = []
-	for node in rock_meshes:
-		for child in node.get_children():
-			if child is StaticBody3D:
-				excluded.append((child as StaticBody3D).get_rid())
+	if rock_body is StaticBody3D:
+		excluded.append((rock_body as StaticBody3D).get_rid())
 
+	# 草石现在是 MultiMesh，位置要按"实例变换"取，而不是节点 global_position。
 	# 山顶/山腰的石头经常落在挑檐下面，垂直射线会先打到上层台地，
-	# 所以只对岛屿范围内的石头做严格贴地检查；山体石头检查在包围盒内。
+	# 所以只对岛屿范围内的石头做严格贴地检查；山体石头只数数量。
 	var rock_checked := 0
 	var rock_ok := 0
 	var mountain_rocks := 0
-	for node in rock_meshes:
-		var mi := node as MeshInstance3D
-		var on_mountain := false
-		var walk := mi.get_parent()
-		while walk != null:
-			if walk.name == "MountainBoulders":
-				on_mountain = true
-				break
-			walk = walk.get_parent()
+	for entry in _instances_under(rocks):
+		var p: Vector3 = entry[0]
+		var on_mountain: bool = entry[1]
 		if on_mountain:
 			mountain_rocks += 1
 			continue
-		var y := _ground_height_xz(mi.global_position.x, mi.global_position.z, mi.global_position.y + 4.0, excluded)
+		var y := _ground_height_xz(p.x, p.z, p.y + 4.0, excluded)
 		if y == -INF:
 			continue
 		rock_checked += 1
-		if absf(y - mi.global_position.y) < 0.8:
+		if absf(y - p.y) < 0.8:
 			rock_ok += 1
 
 	_check(rock_checked > 0 and rock_ok == rock_checked,
 		"有石头悬空或陷得太深（%d/%d 贴地）" % [rock_ok, rock_checked])
 	_check(mountain_rocks >= 12, "山上的石头太少（%d 块）" % mountain_rocks)
 
-	var grass_meshes := _scene.get_node_or_null("Scatter/Grass").find_children("*", "MeshInstance3D", true, false)
+	var grass := _scene.get_node_or_null("Scatter/Grass")
+	var all_grass := _instances_under(grass)
 	var grass_checked := 0
 	var grass_ok := 0
-	for i in range(0, grass_meshes.size(), maxi(1, grass_meshes.size() / 18)):
-		var mi := grass_meshes[i] as MeshInstance3D
-		var y := _ground_height_xz(mi.global_position.x, mi.global_position.z, mi.global_position.y + 4.0, excluded)
+	for i in range(0, all_grass.size(), maxi(1, all_grass.size() / 18)):
+		var p: Vector3 = all_grass[i][0]
+		var y := _ground_height_xz(p.x, p.z, p.y + 4.0, excluded)
 		if y == -INF:
 			continue
 		grass_checked += 1
-		if absf(y - mi.global_position.y) < 0.35:
+		if absf(y - p.y) < 0.35:
 			grass_ok += 1
 
 	_check(grass_checked > 0 and grass_ok == grass_checked,
@@ -242,3 +246,38 @@ func _ground_height_xz(x: float, z: float, from_y: float, exclude: Array[RID]) -
 	if hit.is_empty():
 		return -INF
 	return (hit["position"] as Vector3).y
+
+
+## 某个散布分组下所有实例的世界位置。返回 [[Vector3 位置, 是否属于山体], ...]
+## 分组层级（Rocks/MountainBoulders 这种）在烘 MultiMesh 时**特意保留**了，
+## 所以这里还能按名字把山上的石头分出来。
+func _instances_under(root: Node) -> Array:
+	var out: Array = []
+	if root == null:
+		return out
+	for node in root.find_children("*", "MultiMeshInstance3D", true, false):
+		var mmi := node as MultiMeshInstance3D
+		if mmi.multimesh == null:
+			continue
+		var on_mountain := false
+		var walk := mmi.get_parent()
+		while walk != null and walk != root.get_parent():
+			if String(walk.name).contains("Mountain"):
+				on_mountain = true
+				break
+			walk = walk.get_parent()
+		var base := mmi.global_transform
+		for i in mmi.multimesh.instance_count:
+			out.append([(base * mmi.multimesh.get_instance_transform(i)).origin, on_mountain])
+	return out
+
+
+func _instance_count(root: Node) -> int:
+	if root == null:
+		return 0
+	var total := 0
+	for node in root.find_children("*", "MultiMeshInstance3D", true, false):
+		var mm := (node as MultiMeshInstance3D).multimesh
+		if mm != null:
+			total += mm.instance_count
+	return total

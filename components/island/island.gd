@@ -2,7 +2,7 @@
 extends Node3D
 ## 低模岛组件的碰撞补全。
 ##
-## 场景里摆放的 GLB（plain_terrain / nest_mountain / low_poly_rock）导入时只有网格，
+## 场景里摆放的 GLB（plain_terrain / nest_mountain）导入时只有网格，
 ## 没有碰撞。游戏里玩家要能走在草地和山上、撞到石头，所以这里在运行时给这些网格
 ## 各挂一个 [StaticBody3D] + [CollisionShape3D]（三角面碰撞，低模面数很少，开销可接受）。
 ##
@@ -17,11 +17,16 @@ extends Node3D
 @export var show_presentation: bool = true
 ## 是否显示组件自带的草石。接进大世界时设为 false（放大后会变成巨型道具）。
 @export var show_scatter: bool = true
-## 需要补碰撞的节点组（相对本节点）。默认覆盖草地、山体和石头。
+## 需要补碰撞的节点组（相对本节点）。默认覆盖地形和山体。
+##
+## 注意：草/石头**不在这里**。它们已经被合并成 MultiMesh（见
+## components/island/ground_scatter/），MultiMesh 不是 MeshInstance3D，
+## 用本文件的三角面方案扫不到；石头的碰撞由 ground_scatter.gd 在运行时
+## 用"一个 StaticBody3D + N 个共享凸包 CollisionShape3D"补出来，比逐块
+## 三角面便宜得多。草不参与碰撞。
 @export var collision_groups: Array[NodePath] = [
 	NodePath("Ground"),
 	NodePath("Mountain"),
-	NodePath("Scatter/Rocks"),
 ]
 
 
@@ -31,8 +36,6 @@ func _ready() -> void:
 	if Engine.is_editor_hint() or not build_collision:
 		return
 	for path in collision_groups:
-		if path == NodePath("Scatter/Rocks") and not show_scatter:
-			continue
 		var root := get_node_or_null(path)
 		if root == null:
 			continue

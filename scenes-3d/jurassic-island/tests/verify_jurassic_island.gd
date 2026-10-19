@@ -120,12 +120,22 @@ func _test_local_scatter() -> void:
 	_check(local != null, "缺少静态 LocalScatter")
 	if local == null:
 		return
-	_check(local.get_child_count() >= 500,
-		"静态草石太少（%d），玩家附近会显得空" % local.get_child_count())
-	var rock_bodies := 0
-	for node in local.find_children("*", "StaticBody3D", true, false):
-		rock_bodies += 1
-	_check(rock_bodies >= 100, "静态石头碰撞体太少（%d）" % rock_bodies)
+	# 草石已合并成 MultiMesh：节点只剩几个，**实例数**才代表密度。
+	var instances := 0
+	for node in local.find_children("*", "MultiMeshInstance3D", true, false):
+		var mm := (node as MultiMeshInstance3D).multimesh
+		if mm != null:
+			instances += mm.instance_count
+	_check(instances >= 500,
+		"静态草石太少（%d 个实例），玩家附近会显得空" % instances)
+	_check(local.get_child_count() <= 40,
+		"LocalScatter 节点太多（%d），草石应该走 MultiMesh" % local.get_child_count())
+	# 石头碰撞：一个 StaticBody3D + N 个共享凸包 CollisionShape3D
+	var rock_shapes := 0
+	var rock_body := local.get_node_or_null("RockCollision")
+	if rock_body is StaticBody3D:
+		rock_shapes = (rock_body as StaticBody3D).get_child_count()
+	_check(rock_shapes >= 100, "静态石头碰撞太少（%d）" % rock_shapes)
 
 
 func _test_walkable_slopes() -> void:

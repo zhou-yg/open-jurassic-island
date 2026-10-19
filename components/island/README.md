@@ -77,9 +77,9 @@ Island (Node3D, island.gd)
 ## 展示版 / 地形版
 
 - **`island.tscn`**：完整展示版，包含 WorldEnvironment、三盏灯、PreviewCamera、
-  922 丛草和 66 块石头，适合单独打开预览。
+  922 丛草和 66 块石头（已合并成 MultiMesh，见 `ground_scatter/`），适合单独打开预览。
 - **`island_terrain.tscn`**：主场景用的地形版，只保留 `IslandBase` / `Ground` /
-  `Mountain` 和 `island.gd`，没有展示节点和巨型草石。文件从 260 KB 降到 27 KB。
+  `Mountain` 和 `island.gd`，没有展示节点和巨型草石。文件 27 KB。
 
 主场景 `scenes-3d/jurassic-island/jurassic-island.tscn` 实例化的是地形版，
 再实例化烘焙好的 `local_scatter.tscn`（720 草 + 180 石，静态节点）。
@@ -88,3 +88,53 @@ Island (Node3D, island.gd)
 
 完整展示版的 `show_presentation` / `show_scatter` 导出开关保留，
 其他场景如果直接实例化 `island.tscn` 可以用它们隐藏展示节点和草石。
+
+## 园区入口 `ParkEntrance`
+
+`island.tscn` 末尾挂了一个 `ParkEntrance` 节点，把大门和破墙摆进展示岛：
+
+```
+ParkEntrance                  ← 整组可整体挪动
+  ├─ ParkGate                 ← 大门（components/island/park_gate/）
+  ├─ WallEast                 ← 破墙 3 段，从门前 x=+5.05 往 +X 长
+  └─ WallWest                 ← 破墙 3 段，X 轴镜像后从 x=−5.05 往 −X 长
+```
+
+- 大门 `components/island/park_gate/`：**10.56 × 6.24 m**，原点在门洞地面中线，
+  内置 `Gate_Open` / `Gate_Close` 两条动画，`park_gate.gd` 提供 `open()` / `close()` / `toggle()`。
+- 破墙 `components/island/ruined_wall/`：单段 **2.90 m**，沿 +X 拼接加长，
+  `ruined_wall_run.gd` 的 `segments` 控制段数。接缝两端面已数值校验完全重合。
+
+两者共用 `assets/models/_shared/ruin_kit.py` 里的同一份墙体几何，所以大门两翼的外端
+可以直接接破墙模块继续加长，接缝对齐（108 个剖面点全等）。
+
+> ⚠️ **别把 `ParkEntrance` 挪进 `Island` 节点下面**。主场景 `jurassic-island.tscn` 给
+> `Island` 加了 `Transform3D(32.258, 0, 0, 0, 20.9677, 0, 0, 0, 32.258, ...)` ——
+> 是 **32 倍、而且 Y 轴非等比**的缩放，大门进去会被拉成 340 m 宽的假门楼。
+> 要放进主场景，请把 `ParkEntrance` 摆在 `Island` 的**兄弟位置**（1:1 米制）。
+
+## 草石现在是 MultiMesh
+
+`Scatter` 不再是上千个道具节点，而是实例化了
+`components/island/ground_scatter/island_scatter.tscn`：
+
+```
+Scatter                        ← MultiMesh 散布（17 个节点 / 988 个实例 / 8 个 draw call）
+  ├─ Grass
+  │   ├─ IslandGrass           ← 分组容器（保留原来的层级语义）
+  │   │   ├─ GrassTuft         ← MultiMeshInstance3D（564 实例）
+  │   │   └─ GrassClump        ← MultiMeshInstance3D（314 实例）
+  │   └─ MountainGrass
+  │       ├─ GrassTuft / GrassClump
+  ├─ Rocks
+  │   ├─ RimBoulders / FieldBoulders / MountainFoot / MountainBoulders
+  │       └─ Rock              ← MultiMeshInstance3D
+  └─ RockCollision             ← 运行时生成：1 个 StaticBody3D + 66 个共享凸包形状
+```
+
+- 草的 MultiMesh 关掉了投影（`cast_shadow = 0`），上千棵草的阴影是纯浪费。
+- 石头碰撞由 `ground_scatter.gd` 在运行时补，形状资源共享，所以 66 块石头只占一份形状数据。
+- 位置数据的源是 `ground_scatter/island_scatter.json`，改完要重跑
+  `bake_scatter.gd`。细节和踩过的坑见 `ground_scatter/README.md`。
+- `island.gd` 的 `collision_groups` 里**不再包含** `Scatter/Rocks`：MultiMesh 不是
+  `MeshInstance3D`，三角面补碰撞那套扫不到它，石头碰撞改由散布组件自己负责。

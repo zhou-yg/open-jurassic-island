@@ -1,0 +1,9 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://components/island/park_gate/park_gate.gd" id="1_park_gate"]
+[ext_resource type="PackedScene" uid="uid://c6ea6vfa63erf" path="res://assets/models/jurassic-gate/low_poly_jurassic_gate.glb" id="2_gate_model"]
+
+[node name="ParkGate" type="Node3D"]
+script = ExtResource("1_park_gate")
+
+[node name="Model" parent="." instance=ExtResource("2_gate_model")]

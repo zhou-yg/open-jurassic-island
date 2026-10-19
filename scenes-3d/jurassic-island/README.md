@@ -14,7 +14,7 @@
 | 岛 | `components/island/island_terrain.tscn`；`Island` 节点水平 scale **32.258**（62 m 组件 → 2000 m），竖直 scale **20.968**（水平的 0.65） |
 | 海 | `components/sea/sea.tscn`，PlaneMesh **12000 × 12000**，关闭阴影投射 |
 | 玩家 | `scenes-3d/player/player.tscn`，静态出生点 `(0, 20.5, 650)`；相机 `current = true`、`far = 12000` |
-| 本地草石 | `scenes-3d/jurassic-island/local_scatter.tscn`：720 丛草 + 180 块石头，静态节点；石头共用一个三角面碰撞形状 |
+| 本地草石 | `scenes-3d/jurassic-island/local_scatter.tscn`：720 丛草 + 180 块石头的 **MultiMesh**（3 个 MultiMeshInstance3D = 3 个 draw call）；石头碰撞由 `ground_scatter.gd` 在运行时补：1 个 StaticBody3D + 180 个**共享同一个凸包形状**的 CollisionShape3D |
 | 环境 / 灯光 | 主场景自己的 WorldEnvironment + Sun + FillLight + BounceLight，雾密度 **0.0005** |
 
 ## 为什么之前第一人称玩家“看不见”
@@ -43,7 +43,8 @@
    约 6 km 外基本全雾，海面边缘不可见。
 5. **岛组件碰撞**：地形版仍然挂 `components/island/island.gd`，由组件自己在运行时
    给 `Ground` / `Mountain` 补三角面碰撞（这是组件级行为，主场景本身没有脚本）。
-   本地草石碰撞已经烘进 `local_scatter.tscn`，不依赖脚本。
+   本地草石的视觉是 MultiMesh（不是上千个节点）；石头碰撞由 `ground_scatter.gd` 运行时补，
+   形状资源共享，所以 180 块石头只占一份形状数据。
 
 ## 关键比例
 
@@ -78,4 +79,6 @@
 - 海面是单张 12000 m 平面，UV 波纹在大尺度下会被拉伸；后续可以给
   `ocean_visual_shader.tres` 加 UV scale，或换成远/近两层海。
 - 当前玩家没有水中物理；走到海里会直接往下掉。后续加水体碰撞/游泳即可。
-- 静态草石约 900 个节点；正式关卡可以换成 `MultiMeshInstance3D` 或按距离减少。
+- 静态草石已经是 `MultiMeshInstance3D`：**4 个节点、900 个实例、3 个 draw call**。
+  草的两个 MultiMesh 关掉了投影（`cast_shadow = 0`）——上千棵草的阴影是纯浪费。
+  位置数据的源是 `local_scatter.json`，改完要重跑 `ground_scatter/bake_scatter.gd`。
