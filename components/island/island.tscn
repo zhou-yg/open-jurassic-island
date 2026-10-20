@@ -7,9 +7,8 @@
 [ext_resource type="PackedScene" uid="uid://csljsbd31q2hs" path="res://assets/models/low-poly-rock/low_poly_rock.glb" id="5_rock"]
 [ext_resource type="PackedScene" uid="uid://b1t1khcgg3q2x" path="res://assets/models/grass/grass_tuft.glb" id="6_tuft"]
 [ext_resource type="PackedScene" uid="uid://cacrbr0mcanim" path="res://assets/models/grass/grass_clump.glb" id="7_clump"]
-[ext_resource type="PackedScene" path="res://components/island/park_gate/park_gate.tscn" id="8_park_gate"]
-[ext_resource type="PackedScene" path="res://components/island/ruined_wall/ruined_wall_run.tscn" id="9_wall_run"]
 [ext_resource type="PackedScene" path="res://components/island/ground_scatter/island_scatter.tscn" id="10_scatter"]
+[ext_resource type="PackedScene" path="res://components/island/park_perimeter/park_perimeter.tscn" id="11_perimeter"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_island"]
 sky_top_color = Color(0.05098, 0.2, 0.478431, 1)
@@ -428,21 +427,10 @@ transform = Transform3D(0.775513, 0, -0.456706, 0, 0.916496, 0, 0.456706, 0, 0.7
 transform = Transform3D(3.060175, 0, 0.935589, 0, 2.88, 0, -0.935589, 0, 3.060175, 0, -0.402177, 0)
 
 [node name="Mountain" type="Node3D" parent="." unique_id=1420064557]
-transform = Transform3D(0.285317, 0, -0.092705, 0, 0.3, 0, 0.092705, 0, 0.285317, 0, -0.25, 0)
+transform = Transform3D(0.285317, 0, -0.092705, 0, 0.3, 0, 0.092705, 0, 0.285317, 2.0838, -0.25, -11.8177)
 
 [node name="NestMountain" parent="Mountain" unique_id=2143380307 instance=ExtResource("4_mountain")]
 
-[node name="ParkEntrance" type="Node3D" parent="."]
-
-[node name="ParkGate" parent="ParkEntrance" instance=ExtResource("8_park_gate")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
-
-[node name="WallEast" parent="ParkEntrance" instance=ExtResource("9_wall_run")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.05, 0, 0)
-segments = 3
-
-[node name="WallWest" parent="ParkEntrance" instance=ExtResource("9_wall_run")]
-transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, -5.05, 0, 0)
-segments = 3
+[node name="ParkPerimeter" parent="." instance=ExtResource("11_perimeter")]
 
 [node name="Scatter" parent="." instance=ExtResource("10_scatter")]

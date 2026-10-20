@@ -10,57 +10,57 @@
 [ext_resource type="MultiMesh" path="res://components/island/ground_scatter/island_scatter_Grass_MountainGrass_grass_tuft.res" id="8_c4o8f"]
 [ext_resource type="MultiMesh" path="res://components/island/ground_scatter/island_scatter_Grass_MountainGrass_grass_clump.res" id="9_l0fti"]
 
-[node name="GroundScatter" type="Node3D" unique_id=1963455643]
+[node name="GroundScatter" type="Node3D" unique_id=1699782298]
 script = ExtResource("1_idvbr")
 
-[node name="Rocks" type="Node3D" parent="." unique_id=259263687]
+[node name="Rocks" type="Node3D" parent="." unique_id=597343251]
 
-[node name="RimBoulders" type="Node3D" parent="Rocks" unique_id=1316387156]
+[node name="RimBoulders" type="Node3D" parent="Rocks" unique_id=2043970721]
 
-[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/RimBoulders" unique_id=1081708924]
+[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/RimBoulders" unique_id=2072528995]
 gi_mode = 0
 multimesh = ExtResource("2_vt1p1")
 
-[node name="FieldBoulders" type="Node3D" parent="Rocks" unique_id=358231030]
+[node name="FieldBoulders" type="Node3D" parent="Rocks" unique_id=1363552907]
 
-[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/FieldBoulders" unique_id=1114651203]
+[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/FieldBoulders" unique_id=354973945]
 gi_mode = 0
 multimesh = ExtResource("3_8dhlu")
 
-[node name="MountainFoot" type="Node3D" parent="Rocks" unique_id=308266468]
+[node name="MountainFoot" type="Node3D" parent="Rocks" unique_id=1281067406]
 
-[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/MountainFoot" unique_id=635664561]
+[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/MountainFoot" unique_id=2006901374]
 gi_mode = 0
 multimesh = ExtResource("4_4h3ue")
 
-[node name="MountainBoulders" type="Node3D" parent="Rocks" unique_id=73579153]
+[node name="MountainBoulders" type="Node3D" parent="Rocks" unique_id=512258586]
 
-[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/MountainBoulders" unique_id=709284470]
+[node name="Rock" type="MultiMeshInstance3D" parent="Rocks/MountainBoulders" unique_id=377475398]
 gi_mode = 0
 multimesh = ExtResource("5_t4bl7")
 
-[node name="Grass" type="Node3D" parent="." unique_id=1242799959]
+[node name="Grass" type="Node3D" parent="." unique_id=1460184349]
 
-[node name="IslandGrass" type="Node3D" parent="Grass" unique_id=967879440]
+[node name="IslandGrass" type="Node3D" parent="Grass" unique_id=1464888381]
 
-[node name="GrassClump" type="MultiMeshInstance3D" parent="Grass/IslandGrass" unique_id=1761275473]
+[node name="GrassClump" type="MultiMeshInstance3D" parent="Grass/IslandGrass" unique_id=630729002]
 cast_shadow = 0
 gi_mode = 0
 multimesh = ExtResource("6_a2kha")
 
-[node name="GrassTuft" type="MultiMeshInstance3D" parent="Grass/IslandGrass" unique_id=423354550]
+[node name="GrassTuft" type="MultiMeshInstance3D" parent="Grass/IslandGrass" unique_id=231521040]
 cast_shadow = 0
 gi_mode = 0
 multimesh = ExtResource("7_31fsh")
 
-[node name="MountainGrass" type="Node3D" parent="Grass" unique_id=931256592]
+[node name="MountainGrass" type="Node3D" parent="Grass" unique_id=2066177190]
 
-[node name="GrassTuft" type="MultiMeshInstance3D" parent="Grass/MountainGrass" unique_id=1758912009]
+[node name="GrassTuft" type="MultiMeshInstance3D" parent="Grass/MountainGrass" unique_id=1333757965]
 cast_shadow = 0
 gi_mode = 0
 multimesh = ExtResource("8_c4o8f")
 
-[node name="GrassClump" type="MultiMeshInstance3D" parent="Grass/MountainGrass" unique_id=819256079]
+[node name="GrassClump" type="MultiMeshInstance3D" parent="Grass/MountainGrass" unique_id=694877109]
 cast_shadow = 0
 gi_mode = 0
 multimesh = ExtResource("9_l0fti")

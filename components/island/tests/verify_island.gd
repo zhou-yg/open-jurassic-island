@@ -104,8 +104,13 @@ func _test_heights() -> void:
 			"山体总高异常：%.2f m（含水下裙边，预期约 18.6 m）" % box.size.y)
 		_check(box.end.y > 14.5,
 			"山体主峰太矮：峰顶仅 %.2f m" % box.end.y)
+		# 山是**故意偏心**的（正中会显得像个同心圆靶子），但必须仍稳稳落在岛上：
+		# 既不能偏回中心，也不能偏到把山脚推到岛外。
 		var c := box.get_center()
-		_check(Vector2(c.x, c.z).length() < 2.0, "山体不在岛中央：%s" % Vector2(c.x, c.z))
+		var off := Vector2(c.x, c.z).length()
+		_check(off > 6.0, "山体又跑回岛中央了（偏移 %.1f m，应 > 6 m）" % off)
+		_check(off + box.size.x * 0.5 < 30.0,
+			"山体偏得太远，山脚可能悬空：偏移 %.1f m + 半径 %.1f m" % [off, box.size.x * 0.5])
 		_check(box.position.y < 0.5, "山体底座没有落在地面上（y=%.2f）" % box.position.y)
 
 	# 岛屿台面：山体外侧、草地边缘的几个点都应该能向下打到地面
@@ -146,6 +151,12 @@ func _test_scatter_on_ground() -> void:
 	var excluded: Array[RID] = []
 	if rock_body is StaticBody3D:
 		excluded.append((rock_body as StaticBody3D).get_rid())
+	# 入口大门/围墙也有碰撞体；射线打在上面会误判成"草悬空"，
+	# 所以贴地检查里把它们排除掉（贴地检查关心的是地面，不是墙顶）。
+	var entrance := _scene.get_node_or_null("ParkPerimeter")
+	if entrance != null:
+		for node in entrance.find_children("*", "StaticBody3D", true, false):
+			excluded.append((node as StaticBody3D).get_rid())
 
 	# 草石现在是 MultiMesh，位置要按"实例变换"取，而不是节点 global_position。
 	# 山顶/山腰的石头经常落在挑檐下面，垂直射线会先打到上层台地，

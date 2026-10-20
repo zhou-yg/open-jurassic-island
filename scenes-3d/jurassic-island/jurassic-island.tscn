@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://scenes-3d/player/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="7_topbar"]
 [ext_resource type="PackedScene" path="res://scenes-3d/jurassic-island/local_scatter.tscn" id="8_scatter"]
+[ext_resource type="PackedScene" path="res://components/island/park_perimeter/park_entrance_local.tscn" id="9_entrance"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_main"]
 sky_top_color = Color(0.05098, 0.2, 0.478431, 1)
@@ -76,3 +77,5 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 353.9173, 77.851425)
 [node name="TopBar" parent="HUDLayer" unique_id=1400059951 instance=ExtResource("7_topbar")]
 auto_advance_time = true
 day_length_seconds = 120.0
+
+[node name="ParkEntrance" parent="." instance=ExtResource("9_entrance")]

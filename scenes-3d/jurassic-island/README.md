@@ -14,6 +14,7 @@
 | 岛 | `components/island/island_terrain.tscn`；`Island` 节点水平 scale **32.258**（62 m 组件 → 2000 m），竖直 scale **20.968**（水平的 0.65） |
 | 海 | `components/sea/sea.tscn`，PlaneMesh **12000 × 12000**，关闭阴影投射 |
 | 玩家 | `scenes-3d/player/player.tscn`，静态出生点 `(0, 20.5, 650)`；相机 `current = true`、`far = 12000` |
+| 园区入口 | `ParkEntrance`（实例化 `components/island/park_perimeter/park_entrance_local.tscn`）：大门 **10.56 × 6.24 m** + 两侧各 24 m 断续残墙 + 塌口碎石，按 **1:1 米制**摆在出生点前方 12 m（门心 `(0, 323.1, 66)`，面朝 +Z 冲着玩家）。**不能塞进 `Island` 节点**——那里是 32 倍非等比缩放 |
 | 本地草石 | `scenes-3d/jurassic-island/local_scatter.tscn`：720 丛草 + 180 块石头的 **MultiMesh**（3 个 MultiMeshInstance3D = 3 个 draw call）；石头碰撞由 `ground_scatter.gd` 在运行时补：1 个 StaticBody3D + 180 个**共享同一个凸包形状**的 CollisionShape3D |
 | 环境 / 灯光 | 主场景自己的 WorldEnvironment + Sun + FillLight + BounceLight，雾密度 **0.0005** |
 

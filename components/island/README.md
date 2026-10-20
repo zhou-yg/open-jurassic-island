@@ -89,29 +89,57 @@ Island (Node3D, island.gd)
 完整展示版的 `show_presentation` / `show_scatter` 导出开关保留，
 其他场景如果直接实例化 `island.tscn` 可以用它们隐藏展示节点和草石。
 
-## 园区入口 `ParkEntrance`
+## 园区入口 `ParkPerimeter`
 
-`island.tscn` 末尾挂了一个 `ParkEntrance` 节点，把大门和破墙摆进展示岛：
+`island.tscn` 里挂了一个 `ParkPerimeter` 节点：**沿岛缘内缩一圈的断续围墙 + 大门**，
+围住全岛 **63%**（2192 / 3504 m²），山体偏心坐在里面。
 
 ```
-ParkEntrance                  ← 整组可整体挪动
-  ├─ ParkGate                 ← 大门（components/island/park_gate/）
-  ├─ WallEast                 ← 破墙 3 段，从门前 x=+5.05 往 +X 长
-  └─ WallWest                 ← 破墙 3 段，X 轴镜像后从 x=−5.05 往 −X 长
+ParkPerimeter                   ← 整体可挪动（改半径/跨度要重跑烘焙，见下）
+  ├─ Gate                       ← 大门（components/island/park_gate/）
+  ├─ Walls/                     ← 40 段残墙（2.9 m/段，长短不一的连续段之间是塌口）
+  └─ Debris/                    ← 碎石堆（塌口/门墩/围内散落）+ 4 段倒伏墙
 ```
 
-- 大门 `components/island/park_gate/`：**10.56 × 6.24 m**，原点在门洞地面中线，
-  内置 `Gate_Open` / `Gate_Close` 两条动画，`park_gate.gd` 提供 `open()` / `close()` / `toggle()`。
-- 破墙 `components/island/ruined_wall/`：单段 **2.90 m**，沿 +X 拼接加长，
-  `ruined_wall_run.gd` 的 `segments` 控制段数。接缝两端面已数值校验完全重合。
+![入口预览](park_perimeter/park_perimeter_preview.png)
 
-两者共用 `assets/models/_shared/ruin_kit.py` 里的同一份墙体几何，所以大门两翼的外端
-可以直接接破墙模块继续加长，接缝对齐（108 个剖面点全等）。
+### 布局规则
 
-> ⚠️ **别把 `ParkEntrance` 挪进 `Island` 节点下面**。主场景 `jurassic-island.tscn` 给
+| 项 | 值 | 说明 |
+| --- | --- | --- |
+| 围墙走向 | **沿岛缘内缩 5 m** | 每个角度射线量岛缘半径（30–36 m），墙不会挂在崖坡上 |
+| 覆盖角度 | 门 **±140°** | 背后留 80° 豁口 |
+| 围住面积 | **2192 m² = 63%** | 岛面实测 3504 m² |
+| 山体偏移 | **12 m**（朝 280°） | 约可用进深的 75%，不再是对称同心圆 |
+| 单段墙长 | 2.90 m | 与 `ruined_wall` 资产一致，段内接缝严丝合缝 |
+| 连续段长度 | 1–5 段（2.9–14.5 m） | **长短不一**，每段之后必是塌口 |
+| 塌口长度 | 1.2–3.6 m | 塌口处丢碎石，部分再倒一段墙 |
+| 贴地 | 逐段射线取地面高度 | 相邻 2.9 m 高差 > 0.42 m 就强制断开；外侧 2.5 m 陡降 > 1.2 m 也断开（崖边塌口） |
+
+破败感不是靠贴图，靠三件事：**断续**（长短不一的残段 + 塌口）、**沉降**
+（每段独立贴地 + 28% 的段额外下沉，墙头高低不齐）、**碎片**（塌口碎石、倒伏墙、门口撞击堆）。
+
+### 改布局 = 改参数 + 重跑烘焙
+
+场景是**烘出来的静态节点**，不是运行时生成：墙要贴在真实地面高度上，而地面碰撞是
+`island.gd` 运行时才补的，编辑器里量不到。所以参数改完要重烘：
+
+```bash
+cd /Users/zhouyunge/Documents/godot/open-jurassic-island
+/Applications/Godot.app/Contents/MacOS/Godot --path . \
+  --script res://components/island/park_perimeter/bake_perimeter.gd -- \
+  res://components/island/park_perimeter/park_perimeter.tscn
+```
+
+参数都在 `bake_perimeter.gd` 顶部（`RING_R` / `SPAN_DEG` / `RUN_MAX` / `GAP_*` /
+`STEP_BREAK` / `SINK_VARIANCE` …），末尾可再传一个随机种子换一套破败分布。
+**必须带真实渲染器跑**（不要 `--headless`）：headless 的渲染与物理都是 dummy，
+射线打不到地面、实例变换也存不下来。
+
+> ⚠️ **别把 `ParkPerimeter` 挪进 `Island` 节点下面**。主场景 `jurassic-island.tscn` 给
 > `Island` 加了 `Transform3D(32.258, 0, 0, 0, 20.9677, 0, 0, 0, 32.258, ...)` ——
-> 是 **32 倍、而且 Y 轴非等比**的缩放，大门进去会被拉成 340 m 宽的假门楼。
-> 要放进主场景，请把 `ParkEntrance` 摆在 `Island` 的**兄弟位置**（1:1 米制）。
+> **32 倍、而且 Y 轴非等比**，大门进去会被拉成 340 m 宽的假门楼。
+> 要放进主场景，请摆在 `Island` 的**兄弟位置**（1:1 米制）。
 
 ## 草石现在是 MultiMesh
 
