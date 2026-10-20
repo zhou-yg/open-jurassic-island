@@ -1,18 +1,19 @@
-# Items
+# resources
 
-config/items.gd
+config/resource-items.gd
 
 > [!NOTE]
-> All numeric values (amounts, capacities, ...) live in `config/items.gd`
-> (`class_name ItemsConfig`, pure static data).
+> All numeric values (amounts, capacities, ...)
+> (`class_name ResourceConfig`, pure static data).
 > This document describes the design intent; the config is the source of truth.
 
-enable Player pick it from the ground 
+enable Player pick it from the ground or other ways
 
 there are types of items:
 
 - food
 - resources
+- stone
 
 ## stone fragments
 
