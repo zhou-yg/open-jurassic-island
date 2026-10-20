@@ -104,6 +104,7 @@ print(c.use_location_x, c.use_rotation_x, c.use_scale_x)   # True True False  �
 | 石头 `low_poly_rock` | `models/low-poly-rock/low_poly_rock.py` | 2.92 × 2.55 × 1.34 | 长边 **≈2.9 m**，底面 z=0 | 洞口 / 路边点缀用的独立巨石；**25 棱面 / 80 三角面**，平底接触 3.56 m² |
 | 侏罗纪公园大门 `low_poly_jurassic_gate` | `models/jurassic-gate/low_poly_jurassic_gate.py` | 10.56 × 1.40 × 6.24 | 总宽 **10.56 m**（含两侧破墙），门洞净宽 **3.20 m**、净高 **2.95 m**，通高 **6.24 m** | 荒废园区入口：中拱 + 匾额 **"dinosaur"**（Arial Bold 凸字）+ 双开绣铁门（静止=**合**）+ 左右残墙苔藓；**2 条内置动画 `Gate_Open` / `Gate_Close`**（各 1.2 s @30fps，左右门扇反向向外开 88°），原点在门洞地面中心。**两翼矮墙的外端是接缝端**，可以怼 `low_poly_ruined_wall` 继续加长 |
 | 破败石墙（可拼接）`low_poly_ruined_wall` | `models/ruined-wall/low_poly_ruined_wall.py` | 2.90 × 2.25 × 0.99 | 单段 **2.90 × 0.99 × 2.25 m**（长 × 厚 × 高），墙厚 0.75 m、压顶 0.20 m，原点在**单段中心**、底面 z=0 | 模块化废墟墙：沿本地 X 逐段拼接加长，相邻段间隔 **2.90 m**。墙体尺寸与大门两翼**同源**（`models/_shared/ruin_kit.py`），所以也能直接接在门上。**接缝三条约**：①长度是砖模数整数倍；②两端强制满高 + 压顶端片取固定满厚度；③基座/压顶在 X 方向不外扩。脚本内 `verify_seams()` 数值校验两端端面完全重合，不过即报错 |
+| 废墟碎石堆 `low_poly_rubble` | `models/stone-rubble/low_poly_rubble.py` | 1.82 × 1.90 × 0.46 | 包络 **≈1.8 × 1.9 m**、堆高 **0.46 m**，原点在地面中心、底面 z=0 | 破墙塌口 / 门口撞击的散落砌石；16 主体块 + 10 碎屑 + 2 大块断板，逐个随机抖动顶点再整体旋转；倾斜戳到地面的角会**压到 z=0**（半埋感，且保证 min z 严格为 0）|
 | 天空岛 `sky-island-basic` | `assets/island/sky-island-basic.glb` | 507 × 509 × 326 | 长边 **≈500 m**（远景，无 `apply_root_scale`） | 外部资产；如重做请按此尺度 |
 
 主地图整体尺度：侏罗纪岛地形约 **200 m × 150 m**，海平面 `y = 0`（Godot）。
