@@ -12,8 +12,8 @@
 # 结构（全部按米建模，+Z 向上，地面 z = 0，原点 = 门洞中线 × 地面）
 # ---------------------------------------------------------------------------
 #   GateRoot                 ← 空物体，原点 = 门洞地面中线
-#     ├─ ArchStone           拱 + 两侧墩（一块整网格）
-#     ├─ SignBoard           "dinosaur" 招牌匾额（拱上，前倾 + 缺角）
+#     ├─ ArchStone           拱 + 两侧墩 + 拱肩实墙 + 压顶（一块整网格）
+#     ├─ SignText            "dinosaur" 拱形铭文（沿拱券排成弧形，金属凸字）
 #     ├─ Wall_L / Wall_R     左右各一段破败矮墙（墙身 + 压顶 + 崩塌缺口）
 #     ├─ Ivy                 藤蔓 / 苔藓块 / 墙脚杂草
 #     ├─ Shrubs              墙头长出来的小树
@@ -40,7 +40,7 @@
 # 破败感靠三件事，都不靠贴图：
 #   1) 形体：逐块砖 / 逐块石决定存废 → 崩塌缺口、残墙、缺角、门板豁口、残缺瓦顶
 #   2) 分色：整块棱面变色 —— 苔藓、锈斑、泛白的旧补丁
-#   3) 分层：墙身上浅下深、门板低处翻出暗锈、招牌字底挖深
+#   3) 分层：墙身上浅下深、门板低处翻出暗锈、拱形铭文用暗金属压在亮石拱上
 import math
 import os
 import random
@@ -58,7 +58,7 @@ from ruin_kit import (  # noqa: E402
     BOX_FACES, PAL, COPING_H_M, COPING_OUT_M, MeshBuilder, PLINTH_M, PLINTH_OUT_M,
     WALL_BAY_M, WALL_H_M, WALL_ROWS, WALL_T_M,
     box, build_wall_segment, clear_scene, extrude_y, hash01, lerp3,
-    make_materials as _make_materials, shade,
+    make_materials as _make_materials, shade, tile_layout,
 )
 
 # ==========================================================================
@@ -82,33 +82,36 @@ ARCH_RINGS = 6           # 拱券环数（low-poly：环少才有块面感）
 # 是一条连续的直边，不会在起脚处鼓出一个错台（之前的 0.62 > 0.55 就是这个问题）。
 ARCH_BAND_M = 2.15 - 1.60   # = BASE_W_M − OPEN_W_M = 0.55
 HAUNCH_ROW_H_M = 0.30
-SPANDREL_TOP_M = 0.0     # 由 derive_sign_height() 按拱顶算出，勿手填
+SPANDREL_TOP_M = 0.0     # 由 derive_wall_top() 按拱顶算出，勿手填
 WING_M = 2.90            # 墙从墩子往外延伸长度
 PIER_SEGS = 4            # 墩身分层石砌数
 
-# --- 招牌 ------------------------------------------------------------------
-# 匾额坐在拱券之上的实墙顶（不是塞在拱洞里），所以拱顶恒为 4.55 m —— 不再让"门楣牌"
-# 之类的构件和它抢同一段高度。
+# --- 拱形铭文 --------------------------------------------------------------
+# "dinosaur" **不再挂在拱上的横匾里**（匾额已撤）：8 个字母直接**沿拱券排成一道弧**，
+# 每个字母独立成网格，站在拱内缘（半径 OPEN_W_M 的圆）上，字身朝径向外侧长出去。
 #
-# 文字是英文 "dinosaur"（8 个字母，w/h ≈ 5.8，比 3 个方块字宽得多），
-# 所以匾额从 3.40 加宽到 4.20 m —— 正好卡在拱肩实墙宽度（2×BASE_W_M = 4.30）之内。
+# 为什么必须"整个字落在拱券环里"：
+#   拱券环径向厚度 = BASE_W_M - OPEN_W_M = 0.55 m
+#   拱肩实墙的面比拱券面**凹 0.08 m**（拱券朝外挑出 0.08），所以字只要越过拱背，
+#   上半截就会浮在凹进去的墙面前面 —— 一眼就假。
+#   → 升部字高（d / i）必须 <= 0.55 - 留白，本模型取 0.42 m。
+#
+# 排版：沿"基线圆弧"量前进宽度，字脚落在基线圆上，每个字母绕拱心转 θ = 弧长 / 半径，
+# 于是基线天然贴合拱的曲率（不是把一行字摆平了再弯）。
 SIGN_TEXT = "dinosaur"
 SIGN_FONT = "/System/Library/Fonts/Supplemental/Arial Bold.ttf"
-SIGN_SIZE_M = 0.78
-SIGN_EMBOSS_M = 0.020    # 字面相对匾额正面再凸出的高度（凸字比凹刻读得清）
-SIGN_BOARD_W_M = 4.20
-SIGN_BOARD_H_M = 0.95
-SIGN_BOARD_T_M = 0.40
-SIGN_TILT_DEG = -5.0     # 前倾（松垮感）
-SIGN_Y_OFF_M = -0.50     # 匾额贴面深度（正面朝外凸出拱券正面）
-SIGN_LAP_M = 0.17        # 匾额下沿压在拱冠上的搭接量（不留悬空缝）
-SIGN_Z_M = 0.0           # 由 derive_sign_height() 按拱顶算出，勿手填
+SIGN_CAP_H_M = 0.42       # 升部字高（d / i 的高度），米
+SIGN_TRACK_M = 0.04       # 字母之间的额外间隙（沿弧），米
+SIGN_BASE_R_M = OPEN_W_M  # 字脚所在半径 = 拱内缘（字"站"在拱券上）
+SIGN_RELIEF_M = 0.065     # 字面相对拱券正面的凸出（金属字浮在石拱上）
+SIGN_TEXT_EXTRUDE = 0.06  # 文本挤出（em 单位）→ 字的厚度
+SIGN_REF_CHAR = "m"       # 测前进宽度用的参考字母（墨迹够宽，差值才准）
 
-# 拱券外形复核（招牌高度全靠这里推）：
-#   拱内顶 = CLEAR_H_M + OPEN_W_M               = 4.55 m
-#   拱外顶 = CLEAR_H_M + OPEN_W_M + ARCH_BAND_M = 5.17 m
-# 招牌坐在拱冠上、下沿压进拱冠 0.17 m，两端各垫一块牛腿顶到拱背 ——
-# 于是"招牌架在拱上"是几何上真的搭着，不是飘着。总高 ≈ 6.06 m。
+# 拱券外形复核（铭文高度全靠这里推）：
+#   拱内顶 = CLEAR_H_M + OPEN_W_M               = 4.55 m（字脚所在圆的最高点）
+#   拱背顶 = CLEAR_H_M + BASE_W_M               = 5.10 m
+#   实墙顶 = 拱背顶 + 0.34                     = 5.44 m（再压一条 0.20 m 石压顶）
+#   → 门总高 ≈ 5.64 m
 
 # --- 门扇 ------------------------------------------------------------------
 DOOR_HINGE_X_M = 1.62    # 门轴 |X|
@@ -172,13 +175,18 @@ def build_arch(b, rng):
 
     # 拱券：ARCH_RINGS 块楔形石。外缘 = 墩子外侧面（同宽），所以拱与墩是**一条连续
     # 的直边**；厚度方向也给足（y 向外挑 0.08），让"拱券"作为一层凸出来。
+    #
+    # 崩口**只啃外缘那一圈**（径向收进 0.10~0.22 m），不再整块抽掉环石：
+    # 整块抽掉会让拱脚悬空 —— 从墩顶到拱之间直接漏天，拱看着"浮"在墩子上；
+    # 而拱形铭文的字脚正压在这圈内缘上，字后面必须是实石。
+    # 现在崩口只是把外缘啃出一道缺口，露出后面凹 0.08 的实墙，不穿透。
     r_in, r_out = OPEN_W_M, BASE_W_M
     z_c = CLEAR_H_M
     angs = [math.pi * i / ARCH_RINGS for i in range(ARCH_RINGS + 1)]
     for i in range(ARCH_RINGS):
         a0, a1 = angs[i], angs[i + 1]
-        if 0 < i < ARCH_RINGS and rng.random() < 0.06:      # 崩掉一块环石
-            continue
+        u = rng.random()
+        r_hi = r_out - (0.10 + 0.12 * (u / 0.30)) if u < 0.30 else r_out
         pts = []
         steps = 3
         for s in range(steps + 1):
@@ -186,7 +194,7 @@ def build_arch(b, rng):
             pts.append((math.cos(a) * r_in, math.sin(a) * r_in + z_c))
         for s in range(steps, -1, -1):
             a = a0 + (a1 - a0) * s / steps
-            pts.append((math.cos(a) * r_out, math.sin(a) * r_out + z_c))
+            pts.append((math.cos(a) * r_hi, math.sin(a) * r_hi + z_c))
         # 亮度沿拱"由脚到顶"渐亮：单一灰度递变，一眼就是一个整体
         c = lerp3(PAL["stone_d"], PAL["stone_l"], 0.15 + 0.75 * i / (ARCH_RINGS - 1.0))
         if rng.random() < 0.22:
@@ -206,7 +214,12 @@ def build_arch(b, rng):
             z1 = min(z0 + HAUNCH_ROW_H_M, CLEAR_H_M + BASE_W_M)
             if z1 - z0 < 0.05:
                 break
-            xa_ = arch_x_at_z(z0) + 0.02             # 从拱背往外砌
+            # 内边界要用**本行顶**的拱背 x（不是行底）：拱背是一段圆弧，
+            # 每一行里它都比行底更靠里。若按行底取，行顶那一头就会空出一条楔形缝 ——
+            # 缝贯穿整个门厚，从门里往外能直接看到天（实测的老 bug）。
+            # 往里多砌 3 cm 压进拱券环里：从正面看不见（拱券朝外挑 0.08），
+            # 从背面看也只是"拱券背后的一圈墙"，不再是漏洞。
+            xa_ = max(0.0, arch_x_at_z(z1) - 0.03)
             xb_ = BASE_W_M
             if xb_ - xa_ < 0.06:
                 continue
@@ -240,6 +253,26 @@ def build_arch(b, rng):
             if rng.random() < 0.26:
                 c = lerp3(c, PAL["moss_m"], 0.45)
             box(b, cx0c, cx1c, y0, y1, z0, z1, S, shade(c, hash01(row, i, 8)))
+
+    # ---- 拱肩实墙顶的压顶：木瓦片（与两翼矮墙的压顶同一套做法 / 同一批颜色）----
+    # 匾额撤了以后，墙顶原本由匾额的木底托收口；现在换成**和两翼一样的木瓦压顶**，
+    # 门顶和墙顶就是一套语汇了（瓦片有缺、有高低，不是一根光溜溜的梁）。
+    cop_len = 2 * (BASE_W_M + 0.04)
+    n_tile, tile_w = tile_layout(cop_len, WALL_BAY_M)
+    for i in range(n_tile):
+        if rng.random() < 0.18:            # 缺几片 → 露出下面的实墙顶
+            continue
+        tx0 = -cop_len * 0.5 + i * tile_w
+        tx1 = tx0 + tile_w
+        hh = COPING_H_M * (0.70 + 0.30 * rng.random())
+        c = lerp3(PAL["wood_m"], PAL["wood_l"], 0.35 * rng.random())
+        c = lerp3(c, PAL["moss_m"], 0.55) if rng.random() < 0.38 else lerp3(c, PAL["wood_d"], 0.28)
+        box(b, tx0, tx1,
+            -(WALL_T_M * 0.5 + COPING_OUT_M), WALL_T_M * 0.5 + COPING_OUT_M,
+            SPANDREL_TOP_M, SPANDREL_TOP_M + hh, S,
+            {"top": shade(c, hash01(i, 21, 9)),
+             "side": shade(lerp3(c, PAL["wood_d"], 0.4), hash01(i, 21, 2)),
+             "bottom": PAL["stone_x"]})
 
 
 def arch_x_at_z(z):
@@ -278,163 +311,61 @@ def build_wall(b, rng, side):
     )
 
 
+# ==========================================================================
+# 3) 拱形铭文（SignText）
+#   "dinosaur" 沿拱券排成一道弧：每个字母独立成一个网格，**站在拱内缘**
+#   （半径 OPEN_W_M 的圆）上，字身朝径向外侧长出去，字面朝 -Y 凸出拱券正面。
+#
+#   为什么是暗铜色金属字而不是亮石字：拱券石越靠近拱顶越亮
+#   （lerp3(stone_d, stone_l, ~0.9) ≈ 0.63 sRGB），亮字压亮石会糊成一团；
+#   暗铜色（≈0.33）压在亮石上才是"一眼认得出"的对比。
+# ==========================================================================
+def derive_wall_top():
+    """拱肩实墙顶（拱背以上的横梁墙带）。
 
-# ==========================================================================
-# 3) 招牌（SignBoard）
-#   "dinosaur" 是**凸字**（不是凹刻的阴文）：匾额正面压暗成槽底，
-#   字面再往外凸 20 mm，于是光从上方斜打时字的下缘永远挂一条阴影缝 ——
-#   低多边形、无贴图的情况下，这一串字母也必须一眼认得出。
-# ==========================================================================
-def derive_sign_height():
-    """招牌坐在拱肩实墙顶上：先定实墙顶，再让匾额下沿搭上去 SIGN_LAP_M。"""
-    global SIGN_Z_M, SPANDREL_TOP_M
+    以前这里是"匾额的高度"；匾额撤了以后只剩实墙顶 + 一条木瓦压顶。
+    """
+    global SPANDREL_TOP_M
     arch_top = CLEAR_H_M + BASE_W_M              # 拱背顶点（= 半圆拱外顶）
-    # 实墙顶比拱背顶点再高出一截，招牌才有地方坐
     SPANDREL_TOP_M = arch_top + 0.34
-    SIGN_Z_M = SPANDREL_TOP_M - SIGN_LAP_M + SIGN_BOARD_H_M * 0.5
     return arch_top
 
 
-def sign_parts():
-    """招牌 / 托梁 / 斜撑共用的坐标（保证它们真的互相搭着，不是各写各的）。"""
-    hw, hh = SIGN_BOARD_W_M * 0.5, SIGN_BOARD_H_M * 0.5
-    tilt = math.radians(SIGN_TILT_DEG)
-    y_slot = -SIGN_BOARD_T_M * 0.5
-    y_back = SIGN_BOARD_T_M * 0.5
-
-    def place(x, y, z):
-        """匾额局部坐标 → 前倾 → 抬到 SIGN_Z_M 的世界坐标（面朝 −Y）。"""
-        y2 = y * math.cos(tilt) - z * math.sin(tilt)
-        z2 = y * math.sin(tilt) + z * math.cos(tilt)
-        return (x, y2 + SIGN_Y_OFF_M, z2 + SIGN_Z_M)
-
-    return hw, hh, y_slot, y_back, place
-
-
-def build_sign(b, rng):
-    S = b.slot("Wood")
-    hw, hh, y_slot, y_back, place = sign_parts()
-    arch_top = CLEAR_H_M + OPEN_W_M + ARCH_BAND_M
-
-    # ---- 匾额本体：右端缺角（年久失修）----
-    z_hi_r = hh - 0.10
-    outline = [(-hw, 0, -hh), (hw, 0, -hh), (hw, 0, z_hi_r),
-               (hw * 0.55, 0, hh), (-hw, 0, hh)]
-    n = len(outline)
-    base = len(b.verts)
-    b.verts.extend(place(x, y_slot, z) for (x, _, z) in outline)
-    b.verts.extend(place(x, y_back, z) for (x, _, z) in outline)
-    # 正面：整片是"槽底"，所以压暗 → 凸出来的字才会亮出来
-    b.faces.append((tuple(range(base, base + n)), S, lerp3(PAL["stone_x"], PAL["wood_d"], 0.5)))
-    b.faces.append((tuple(range(base + n, base + 2 * n)), S, PAL["wood_d"]))
-    for i in range(n):
-        j = (i + 1) % n
-        b.faces.append(((base + i, base + j, base + n + j, base + n + i), S,
-                        shade(PAL["wood_m"], hash01(i, 4))))
-
-    # ---- 匾额底托：横贯实墙顶的一条厚木，把招牌"托"住（也是实墙的压顶）----
-    ledge_z0 = SPANDREL_TOP_M - 0.12
-    ledge_z1 = SPANDREL_TOP_M + 0.06
-    box(b, -BASE_W_M - 0.04, BASE_W_M + 0.04,
-        SIGN_Y_OFF_M - 0.30, SIGN_Y_OFF_M + 0.22,
-        ledge_z0, ledge_z1, S,
-        {"top": shade(PAL["wood_d"], 0.5), "side": shade(PAL["wood_d"], 0.3),
-         "bottom": PAL["stone_x"]})
-
-    # ---- 牛腿：两端各一小段斜木，从实墙顶斜撑到匾额下沿 ----
-    sign_bottom = SIGN_Z_M - hh
-    for sx in (-1, 1):
-        for k in range(3):
-            t0, t1 = k / 3.0, (k + 1) / 3.0
-            x0 = hw * 0.52 + (hw * 0.92 - hw * 0.52) * t0
-            x1 = hw * 0.52 + (hw * 0.92 - hw * 0.52) * t1
-            z0 = ledge_z1 + (sign_bottom - ledge_z1) * t0
-            z1 = ledge_z1 + (sign_bottom - ledge_z1) * t1
-            box(b, min(sx * x0, sx * x1) - 0.09, max(sx * x0, sx * x1) + 0.09,
-                SIGN_Y_OFF_M - 0.26, SIGN_Y_OFF_M + 0.18,
-                min(z0, z1) - 0.04, max(z0, z1) + 0.04, S,
-                shade(PAL["wood_d"], hash01(sx, k, 13)))
-
-    # ---- "dinosaur" 凸字：字面从槽底向外凸 SIGN_EMBOSS_M ----
-    tverts, tfaces, ok = text_mesh()
-    if not ok:
-        return
-    txs = [v[0] for v in tverts]
-    tys = [v[1] for v in tverts]
-    tzs = [v[2] for v in tverts]
-    word_w = max(txs) - min(txs)          # 文本局部 X = 字宽
-    word_h = max(tys) - min(tys)          # 文本局部 Y = 字高（文本躺在 XY 平面）
-    depth = max(tzs) - min(tzs)           # 文本局部 Z = 挤出厚度
-    scale = min((SIGN_BOARD_W_M - 0.30) / max(1e-6, word_w),
-                (SIGN_BOARD_H_M - 0.24) / max(1e-6, word_h))
-
-    # 字形要"立"起来面朝 −Y：文本局部 (x, y, z) → 匾额局部 (x, −z, y)。
-    # 这是一个纯旋转（行列式 +1，不镜像），所以字母从左到右读是对的。
-    # 字的 +Z 面（法线 → −Y，正对观众）落在最前面：
-    #   字面 y = y_slot − SIGN_EMBOSS_M（比匾额正面再凸出 20 mm，边角自然挂阴影）
-    #   字背 y = 字面 + depth*scale（埋进匾额里，不留缝）
-    y_face_glyph = y_slot - SIGN_EMBOSS_M
-    z_front = max(tzs)
-
-    def place_glyph(v):
-        return place(v[0] * scale,
-                     y_face_glyph + (z_front - v[2]) * scale,
-                     v[1] * scale)
-
-    base_i = len(b.verts)
-    b.verts.extend(place_glyph(v) for v in tverts)
-    for f in tfaces:
-        pts = [Vector(tverts[i]) for i in f]
-        nrm = (pts[1] - pts[0]).cross(pts[2] - pts[0])
-        if nrm.length < 1e-9:
-            continue
-        nrm.normalize()
-        if nrm.z > 0.3:
-            # 字面（法线 +Z → 转换后 −Y）：整块亮石色，远看就是白字
-            col = lerp3(PAL["stone_l"], PAL["moss_m"], 0.18 * hash01(pts[0].x * 9, pts[0].y * 9))
-        elif abs(nrm.z) < 0.3:
-            col = shade(PAL["stone_d"], hash01(pts[0].x * 5, pts[0].y * 5))   # 侧壁 → 字厚
-        else:
-            col = PAL["stone_x"]                                              # 背面（看不见）
-        b.faces.append((tuple(base_i + i for i in f), S, col))
-    print("SIGN  「%s」verts=%d polys=%d 字宽=%.2f 字高=%.2f 厚=%.3f 缩放=%.3f "
-          "匾额中心 z=%.2f 总高=%.2f"
-          % (SIGN_TEXT, len(tverts), len(tfaces), word_w, word_h, depth, scale,
-             SIGN_Z_M, SIGN_Z_M + SIGN_BOARD_H_M * 0.5))
-
-
-def arch_extrados_z(x_abs):
-    """拱背（外缘，半径 r_out）在 |x| 处的高度；超出拱脚则落到墩顶。"""
-    r_out = OPEN_W_M + ARCH_BAND_M
-    x = min(abs(x_abs), r_out)
-    return CLEAR_H_M + math.sqrt(max(0.0, r_out * r_out - x * x))
-
-
-def text_mesh():
-    """招牌文本 → 低多边形网格（返回 顶点, 面, 是否成功）。"""
+# --- 文本度量 ---------------------------------------------------------------
+def _sign_font():
     try:
-        font = bpy.data.fonts.load(SIGN_FONT)
+        return bpy.data.fonts.load(SIGN_FONT)
     except Exception as exc:
-        print("WARN  中文字体加载失败(%s)，改用默认字体（可能缺字形）" % exc)
-        font = None
+        print("WARN  字体加载失败(%s)，改用默认字体（可能缺字形）" % exc)
+        return None
+
+
+def _text_object(body, extrude):
+    """建一个文本对象：基线在 y=0，+z 是正面，尺寸固定 1 em（后面统一缩放）。"""
     bpy.ops.object.text_add()
     tob = bpy.context.active_object
     tb = tob.data
+    font = _sign_font()
     if font is not None:
         tb.font = font
-    tb.body = SIGN_TEXT
-    tb.align_x = 'CENTER'
-    tb.align_y = 'CENTER'
-    tb.size = SIGN_SIZE_M
-    tb.extrude = 0.05
+    tb.body = body
+    tb.align_x = 'LEFT'
+    tb.align_y = 'BOTTOM_BASELINE'   # 基线落在 y=0（'o'/'s' 的圆弧低一点点 = 字体溢出量）
+    tb.size = 1.0
+    tb.extrude = extrude
     tb.resolution_u = 1
+    return tob
+
+
+def _text_mesh(tb):
+    """文本对象 → (顶点, 三角面)。坐标：x 字宽 / y 字高 / z 挤出（+z 是正面）。"""
     bpy.context.view_layer.update()
     dg = bpy.context.evaluated_depsgraph_get()
-    me = bpy.data.meshes.new_from_object(tob.evaluated_get(dg))
-    bpy.data.objects.remove(tob, do_unlink=True)
+    me = bpy.data.meshes.new_from_object(tb.evaluated_get(dg))
+    bpy.data.objects.remove(tb, do_unlink=True)
     if len(me.vertices) == 0:
         bpy.data.meshes.remove(me)
-        return [], [], False
+        return [], []
     bm = bmesh.new()
     bm.from_mesh(me)
     bmesh.ops.dissolve_limit(bm, angle_limit=math.radians(2.0),
@@ -445,7 +376,107 @@ def text_mesh():
     faces = [tuple(v.index for v in f.verts) for f in bm.faces]
     bm.free()
     bpy.data.meshes.remove(me)
-    return verts, faces, True
+    return verts, faces
+
+
+def _ink_xmax(body):
+    """一个字符串的墨迹右端（用来量前进宽度）。"""
+    verts, _ = _text_mesh(_text_object(body, 0.0))
+    return max(v[0] for v in verts) if verts else 0.0
+
+
+def letter_meshes():
+    """逐字母：网格 + 前进宽度（em）。
+
+    前进宽度用"字符 + 参考字母"的墨迹右端差出来：
+        advance(c) = ink_max(c + REF) - ink_max(REF)
+    REF 取 'm'：墨迹够宽，联合串里最右端一定是它，差值正好是笔位前进量
+    （本词各对字母之间没有 kerning，差值就是纯前进宽度）。
+    """
+    ref_xmax = _ink_xmax(SIGN_REF_CHAR)
+    out = []
+    for ch in SIGN_TEXT:
+        verts, faces = _text_mesh(_text_object(ch, SIGN_TEXT_EXTRUDE))
+        if not verts:
+            print("WARN  字符 %r 没有字形，跳过" % ch)
+            continue
+        out.append({"ch": ch, "verts": verts, "faces": faces,
+                    "adv": _ink_xmax(ch + SIGN_REF_CHAR) - ref_xmax,
+                    "xmin": min(v[0] for v in verts),
+                    "xmax": max(v[0] for v in verts),
+                    "ymax": max(v[1] for v in verts)})
+    return out
+
+
+def build_arch_text(b, rng):
+    """把 "dinosaur" 排成沿拱券的弧形铭文。
+
+    每个字母：
+      · 字脚落在半径 SIGN_BASE_R_M（= 拱内缘）的圆上，角度 θ = 弧长 / 半径；
+      · 字母自身绕拱心转同样的 θ（文本 +X = 沿弧切向，+Y = 径向外侧）；
+      · 字面（文本 +z 面）朝 -Y，凸出拱券正面 SIGN_RELIEF_M。
+    """
+    S = b.slot("Iron")
+    letters = letter_meshes()
+    if not letters:
+        return
+    n = len(letters)
+
+    # 升部高度实测（不写死字号，换字体也不会歪）：d / i 的墨迹顶
+    asc_em = max(L["ymax"] for L in letters)
+    scale = SIGN_CAP_H_M / max(1e-6, asc_em)        # em → m
+
+    # ---- 沿基线排版：前进宽度（m）+ 字距 → 每个字母的字脚弧长位置 ----
+    pen = []
+    s = 0.0
+    for i, L in enumerate(letters):
+        pen.append(s)
+        s += L["adv"] * scale
+        if i < n - 1:
+            s += SIGN_TRACK_M
+    # 以**墨迹**居中（不是笔位居中），否则首尾的侧边距会让整词偏一侧
+    ink_lo = min(pen[i] + L["xmin"] * scale for i, L in enumerate(letters))
+    ink_hi = max(pen[i] + L["xmax"] * scale for i, L in enumerate(letters))
+    mid = (ink_lo + ink_hi) * 0.5
+
+    R = SIGN_BASE_R_M
+    z_c = CLEAR_H_M
+    arch_front = -(WALL_T_M * 0.5 + 0.08)          # 拱券正面（比墙面外挑 0.08）
+    y_off = arch_front - SIGN_RELIEF_M + SIGN_TEXT_EXTRUDE * scale
+
+    for i, L in enumerate(letters):
+        th = (pen[i] - mid) / R
+        ct, st = math.cos(th), math.sin(th)
+        base = len(b.verts)
+        for (tx, ty, tz) in L["verts"]:
+            u = tx * scale            # 沿弧（切向）
+            w = ty * scale            # 径向（字高方向）
+            v = -tz * scale           # 前后（+v 朝门内）
+            # 绕拱心（C = (0, 0, CLEAR_H_M)）转 th：字脚落在半径 R 的圆上
+            b.verts.append((R * st + u * ct + w * st,
+                            v + y_off,
+                            z_c + R * ct - u * st + w * ct))
+        # 分色：正面是铜色（比亮石拱暗一档，但绝不能暗成"黑洞"），
+        # 侧壁压暗 → 字的厚度靠明暗差读出来，背面看不见
+        for f in L["faces"]:
+            pts = [Vector(L["verts"][k]) for k in f]
+            nrm = (pts[1] - pts[0]).cross(pts[2] - pts[0])
+            if nrm.length < 1e-9:
+                continue
+            nrm.normalize()
+            if nrm.z > 0.3:
+                col = lerp3(PAL["rust_l"], PAL["iron_m"],
+                            0.30 + 0.18 * hash01(i, pts[0].x * 9, pts[0].y * 9))
+            elif abs(nrm.z) < 0.3:
+                col = shade(PAL["rust_d"], hash01(i, pts[0].x * 5, pts[0].y * 5))   # 侧壁 → 字厚
+            else:
+                col = PAL["stone_x"]                                              # 背面（看不见）
+            b.faces.append((tuple(base + k for k in f), S, col))
+
+    print("SIGN  「%s」字母=%d 升部=%.2f m 弧长=%.2f m 跨度=%.1f° 位置 θ∈[%.1f°, %.1f°]"
+          % (SIGN_TEXT, n, SIGN_CAP_H_M, ink_hi - ink_lo,
+             math.degrees((ink_hi - ink_lo) / R),
+             math.degrees((ink_lo - mid) / R), math.degrees((ink_hi - mid) / R)))
 
 
 # ==========================================================================
@@ -543,17 +574,23 @@ def build_ivy(b, rng):
     # 苔藓块：整块贴在墙面 / 拱面上（一个平面一块色）
     for k in range(MOSS_PATCHES):
         if rng.random() < 0.4:
-            a = math.radians(rng.uniform(20, 160))
-            r = OPEN_W_M + ARCH_BAND_M * rng.uniform(0.15, 0.95)
+            # 只贴**拱肩**（|θ| ≈ 54°~72°）：中间那段留给拱形铭文，
+            # 苔藓压在字上会把字读花。
+            a = math.radians(rng.choice([rng.uniform(18, 36), rng.uniform(144, 162)]))
+            r = OPEN_W_M + ARCH_BAND_M * rng.uniform(0.35, 0.65)
             x = math.cos(a) * r
             z = math.sin(a) * r + CLEAR_H_M
+            # 贴**拱券的面**（拱券比墙面外挑 0.08；贴墙面就整块埋进石头里看不见）
+            y = rng.choice([-(WALL_T_M * 0.5 + 0.08), WALL_T_M * 0.5 + 0.08])
+            sgn = -0.045 if y < 0 else 0.045
+            w, h = rng.uniform(0.18, 0.28), rng.uniform(0.16, 0.28)
         else:
             side = -1 if rng.random() < 0.5 else 1
             x = side * rng.uniform(BASE_W_M + 0.1, BASE_W_M + WING_M * 0.9)
             z = rng.uniform(PLINTH_M, WALL_H_M - 0.15)
-        y = rng.choice([-WALL_T_M * 0.5, WALL_T_M * 0.5])
-        sgn = -0.045 if y < 0 else 0.045
-        w, h = rng.uniform(0.22, 0.55), rng.uniform(0.18, 0.45)
+            y = rng.choice([-WALL_T_M * 0.5, WALL_T_M * 0.5])
+            sgn = -0.045 if y < 0 else 0.045
+            w, h = rng.uniform(0.22, 0.55), rng.uniform(0.18, 0.45)
         c = lerp3(PAL["moss_d"], PAL["moss_l"], 0.25 + 0.6 * rng.random())
         box(b, x - w * 0.5, x + w * 0.5, min(y, y + sgn), max(y, y + sgn),
             z - h * 0.5, z + h * 0.5, P, shade(c, hash01(x, z, 7)))
@@ -811,9 +848,9 @@ def main():
     scene.frame_start = 0
     scene.frame_end = FR_OPEN + FR_HOLD
     MATS = _make_materials("Gate")
-    print("GEO   拱内顶=%.2f 拱背顶=%.2f 实墙顶=%.2f 招牌中心=%.2f 总高=%.2f m"
-          % (CLEAR_H_M + OPEN_W_M, derive_sign_height(), SPANDREL_TOP_M, SIGN_Z_M,
-             SIGN_Z_M + SIGN_BOARD_H_M * 0.5))
+    print("GEO   拱内顶=%.2f 拱背顶=%.2f 实墙顶=%.2f 压顶顶=%.2f 总高=%.2f m"
+          % (CLEAR_H_M + OPEN_W_M, derive_wall_top(), SPANDREL_TOP_M,
+             SPANDREL_TOP_M + COPING_H_M, SPANDREL_TOP_M + COPING_H_M))
 
     ba = MeshBuilder()
     build_arch(ba, rng)
@@ -827,8 +864,8 @@ def main():
     wall_r = bw.build("Wall_R", MATS)
 
     bs = MeshBuilder()
-    build_sign(bs, rng)
-    sign_ob = bs.build("SignBoard", MATS)
+    build_arch_text(bs, rng)
+    sign_ob = bs.build("SignText", MATS)
 
     bv = MeshBuilder()
     build_ivy(bv, rng)

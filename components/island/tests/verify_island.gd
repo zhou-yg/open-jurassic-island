@@ -1,11 +1,15 @@
 extends SceneTree
-## 低模岛组件自检（无头模式）。
+## 低模岛组件自检。
 ##
 ## 运行方式（在项目根目录执行）：
 ## [codeblock]
-## /Applications/Godot.app/Contents/MacOS/Godot --headless --script res://components/island/tests/verify_island.gd
+## /Applications/Godot.app/Contents/MacOS/Godot --path . \
+##     --script res://components/island/tests/verify_island.gd
 ## [/codeblock]
 ## 全部通过时退出码为 0，否则为 1。
+##
+## ⚠️ **不要加 `--headless`**：地形和草石都是 MultiMesh，实例变换存在 RenderingServer
+## 里；headless 的 dummy 渲染器读出来全是单位矩阵，"贴地"和"地形碰撞"那几项会误报。
 ##
 ## 覆盖：场景结构、台面高度、山体尺度、碰撞是否补齐、石头/草是否贴在地面上、
 ## 环境与相机是否可用。碰撞由 island.gd 在 _ready 里动态补，所以要等几帧。
@@ -76,7 +80,7 @@ func _test_structure() -> void:
 	_check(camera != null and camera.current, "缺少当前相机 PreviewCamera")
 	_check(base != null and base.get_child_count() == 1, "缺少岛屿本体实例")
 	_check(ground != null, "缺少 Ground")
-	_check(mountain != null and mountain.get_node_or_null("NestMountain") != null, "缺少山体实例")
+	_check(mountain != null and mountain.get_node_or_null("LowMountain") != null, "缺少山体实例")
 	_check(scatter != null, "缺少 Scatter")
 	if scatter == null:
 		return
@@ -91,7 +95,17 @@ func _test_structure() -> void:
 	_check(scatter.get_child_count() <= 40,
 		"Scatter 子节点太多（%d），草石应该走 MultiMesh" % scatter.get_child_count())
 	var patches := ground.find_children("*", "MeshInstance3D", true, false).size() if ground else 0
-	_check(patches >= 20, "草地地形块数量不足（实际 %d）" % patches)
+	_check(patches == 0, "Ground 下又出现了逐块的地形 MeshInstance3D（%d 个）" % patches)
+	# 116 块地形合成 1 个 MultiMesh：节点编号、`_ready()`、draw call 都只算一次。
+	# 一旦有人把"每块地形一个实例"的旧做法加回来，下面几条立刻报警。
+	var terrain := ground.get_node_or_null("Terrain") if ground else null
+	_check(terrain is MultiMeshInstance3D, "缺少 Ground/Terrain（MultiMeshInstance3D）")
+	_check(ground != null and ground.get_child_count() <= 4,
+		"Ground 子节点太多（%d），地形应该走 MultiMesh" % (ground.get_child_count() if ground else -1))
+	if terrain is MultiMeshInstance3D and (terrain as MultiMeshInstance3D).multimesh != null:
+		var instances := (terrain as MultiMeshInstance3D).multimesh.instance_count
+		_check(instances >= 100, "地形块数量不足（应 >= 100，实际 %d）" % instances)
+		_check((terrain as MultiMeshInstance3D).multimesh.mesh != null, "地形的 MultiMesh 没有网格")
 
 
 ## ---------------- 2. 高度 / 尺度 ----------------
@@ -99,18 +113,26 @@ func _test_heights() -> void:
 	_section("高度 / 尺度")
 	var mountain := _scene.get_node_or_null("Mountain")
 	if mountain != null:
-		var box := _merged_aabb(mountain)
+		# 用**真实顶点范围**，不用 get_aabb()：MeshInstance 的 AABB 是网格包围盒
+		# 整体套上旋转后的结果（还含 LOD 余量），会把山脚量宽 4~5 m。
+		var box := _vertex_aabb(mountain)
 		_check(box.size.y > 17.5 and box.size.y < 19.5,
 			"山体总高异常：%.2f m（含水下裙边，预期约 18.6 m）" % box.size.y)
-		_check(box.end.y > 14.5,
-			"山体主峰太矮：峰顶仅 %.2f m" % box.end.y)
+		_check(box.end.y > 16.5 and box.end.y < 19.5,
+			"山体主峰高度异常：峰顶 %.2f m（预期约 17.8 m）" % box.end.y)
 		# 山是**故意偏心**的（正中会显得像个同心圆靶子），但必须仍稳稳落在岛上：
 		# 既不能偏回中心，也不能偏到把山脚推到岛外。
 		var c := box.get_center()
 		var off := Vector2(c.x, c.z).length()
 		_check(off > 6.0, "山体又跑回岛中央了（偏移 %.1f m，应 > 6 m）" % off)
-		_check(off + box.size.x * 0.5 < 30.0,
-			"山体偏得太远，山脚可能悬空：偏移 %.1f m + 半径 %.1f m" % [off, box.size.x * 0.5])
+		# 山脚不能悬在岛外：山体（真实顶点范围）要整个落在岛体范围里（留 1 m 余量）。
+		var base := _vertex_aabb(_scene.get_node_or_null("IslandBase"))
+		_check(base.size.x > 0.0
+				and box.position.x > base.position.x + 1.0 and box.end.x < base.end.x - 1.0
+				and box.position.z > base.position.z + 1.0 and box.end.z < base.end.z - 1.0,
+			"山脚超出岛体范围：山体 x[%.1f,%.1f] z[%.1f,%.1f]，岛体 x[%.1f,%.1f] z[%.1f,%.1f]" % [
+				box.position.x, box.end.x, box.position.z, box.end.z,
+				base.position.x, base.end.x, base.position.z, base.end.z])
 		_check(box.position.y < 0.5, "山体底座没有落在地面上（y=%.2f）" % box.position.y)
 
 	# 岛屿台面：山体外侧、草地边缘的几个点都应该能向下打到地面
@@ -132,6 +154,29 @@ func _test_collision() -> void:
 	var rock_body := _scene.get_node_or_null("Scatter/RockCollision")
 	_check(_has_static_bodies(ground), "草地地形块没有补齐碰撞")
 	_check(_has_static_bodies(mountain), "山体没有补齐碰撞")
+	# 地形是 MultiMesh：island.gd 补 **一个** StaticBody3D + 每个实例一个
+	# CollisionShape3D，所有形状共享同一份三角面数据（116 份 → 1 份）。
+	var terrain := ground.get_node_or_null("Terrain") if ground else null
+	if terrain is MultiMeshInstance3D and (terrain as MultiMeshInstance3D).multimesh != null:
+		var instances := (terrain as MultiMeshInstance3D).multimesh.instance_count
+		var terrain_body := terrain.get_node_or_null("StaticBody3D")
+		_check(terrain_body is StaticBody3D, "地形没有补齐碰撞（缺 Ground/Terrain/StaticBody3D）")
+		if terrain_body is StaticBody3D:
+			var shapes := (terrain_body as StaticBody3D).get_child_count()
+			_check(shapes == instances, "地形碰撞体数量不对（%d / %d 块）" % [shapes, instances])
+			var shared := true
+			var first_shape: Shape3D = null
+			for child in terrain_body.get_children():
+				var collision := child as CollisionShape3D
+				if collision == null or collision.shape == null:
+					shared = false
+					break
+				if first_shape == null:
+					first_shape = collision.shape
+				elif collision.shape != first_shape:
+					shared = false
+					break
+			_check(shared, "地形碰撞没有共享同一份形状（每块各存一份就退化了）")
 	# 石头现在由 ground_scatter.gd 用**一个** StaticBody3D + N 个共享凸包
 	# CollisionShape3D 补碰撞（MultiMesh 本身不产生碰撞）。
 	_check(rock_body is StaticBody3D, "石头没有补齐碰撞（缺 Scatter/RockCollision）")
@@ -213,13 +258,16 @@ func _test_presentation() -> void:
 
 
 ## ---------------- 工具 ----------------
+## 子树里每个可见几何体（MeshInstance3D / MultiMeshInstance3D）都要挂 StaticBody3D。
 func _has_static_bodies(root: Node) -> bool:
 	if root == null:
 		return false
-	var meshes := root.find_children("*", "MeshInstance3D", true, false)
-	if meshes.is_empty():
+	var geometry: Array[Node] = []
+	geometry.append_array(root.find_children("*", "MeshInstance3D", true, false))
+	geometry.append_array(root.find_children("*", "MultiMeshInstance3D", true, false))
+	if geometry.is_empty():
 		return false
-	for node in meshes:
+	for node in geometry:
 		var found := false
 		for child in node.get_children():
 			if child is StaticBody3D:
@@ -230,17 +278,32 @@ func _has_static_bodies(root: Node) -> bool:
 	return true
 
 
-func _merged_aabb(root: Node) -> AABB:
+## 子树里所有网格**真实顶点**的世界包围盒。
+##
+## 为什么不用 `mi.get_aabb()`：那是「网格包围盒整体套上节点变换」的结果 ——
+## 旋转后盒子会显著变大（低山实测 x/z 各被放大 4~5 m，还叠加了 LOD 余量），
+## 拿来判"山脚有没有超出岛体"会误报。
+func _vertex_aabb(root: Node) -> AABB:
 	var box := AABB()
 	var first := true
+	if root == null:
+		return box
 	for node in root.find_children("*", "MeshInstance3D", true, false):
 		var mi := node as MeshInstance3D
-		var b := mi.global_transform * mi.get_aabb()
-		if first:
-			box = b
-			first = false
-		else:
-			box = box.merge(b)
+		if mi.mesh == null:
+			continue
+		var xf := mi.global_transform
+		for s in mi.mesh.get_surface_count():
+			var arr := mi.mesh.surface_get_arrays(s)
+			if arr.is_empty():
+				continue
+			for v in arr[Mesh.ARRAY_VERTEX]:
+				var w: Vector3 = xf * v
+				if first:
+					box = AABB(w, Vector3.ZERO)
+					first = false
+				else:
+					box = box.expand(w)
 	return box
 
 

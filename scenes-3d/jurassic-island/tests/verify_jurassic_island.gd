@@ -1,14 +1,19 @@
 extends SceneTree
-## 2000 m 主岛场景自检（无头模式）。
+## 2000 m 主岛场景自检。
 ##
 ## 现在主场景没有运行时脚本：岛体变换、海面、玩家、静态草石都在 .tscn 里；
-## 岛组件的展示节点 / 巨型草石由组件根的 show_presentation / show_scatter 关闭。
+## 岛组件直接实例化组件本体 island.tscn，组件根的
+## show_presentation / show_scatter / show_perimeter 三个开关在主场景里关掉。
 ##
 ## 运行方式：
 ## [codeblock]
-## /Applications/Godot.app/Contents/MacOS/Godot --headless \
+## /Applications/Godot.app/Contents/MacOS/Godot \
 ##   --script res://scenes-3d/jurassic-island/tests/verify_jurassic_island.gd
 ## [/codeblock]
+##
+## ⚠️ **不要加 `--headless`**：地形是 MultiMesh，实例变换存在 RenderingServer 里；
+## headless 的 dummy 渲染器读出来全是单位矩阵，`island.gd` 补出来的地形碰撞会全部
+## 叠在岛心，"坡度抽查"那几项量到的就不是真实地形。其余检查 headless 也能过。
 
 const SCENE_PATH: String = "res://scenes-3d/jurassic-island/jurassic-island.tscn"
 const WAIT_SECONDS: float = 5.0
@@ -109,10 +114,46 @@ func _test_component_switches() -> void:
 	_check(component != null, "找不到岛组件")
 	if component == null:
 		return
-	for node_name in ["WorldEnvironment", "Sun", "FillLight", "BounceLight", "PreviewCamera", "Scatter"]:
-		_check(component.get_node_or_null(node_name) == null,
-			"地形版里不应该出现 %s" % node_name)
-	_check(component.get_script() != null, "地形版缺少 island.gd（地形/山体碰撞）")
+	# 唯一真源：主场景直接实例化组件本体 island.tscn，而不是另存一份精简副本。
+	_check(component.scene_file_path == "res://components/island/island.tscn",
+		"岛组件不是 island.tscn（%s）" % component.scene_file_path)
+	_check(component.get_script() != null, "岛组件缺少 island.gd（地形/山体碰撞）")
+	if component.get_script() == null:
+		return
+	# 三个展示开关：组件自带的环境 / 灯光 / 预览相机、62 m 尺度的草石和围墙，在 32 倍
+	# 的主场景里全部关掉，由主场景自己的环境 / 灯光 / LocalScatter / ParkEntrance 接管。
+	_check(not bool(component.get("show_presentation")),
+		"show_presentation 没关（预览相机会抢走第一人称视角，环境光会叠加）")
+	_check(not bool(component.get("show_scatter")),
+		"show_scatter 没关（放大 32 倍后会变成二十多米高的巨草）")
+	_check(not bool(component.get("show_perimeter")),
+		"show_perimeter 没关（放大 32 倍后会变成一圈半径近 1 km 的巨墙）")
+	var world_env := component.get_node_or_null("WorldEnvironment") as WorldEnvironment
+	_check(world_env == null or world_env.environment == null,
+		"组件的 WorldEnvironment 还在生效（会和主场景的环境叠加过曝）")
+	for node_name in ["Sun", "FillLight", "BounceLight"]:
+		var light := component.get_node_or_null(node_name) as Node3D
+		_check(light == null or not light.visible, "组件的 %s 还亮着" % node_name)
+	var preview := component.get_node_or_null("PreviewCamera") as Camera3D
+	_check(preview == null or not preview.current, "组件的 PreviewCamera 还在抢相机")
+	# 隐藏的草石 / 围墙也不能留下隐形碰撞：它们的碰撞是按 62 m 尺度补的。
+	var scatter := component.get_node_or_null("Scatter") as Node3D
+	_check(scatter == null or not scatter.visible, "组件的 Scatter 没隐藏")
+	if scatter != null:
+		_check(scatter.get_node_or_null("RockCollision") == null,
+			"隐藏的 Scatter 还补了石头碰撞（会变成几十米宽的隐形石头）")
+	var perimeter := component.get_node_or_null("ParkPerimeter") as Node3D
+	_check(perimeter == null or not perimeter.visible, "组件的 ParkPerimeter 没隐藏")
+	if perimeter != null:
+		_check(perimeter.find_children("*", "StaticBody3D", true, false).is_empty(),
+			"隐藏的 ParkPerimeter 还补了碰撞（大门会变成百米宽的隐形门）")
+	# 地形 / 山体碰撞仍然由组件自己补齐 —— 这是主场景岛面碰撞的唯一来源。
+	var terrain := component.get_node_or_null("Ground/Terrain")
+	_check(terrain != null and terrain.get_node_or_null("StaticBody3D") != null,
+		"组件没有给 Ground/Terrain 补地形碰撞")
+	var mountain := component.get_node_or_null("Mountain")
+	_check(mountain != null and not mountain.find_children("*", "StaticBody3D", true, false).is_empty(),
+		"组件没有给 Mountain 补碰撞")
 
 
 func _test_local_scatter() -> void:

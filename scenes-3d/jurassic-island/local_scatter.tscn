@@ -1,23 +1,23 @@
-[gd_scene format=3 uid="uid://d3ej01ixgx3cb"]
+[gd_scene format=3]
 
-[ext_resource type="Script" uid="uid://cnm7kwyh33q2" path="res://components/island/ground_scatter/ground_scatter.gd" id="1_wg8n7"]
+[ext_resource type="Script" path="res://components/island/ground_scatter/ground_scatter.gd" id="1_wg8n7"]
 [ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/local_scatter_flat_grass_tuft.res" id="2_7ed2f"]
 [ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/local_scatter_flat_grass_clump.res" id="3_pq7wj"]
 [ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/local_scatter_flat_low_poly_rock.res" id="4_lq00a"]
 
-[node name="GroundScatter" type="Node3D" unique_id=159569448]
+[node name="GroundScatter" type="Node3D" unique_id=1450601795]
 script = ExtResource("1_wg8n7")
 
-[node name="GrassTuft" type="MultiMeshInstance3D" parent="." unique_id=1421878427]
+[node name="GrassTuft" type="MultiMeshInstance3D" parent="." unique_id=622469789]
 cast_shadow = 0
 gi_mode = 0
 multimesh = ExtResource("2_7ed2f")
 
-[node name="GrassClump" type="MultiMeshInstance3D" parent="." unique_id=1905311203]
+[node name="GrassClump" type="MultiMeshInstance3D" parent="." unique_id=1579263548]
 cast_shadow = 0
 gi_mode = 0
 multimesh = ExtResource("3_pq7wj")
 
-[node name="Rock" type="MultiMeshInstance3D" parent="." unique_id=19007798]
+[node name="Rock" type="MultiMeshInstance3D" parent="." unique_id=2058704704]
 gi_mode = 0
 multimesh = ExtResource("4_lq00a")

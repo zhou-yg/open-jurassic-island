@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://d4dgjus3mwlu7"
-path="res://.godot/imported/low_poly_nest_mountain.glb-71843f10794010d9ae8373b12521df25.scn"
+uid="uid://cv5v3we8l8rlo"
+path="res://.godot/imported/low_poly_stone_ore.glb-b49c120ad8a669827fbad544c6383784.scn"
 
 [deps]
 
-source_file="res://assets/models/nest-mountain/low_poly_nest_mountain.glb"
-dest_files=["res://.godot/imported/low_poly_nest_mountain.glb-71843f10794010d9ae8373b12521df25.scn"]
+source_file="res://assets/models/stone-ore/low_poly_stone_ore.glb"
+dest_files=["res://.godot/imported/low_poly_stone_ore.glb-b49c120ad8a669827fbad544c6383784.scn"]
 
 [params]
 

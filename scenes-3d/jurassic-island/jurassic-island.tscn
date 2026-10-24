@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://dnc7mnbatx4bq"]
 
-[ext_resource type="PackedScene" path="res://components/island/island_terrain.tscn" id="2_island"]
+[ext_resource type="PackedScene" uid="uid://byexlo2qp8k2y" path="res://components/island/island.tscn" id="2_island"]
 [ext_resource type="PackedScene" uid="uid://d3ledm0mpxvo2" path="res://components/sea/sea.tscn" id="5_sea"]
 [ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://scenes-3d/player/player.tscn" id="6_player"]
 [ext_resource type="PackedScene" uid="uid://bymxytwisqvnj" path="res://scenes/ui/top_bar/top_bar.tscn" id="7_topbar"]
-[ext_resource type="PackedScene" path="res://scenes-3d/jurassic-island/local_scatter.tscn" id="8_scatter"]
+[ext_resource type="PackedScene" uid="uid://d3ej01ixgx3cb" path="res://scenes-3d/jurassic-island/local_scatter.tscn" id="8_scatter"]
 [ext_resource type="PackedScene" path="res://components/island/park_perimeter/park_entrance_local.tscn" id="9_entrance"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_main"]
@@ -63,14 +63,15 @@ light_energy = 0.16
 [node name="Island" type="Node3D" parent="." unique_id=1736432730]
 transform = Transform3D(32.258, 0, 0, 0, 20.9677, 0, 0, 0, 32.258, 0, -0.5, 0)
 
-[node name="IslandComponent" parent="Island" unique_id=1013204167 instance=ExtResource("2_island")]
+[node name="Island" parent="Island" unique_id=1030798146 instance=ExtResource("2_island")]
+transform = Transform3D(1.0000007, 0, 0, 0, 1, 0, 0, 0, 1.0000007, 0, 0.59046715, 0)
 
 [node name="Sea" parent="." unique_id=1753163453 instance=ExtResource("5_sea")]
 
 [node name="LocalScatter" parent="." unique_id=798422038 instance=ExtResource("8_scatter")]
 
 [node name="Player" parent="." unique_id=245103418 instance=ExtResource("6_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 353.9173, 77.851425)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 34, 77.851425)
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1711720252]
 
@@ -78,4 +79,4 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 353.9173, 77.851425)
 auto_advance_time = true
 day_length_seconds = 120.0
 
-[node name="ParkEntrance" parent="." instance=ExtResource("9_entrance")]
+[node name="ParkEntrance" parent="." unique_id=466204030 instance=ExtResource("9_entrance")]

@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bxpegltm2khov"
-path="res://.godot/imported/low_poly_nest_mountain_preview.png-02505e5d0b054d9a0fcb554b48059eea.ctex"
+uid="uid://b0amc1gan0bjg"
+path="res://.godot/imported/low_poly_stone_ore_preview.png-015cc4c7acc6274aa575eaf165cf8453.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/models/nest-mountain/low_poly_nest_mountain_preview.png"
-dest_files=["res://.godot/imported/low_poly_nest_mountain_preview.png-02505e5d0b054d9a0fcb554b48059eea.ctex"]
+source_file="res://assets/models/stone-ore/low_poly_stone_ore_preview.png"
+dest_files=["res://.godot/imported/low_poly_stone_ore_preview.png-015cc4c7acc6274aa575eaf165cf8453.ctex"]
 
 [params]
 

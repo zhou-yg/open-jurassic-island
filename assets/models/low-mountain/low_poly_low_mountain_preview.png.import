@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://bl8rsp0ky0ub2"
-path="res://.godot/imported/low_poly_nest_mountain_top.png-98d7a05353a8e6b0f605d3bebbc3cddf.ctex"
+uid="uid://d14jbtn1kck1f"
+path="res://.godot/imported/low_poly_low_mountain_preview.png-397ddaef91e317f2ccb753a292865689.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/models/nest-mountain/low_poly_nest_mountain_top.png"
-dest_files=["res://.godot/imported/low_poly_nest_mountain_top.png-98d7a05353a8e6b0f605d3bebbc3cddf.ctex"]
+source_file="res://assets/models/low-mountain/low_poly_low_mountain_preview.png"
+dest_files=["res://.godot/imported/low_poly_low_mountain_preview.png-397ddaef91e317f2ccb753a292865689.ctex"]
 
 [params]
 

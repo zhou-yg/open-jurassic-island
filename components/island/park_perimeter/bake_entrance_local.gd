@@ -4,10 +4,10 @@ extends SceneTree
 ## 和 `park_perimeter.tscn`（展示岛用的环岛围墙）不是同一个东西：
 ##   主场景的岛是 2000 m 量级、`Island` 节点还带 32 倍非等比缩放，
 ##   一个 60 m 的环形围墙放进去只会是地图上一个小点。所以这里只做**入口本身**：
-##   10.56 m 宽的大门 + 两侧各 ~22 m 的残墙，按 1:1 米制摆在出生点正前方。
+##   10.41 m 宽的大门 + 两侧各 ~22 m 的残墙，按 1:1 米制摆在出生点正前方。
 ##
-## 位置锚定在出生点：`jurassic-island.tscn` 的 Player 在 (0, 353.68, 77.85)，
-## 地面在 y≈320.6。门放在 z = 66（出生点前方 12 m），面朝 +Z 冲着玩家。
+## 位置锚定在出生点：`jurassic-island.tscn` 的 Player 在 (0, 34, 77.85)，
+## 地面在 y≈32。门放在 z = 66（出生点前方 12 m），面朝 +Z 冲着玩家。
 ## 玩家位置改了要同步改 `GATE_Z` 并重烘。
 ##
 ## 用法（**必须带真实渲染器**）：
@@ -47,8 +47,9 @@ func _initialize() -> void:
 	_rng.seed = int(args[1]) if args.size() > 1 else 20260715
 	_scene = load(SCENE).instantiate()
 	root.add_child(_scene)
-	# 静态草石 + 玩家都带碰撞，射线会打在它们身上，先清掉
-	for nm in ["LocalScatter", "Player"]:
+	# 静态草石 + 玩家 + **上一版入口**都带碰撞，射线会打在它们身上，先清掉。
+	# 入口自己尤其要清：不然射线打在大门身上，重烘出来还是原地不动。
+	for nm in ["LocalScatter", "Player", "ParkEntrance"]:
 		var x := _scene.get_node_or_null(nm)
 		if x != null:
 			x.free()

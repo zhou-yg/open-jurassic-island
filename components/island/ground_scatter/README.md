@@ -56,6 +56,36 @@ cd /Users/zhouyunge/Documents/godot/open-jurassic-island
 python3 components/island/ground_scatter/extract_scatter.py 旧场景.tscn 输出.json
 ```
 
+## 挪了山 / 地形之后：`resnap_scatter.gd`
+
+散点是**烘死的世界坐标**，山一挪、或者换了一座山，原本站在坡上的草石就会悬空 / 陷进山里。
+`resnap_scatter.gd` 对着每个道具打垂直射线把它重新贴到面上：
+
+```bash
+# 展示岛的山上草石：换山时用 slide（保住原来的高度，沿坡滑到该高度对应的半径）
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . \
+  --script res://components/island/ground_scatter/resnap_scatter.gd -- \
+  components/island/ground_scatter/island_scatter.json Mountain \
+  res://components/island/island.tscn slide
+
+# 主场景的草石：整片重新贴一遍（高了落下、埋了抬上来，不删）
+/Applications/Godot.app/Contents/MacOS/Godot --headless --path . \
+  --script res://components/island/ground_scatter/resnap_scatter.gd -- \
+  scenes-3d/jurassic-island/local_scatter.json "*" \
+  res://scenes-3d/jurassic-island/jurassic-island.tscn project 700 700
+```
+
+三种模式：
+
+| 模式 | 行为 | 什么时候用 |
+| --- | --- | --- |
+| `drop`（默认） | 只往下贴；埋进面里超过 0.5 m 的**剔除** | 原地微调地形 |
+| `project` | 双向贴，不删；偏差 ≤ 0.35 m 的当成已贴地不动 | 整片草石重贴（主场景） |
+| `slide` | 保住道具原来的高度，沿坡面向外找到该高度所在的位置 | **换山**（新山更陡，同高度半径不同） |
+
+参数：`-- <json> <分组子串> [场景] [模式] [上窗口] [下窗口]`。
+改完 JSON **必须重跑 `bake_scatter.gd`**（记得别加 `--headless`）。
+
 ## 三个必须知道的坑（都踩过了）
 
 1. **不要用 `--headless` 烘 MultiMesh。**
@@ -89,5 +119,5 @@ MultiMesh 本身不产生碰撞。`ground_scatter.gd` 在 `_ready()` 里补：
 - 900（主场景）/ 988（展示岛）个草石的世界坐标，改前 vs 改后**逐点完全一致**（0 处偏差）。
   做法是同时实例化新旧场景，各自取出可见几何的世界坐标排序比对，**不是**拿同一份
   JSON 自比（那样会掩盖提取错误）。
-- `components/island/tests/verify_island.gd`：31 项全过
+- `components/island/tests/verify_island.gd`：32 项全过
 - `scenes-3d/jurassic-island/tests/verify_jurassic_island.gd`：41 项全过

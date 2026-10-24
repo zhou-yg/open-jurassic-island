@@ -14,6 +14,9 @@ low-poly 风格
 
 ## 核心项目结构
 
+assets/models
+- 3d模型
+
 components
 - 核心场景组件，基于模型构建的最基础逻辑单元
 
