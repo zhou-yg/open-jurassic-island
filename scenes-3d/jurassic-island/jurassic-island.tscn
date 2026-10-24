@@ -71,7 +71,7 @@ transform = Transform3D(1.0000007, 0, 0, 0, 1, 0, 0, 0, 1.0000007, 0, 0.59046715
 [node name="LocalScatter" parent="." unique_id=798422038 instance=ExtResource("8_scatter")]
 
 [node name="Player" parent="." unique_id=245103418 instance=ExtResource("6_player")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 34, 77.851425)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 54.572968, 1008.78674)
 
 [node name="HUDLayer" type="CanvasLayer" parent="." unique_id=1711720252]
 

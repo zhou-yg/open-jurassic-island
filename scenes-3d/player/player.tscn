@@ -5,6 +5,7 @@
 [sub_resource type="CapsuleShape3D" id="CapsuleShape3D_2dfsy"]
 
 [node name="CharacterBody3D" type="CharacterBody3D" unique_id=2082600388]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.0939941, 0)
 script = ExtResource("1_uq26q")
 
 [node name="CollisionShape3D" type="CollisionShape3D" parent="." unique_id=849448143]
@@ -14,6 +15,6 @@ shape = SubResource("CapsuleShape3D_2dfsy")
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.64528024, 0)
 
 [node name="Camera3D" type="Camera3D" parent="Head" unique_id=1805165307]
-fov = 70.0
 current = true
+fov = 70.0
 far = 12000.0

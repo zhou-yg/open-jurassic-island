@@ -1,8 +1,8 @@
 extends CharacterBody3D
 
 # 基本属性
-@export var normal_speed: float = 3.0
-@export var sprint_speed: float = 6.0
+@export var normal_speed: float = 10.0
+@export var sprint_speed: float = 50.0
 @export var jump_velocity: float = 8.0     # 跳跃初速度加倍（原 4.0）
 @export var gravity: float = 4.0           # 重力加倍（原 2.0），让上升下降更干脆
 @export var mousensity: float = 0.005
