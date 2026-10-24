@@ -1,6 +1,6 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://d3ej01ixgx3cb"]
 
-[ext_resource type="Script" path="res://components/island/ground_scatter/ground_scatter.gd" id="1_wg8n7"]
+[ext_resource type="Script" uid="uid://cnm7kwyh33q2" path="res://components/island/ground_scatter/ground_scatter.gd" id="1_wg8n7"]
 [ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/local_scatter_flat_grass_tuft.res" id="2_7ed2f"]
 [ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/local_scatter_flat_grass_clump.res" id="3_pq7wj"]
 [ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/local_scatter_flat_low_poly_rock.res" id="4_lq00a"]

@@ -1,12 +1,9 @@
 [gd_scene format=3 uid="uid://byexlo2qp8k2y"]
 
-[ext_resource type="Script" path="res://components/island/island.gd" id="1_script"]
+[ext_resource type="Script" uid="uid://cre5sthpbtt14" path="res://components/island/island.gd" id="1_script"]
 [ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/models/island/sky-island-basic.glb" id="2_island"]
 [ext_resource type="PackedScene" uid="uid://cqftpc1asrmak" path="res://assets/models/plain-terrain/plain_terrain.glb" id="3_terrain"]
 [ext_resource type="PackedScene" uid="uid://d4dgjus3mwlu7" path="res://assets/models/nest-mountain/low_poly_nest_mountain.glb" id="4_mountain"]
-[ext_resource type="PackedScene" uid="uid://csljsbd31q2hs" path="res://assets/models/low-poly-rock/low_poly_rock.glb" id="5_rock"]
-[ext_resource type="PackedScene" uid="uid://b1t1khcgg3q2x" path="res://assets/models/grass/grass_tuft.glb" id="6_tuft"]
-[ext_resource type="PackedScene" uid="uid://cacrbr0mcanim" path="res://assets/models/grass/grass_clump.glb" id="7_clump"]
 [ext_resource type="PackedScene" path="res://components/island/ground_scatter/island_scatter.tscn" id="10_scatter"]
 [ext_resource type="PackedScene" path="res://components/island/park_perimeter/park_perimeter.tscn" id="11_perimeter"]
 
@@ -431,6 +428,6 @@ transform = Transform3D(0.285317, 0, -0.092705, 0, 0.3, 0, 0.092705, 0, 0.285317
 
 [node name="NestMountain" parent="Mountain" unique_id=2143380307 instance=ExtResource("4_mountain")]
 
-[node name="ParkPerimeter" parent="." instance=ExtResource("11_perimeter")]
+[node name="ParkPerimeter" parent="." unique_id=1661770466 instance=ExtResource("11_perimeter")]
 
-[node name="Scatter" parent="." instance=ExtResource("10_scatter")]
+[node name="Scatter" parent="." unique_id=2111060182 instance=ExtResource("10_scatter")]

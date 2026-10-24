@@ -10,3 +10,16 @@ low-poly 风格
 ## 模型规范
 
 涉及建模时看 ./assets/AGENTs.md
+
+
+## 核心项目结构
+
+components
+- 核心场景组件，基于模型构建的最基础逻辑单元
+
+components/island
+- 核心岛屿
+
+scenes-3d/jurassic-island/
+- 游戏主场景
+- jurassic-island.tscn 入口
