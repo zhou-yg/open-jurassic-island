@@ -3,3 +3,4 @@
 .mcp/
 # 无头运行时的项目内 HOME（存放 Godot 日志与着色器缓存）
 .godot_home/
+assets/models/_shared/

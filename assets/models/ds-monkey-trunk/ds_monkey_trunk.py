@@ -7,9 +7,9 @@ ds_monkey_trunk.py —— 猴子的「四肢 + 尾巴」5 件套（只做四肢�
 产物：**5 个独立模型**，每个都是**一个网格物体**（没有关节层级、没有 armature），
 结构精简、面数很低，可以直接挂到躯干（`ds-monkey-body`）的关节锚点上：
 
-    ds_monkey_trunk_arm_r.glb   右臂：肩球 → 上臂 → 肘球 → 前臂 → 手掌（3 指 + 拇指）
+    ds_monkey_trunk_arm_r.glb   右臂：肩 → 肘 → 腕 → 手掌（3 指 + 拇指）
     ds_monkey_trunk_arm_l.glb   左臂：右臂网格 X 镜像（**手完全对称**）
-    ds_monkey_trunk_leg_r.glb   右腿：胯球 → 大腿 → 膝球 → 小腿 → 脚掌（3 趾）
+    ds_monkey_trunk_leg_r.glb   右腿：胯 → 膝 → 踝 → 脚掌（3 趾）
     ds_monkey_trunk_leg_l.glb   左腿：右腿网格 X 镜像（**脚完全对称**）
     ds_monkey_trunk_tail.glb    尾巴：一条 Catmull-Rom 大钩，单段
 
@@ -37,17 +37,25 @@ ds_monkey_trunk.py —— 猴子的「四肢 + 尾巴」5 件套（只做四肢�
 | 左臂 | ( −0.090, 0.000, 0.238 ) | ( −0.090, 0.238, 0.000 ) |
 | 右腿 | ( +0.044, 0.000, 0.142 ) | ( +0.044, 0.142, 0.000 ) |
 | 左腿 | ( −0.044, 0.000, 0.142 ) | ( −0.044, 0.142, 0.000 ) |
-| 尾巴 | ( 0.000, −0.070, 0.134 ) | ( 0.000, 0.134, +0.070 ) |
+| 尾巴 | ( 0.000, −0.078, 0.134 ) | ( 0.000, 0.134, +0.078 ) |
 
 低多边形做法
 ------------
-* **关节 = 低模球 + 从球里长出来的锥台管**（6 棱）：球的半径比管大 1.1~1.2 倍，
-  管端埋进球里，所以肘 / 膝不会出现竹节一样的硬折角。
+* ⭐ **四肢是「一根沿曲线放样的六棱管」，不是「关节球 + 锥台」**：
+  肩 / 肘 / 腕是**同一条 Catmull-Rom 曲线上的三个点**，肘只是曲线上的一个弯。
+  之前用球 + 管拼过一轮，两个问题：① 6 棱 × 2 环的球顶点是尖的，肩 / 胯球从
+  胳膊上冒出来像根刺；② 两段锥台在肘部对撞，留下一圈生硬的折角。
+  换成一根管之后：没有尖、没有折角，面数还更少。肩 / 胯那头用**半球形圆头**收口。
 * **手掌 / 脚掌 = 六边形截面放样**（不是方盒子），末端挂 3 根 5 棱短指 / 短趾 +
   1 根拇指 —— 参考图的手脚都是这个结构，手和脚因此"长得一套"。
-* **尾巴 = Catmull-Rom 曲线 + 平行传导标架扫 6 棱管**（不会像逐段直线那样扭麻花）。
+  手指的**指缝要留出来**（指距 18.5 mm > 指径 17 mm），否则糊成一块。
+* **手掌的第一环要缩在前臂里面**（半厚 0.021 < 前臂半径 0.0264）：
+  反过来把第一环放大到"包住前臂"，前臂六边形的两个角会**从掌背上顶出两根棕刺**。
+* **尾巴 = Catmull-Rom 曲线 + 平行传导标架扫 6 棱管**（不会像逐段直线那样扭麻花），
+  并且**要往侧向甩出去**（x 最大 0.114）：只在 YZ 平面里画的话，背视图里尾巴
+  被脑袋整个挡住，只剩一根贴背的竖线。
 * 全平直着色（`use_smooth = False`），一格四边形一个法线 = 一块干净棱面。
-* 面数（三角面）：手臂 ~200、腿 ~190、尾巴 ~104，五件合计约 1000 面。
+* 面数（三角面）：手臂 190、腿 158、尾巴 104，**五件合计 800 面**、2 个材质槽。
 
 产物
 ----
@@ -134,8 +142,8 @@ TAIL_SIDES = 6
 # 2. 材质（与共用头 / 身体的调色板同一组数）
 # =====================================================================
 PAL = {
-    "fur": (0.508, 0.265, 0.145),   # == ds-monkey-body / monkey_head 的 fur
-    "tan": (0.826, 0.606, 0.392),   # 手脚：比脸略深一档（同 ds-monkey-body 的 tan_deep）
+    "fur": (0.478, 0.271, 0.153),   # #7A4527 == ds-monkey-body / monkey_head 的 fur
+    "tan": (0.788, 0.561, 0.341),   # #C98F57 手脚：比脸略深一档（同 ds-monkey-body 的 tan_deep）
 }
 ROUGH = {"fur": 0.72, "tan": 0.70}
 MAT_NAME = {"fur": "DSMonkeyTrunk_fur", "tan": "DSMonkeyTrunk_tan"}
@@ -478,12 +486,12 @@ def add_hand(b, wrist, tip):
         base = knuckle + u * off
         fdir = (d + u * (off * 2.0) + v * 0.12).normalized()
         add_tube(b, base, base + fdir * FINGER_LEN,
-                 FINGER_R0, FINGER_R1, "tan", sides=5)
+                 FINGER_R0, FINGER_R1, "tan", sides=4)
 
     # 拇指：长在手掌内侧（右边 = −X），朝下前方；起点埋进掌里，别像根刺
     tbase = wrist + d * 0.014 + u * (-0.025)
     tdir = (d * 0.94 - u * 0.28 + v * 0.10).normalized()
-    add_tube(b, tbase, tbase + tdir * THUMB_LEN, 0.0090, 0.0066, "tan", sides=5)
+    add_tube(b, tbase, tbase + tdir * THUMB_LEN, 0.0090, 0.0066, "tan", sides=4)
 
 
 def build_arm():
@@ -549,7 +557,7 @@ def add_foot(b, ankle):
     for (xoff, tlen) in ((-0.0195, 0.022), (0.0, 0.025), (0.0195, 0.022)):
         base = P(xoff, TOE_BASE_Y, 0.0122)
         tdir = (ey + ex * (xoff * 1.4) + Vector((0.0, 0.0, 0.010))).normalized()
-        add_tube(b, base, base + tdir * tlen, TOE_R0, TOE_R1, "tan", sides=5)
+        add_tube(b, base, base + tdir * tlen, TOE_R0, TOE_R1, "tan", sides=4)
 
 
 def build_leg():

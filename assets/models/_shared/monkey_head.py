@@ -29,8 +29,8 @@ from mathutils.bvhtree import BVHTree
 PX_M = 0.300 / 171.0
 RZ = 0.1528                     # 颅骨半高（总高 0.3056 m：参考图 高/宽 ≈ 1.01）
 
-NCOL_FACE = 4                   # 脸盘横跨的列数
-NCOL_FUR = 3                    # 每侧毛区列数
+NCOL_FACE = 4                   # 脸盘横跨的列数（脸盘 4 列不能减 —— 分色边界靠它）
+NCOL_FUR = 2                    # 每侧毛区列数（3→2 省面；脸盘列数不变，发际线的 V 不受影响）
 NCOL = NCOL_FUR + NCOL_FACE + NCOL_FUR      # 每环 10 个顶点
 
 # 正面半宽（z_norm -> 半宽 m），量自正面视图轮廓
@@ -83,11 +83,15 @@ MUZZLE = [
     (0.200, 0.000),
 ]
 MUZZLE_AZ = 0.46                # 吻部沿方位角的高斯半宽（rad）
-FACE_POW = 0.95                 # 基础脸的横向收束（<1 = 脸颊更平）
-SHIELD_IN = 0.80                # 脸盘「平板区」半角（rad）：正面是一块平盾，不是球面
-SHIELD_OUT = 1.45               # 平板区往外过渡到圆颅的方位角
-SHIELD_TOP = 0.34               # 平板区上边界（z_norm）：额头上方要圆回去
-SHIELD_BOT = -0.42              # 平板区下边界（z_norm）：下巴要圆回去
+# 脸的横截面形状：y = fb · |cos(az)|^FACE_ROUND_P
+#   p = 1 → 纯椭圆（正圆截面）；p < 1 → 比圆**更饱满**（颊部鼓出来）
+#   p = 0.80 时中心处的曲率半径 ≈ 0.19 m（微凸，不平），两颊却比正圆鼓 10%
+FACE_ROUND_P = 0.70
+# 吻部前突的整体缩放（1.0 = 原样）：参考图的吻没有鼓那么厉害，嘴巴不该顶出来
+MUZZLE_SCALE = 0.66
+# 面罩隆起：脸的正面整体比毛皮往前鼓一点，到颞骨处收到 0（参考图的脸就是一块浮在毛皮上的面罩）
+FACE_LIFT = 0.010
+FACE_LIFT_AZ = 1.05          # 隆起在 |az| 到这个值时归零
 
 # 后脑深度（z_norm -> |y| m），量自侧视图
 BACK = [
@@ -110,17 +114,27 @@ BACK = [
 HAIR_EL = 0.545                 # 发际线基准仰角（两侧）= 31.2°
 HAIR_PEAK = 0.155               # 正中棕毛楔形往下压的量 = 8.9°
 HAIR_W = 0.22                   # 楔形的方位角宽度（0.22 = 眉心处一个尖角）
-SIDE_LIMIT = [                  # el(rad) -> 脸盘 |az| 上限
-    (-1.5708, 0.80),
-    (-1.30, 0.60),
-    (-1.05, 0.55),
-    (-0.80, 0.62),
-    (-0.55, 0.72),
-    (-0.30, 0.90),
-    (0.00, 1.05),
-    (0.25, 1.02),
-    (0.45, 0.92),
-    (0.60, 0.70),
+# 脸盘侧边界：el(rad) -> |az| 上限。
+# ⚠️ 这张表是**从参考图逐行量出来的**（量橘色脸盘每行的半宽，换算成该高度的颅骨半宽，
+#    再 asin 回去），不是手调的。量的时候要排除耳朵（耳朵的橘色耳窝也在图里）。
+#    旧表在眉毛以上（el > 0.35）收得太狠 → 脸盘上窄下宽，正面看像个梯形。
+SIDE_LIMIT = [
+    (-1.5708, 0.88),
+    (-1.30, 0.79),
+    (-1.05, 0.76),
+    (-0.96, 0.83),
+    (-0.82, 0.71),
+    (-0.66, 0.62),
+    (-0.52, 0.76),
+    (-0.38, 0.94),
+    (-0.23, 1.00),
+    (-0.09, 1.03),
+    (0.05, 1.10),
+    (0.19, 1.14),
+    (0.35, 1.15),
+    (0.49, 1.15),
+    (0.63, 1.10),
+    (0.75, 1.00),
 ]
 
 # 环线： (仰角°, V 形下垂权重)；None = 发际线环（仰角随方位角变化）
@@ -143,8 +157,8 @@ HAIR_ROW = 4
 # 正面五官（参考图像素位置换算成米；x 用「屏幕左 = +X」）
 EYE_X = 0.0675
 EYE_Z = -0.0115
-SCLERA_R = 0.0281               # 眼白半径（直径 0.056 m = 参考图 32 px）
-PUPIL_R = 0.0172
+SCLERA_R = 0.0312               # 眼白半径（参考图 32 px；但弯面贴片的可见白只有 25 px，故放大）
+PUPIL_R = 0.0188
 PUPIL_IN = 0.0075               # 瞳孔向鼻梁内偏
 GLINT_R = 0.0052
 GLINT_OFF = (0.0050, 0.0053)    # 高光在瞳孔的「屏幕左上」（+X / +Z，两只眼同向）
@@ -152,7 +166,7 @@ GLINT_OFF = (0.0050, 0.0053)    # 高光在瞳孔的「屏幕左上」（+X / +Z
 BROW_X = 0.0846
 BROW_Z = 0.0395
 BROW_LEN = 0.0300
-BROW_THICK = 0.0078
+BROW_THICK = 0.0094
 BROW_TILT = math.radians(21.0)  # 外端低、内端高
 
 NOSTRIL_X = 0.0170
@@ -179,7 +193,7 @@ EAR_X = 0.172
 EAR_Y = -0.042
 EAR_Z = -0.008
 EAR_RX = 0.0612
-EAR_RY = 0.0590
+EAR_RY = 0.0440                      # 耳朵高度实测：参考图 0.082 m（原 0.059 太大，耳朵像两片大桨）
 # 盘面法线（右耳；左耳镜像）：离 +Y 轴 30°（正对前方偏外）。
 # 由参考图两个投影量反解：正面 x 向投影 0.106 m、侧面 y 向投影 0.061 m
 #   x 向投影 = 2·rx·√(1−n_x²)，y 向投影 = 2·rx·√(1−n_y²)  →  tan φ = 0.061/0.106
@@ -196,19 +210,23 @@ SIDE_LIMIT.sort()
 # =====================================================================
 # 2. 调色板（sRGB，采自参考图）
 # =====================================================================
+# 调色板：**参考图取色**（simple-lowpoly-monkey.jpeg，按色相聚类统计）
+#   橘(脸/肚/手脚) #CE9A6C  ·  棕(毛) #79412A  ·  深色(眉/瞳/嘴) #2F242A
+# 层次：头盖比四肢**浅一档**（参考图正视里头明显比胳膊亮）→ 多一档 fur_light。
 PAL = {
-    "fur":      (0.508, 0.265, 0.145),
-    "fur_dark": (0.365, 0.192, 0.110),
-    "face":     (0.858, 0.652, 0.438),
-    "ear_in":   (0.800, 0.558, 0.330),
+    "fur":      (0.478, 0.271, 0.153),   # #7A4527 身体 / 四肢 / 尾巴的棕
+    "fur_light":(0.541, 0.322, 0.200),   # #8A5233 头盖、耳朵外圈（浅一档）
+    "fur_dark": (0.306, 0.173, 0.114),   # #4E2C1D 发际线正中的深楔形、耳廓外沿
+    "face":     (0.859, 0.659, 0.431),   # #DBA86E 脸盘 / 肚皮 / 手掌 / 脚掌
+    "ear_in":   (0.769, 0.475, 0.290),   # #C4794A 耳窝（比脸略深）
     "sclera":   (0.955, 0.930, 0.885),
     "pupil":    (0.185, 0.155, 0.200),
     "glint":    (1.000, 1.000, 1.000),
-    "mark":     (0.255, 0.140, 0.108),
+    "mark":     (0.184, 0.141, 0.165),
     "mouth":    (0.120, 0.062, 0.058),      # 口腔（几乎黑，张嘴时才看得到）
     "tongue":   (0.760, 0.420, 0.360),
 }
-ROUGH = {"fur": 0.72, "fur_dark": 0.74, "face": 0.70, "ear_in": 0.72,
+ROUGH = {"fur": 0.72, "fur_light": 0.72, "fur_dark": 0.74, "face": 0.70, "ear_in": 0.72,
          "sclera": 0.45, "pupil": 0.40, "glint": 0.20, "mark": 0.66,
          "mouth": 0.80, "tongue": 0.62}
 
@@ -318,9 +336,16 @@ def smoothstep(e0, e1, x):
 
 
 def skull_point(az, el):
-    """颅骨表面：圆颅 + 正面「平盾」+ 吻部前突。
-    正面在眼睛那一段必须是平板（不是球面）—— 参考图的脸是一块平盾、眼睛是平贴圆片；
-    脸做成球面时，一块 56 mm 的贴片两边会陷进去 1 cm，整只眼睛被埋掉。"""
+    """颅骨表面：圆颅 + **圆脸正面** + 吻部前突。
+
+    * 正面横截面 = `fb · |cos(az)|^FACE_ROUND_P`（p < 1 = 比正圆更饱满）。
+      以前这里是"一块平板（平盾）+ 两侧后退的斜面"，正面看两颊就是凹的；
+      改成圆截面后整张脸是**鼓的**，颊部自然圆。
+    * p 不能太小：p → 0 会退化成"平脸 + 尖角"，而且中心曲率半径 R = hw²/(fb·p)
+      变小后，56 mm 的眼白贴片两边会陷进脸里（眼白是贴棱面的 shell，瞳孔是平圆片）。
+      p = 0.80 时 R ≈ 0.19 m，瞳孔外缘仍在眼白前面 3 mm，安全。
+    * 吻部前突按 `MUZZLE_SCALE` 缩量（参考图的嘴没有鼓那么厉害）。
+    """
     zn = max(-0.999, min(0.999, math.sin(el)))
     hw = lerp_table(PROFILE, zn)
     fb = lerp_table(FRONT, zn)
@@ -329,13 +354,15 @@ def skull_point(az, el):
     ca, sa = math.cos(az), math.sin(az)
     x = hw * sa
     if ca >= 0.0:
-        y0 = fb * ca
-        a = abs(az)
-        s = 1.0 - smoothstep(SHIELD_IN, SHIELD_OUT, a)
-        # 平盾只在脸中段，额头 / 下巴要圆回去，否则侧面看是一堵墙
-        s *= (1.0 - smoothstep(SHIELD_TOP, SHIELD_TOP + 0.34, zn))
-        s *= smoothstep(SHIELD_BOT - 0.30, SHIELD_BOT + 0.10, zn)
-        y = y0 + (fb - y0) * s + mz * math.exp(-(az / MUZZLE_AZ) ** 2)
+        # 正面 = **圆脸**：横截面是饱满的超椭圆（p<1 比正圆更鼓），
+        # 不再是"一块平板 + 两侧后退的斜面"—— 后者正面看两颊就是凹的。
+        y = fb * (abs(ca) ** FACE_ROUND_P)
+        # 面罩隆起（额头到下巴都鼓一点，两侧收到 0）
+        la = abs(az)
+        if la < FACE_LIFT_AZ:
+            y += FACE_LIFT * (1.0 - (la / FACE_LIFT_AZ) ** 2)
+        # 吻部前突（整体缩量，嘴巴不再顶出来）
+        y += MUZZLE_SCALE * mz * math.exp(-(az / MUZZLE_AZ) ** 2)
     else:
         y = bk * ca
     return Vector((x, y, RZ * zn))
@@ -383,7 +410,7 @@ def build_skull():
     # 顶扇
     r0 = rings[0]
     for i in range(NCOL):
-        faces.append(((0, r0[i], r0[(i + 1) % NCOL]), "fur"))
+        faces.append(((0, r0[i], r0[(i + 1) % NCOL]), "fur_light"))
 
     # 环带
     for j in range(len(rings) - 1):
@@ -395,7 +422,7 @@ def build_skull():
             B_ = ra[i2]
             C_ = rb[i2]
             D_ = rb[i]
-            slot = "face" if (face_row and is_face_col(i)) else "fur"
+            slot = "face" if (face_row and is_face_col(i)) else "fur_light"
             if (i + j) % 2 == 0:
                 faces.append(((A_, B_, C_), slot))
                 faces.append(((A_, C_, D_), slot))
@@ -407,7 +434,7 @@ def build_skull():
     rl = rings[-1]
     for i in range(NCOL):
         i2 = (i + 1) % NCOL
-        slot = "face" if is_face_col(i) else "fur"
+        slot = "face" if is_face_col(i) else "fur_light"
         faces.append(((bot, rl[i2], rl[i]), slot))
 
     return build_object("DSMonkeyHead", verts, faces)
@@ -437,16 +464,16 @@ def build_tuft():
         T.append(len(verts))
         verts.append(Vector((xoff, y, zt)))
     for i in range(len(ridge) - 1):
-        faces.append(((L[i], T[i], T[i + 1], L[i + 1]), "fur_dark"))
-        faces.append(((R[i], R[i + 1], T[i + 1], T[i]), "fur_dark"))
+        faces.append(((L[i], T[i], T[i + 1], L[i + 1]), "fur_light"))
+        faces.append(((R[i], R[i + 1], T[i + 1], T[i]), "fur_light"))
     # 两端封口（埋在颅骨里，看不见，但保证是封闭体）
-    faces.append(((L[0], R[0], T[0]), "fur_dark"))
-    faces.append(((L[-1], T[-1], R[-1]), "fur_dark"))
+    faces.append(((L[0], R[0], T[0]), "fur_light"))
+    faces.append(((L[-1], T[-1], R[-1]), "fur_light"))
     # 底面（同样埋进颅骨）
     n = len(ridge)
     for i in range(n - 1):
-        faces.append(((L[i], L[i + 1], R[i + 1], R[i]), "fur_dark"))
-    faces.append(((L[0], R[0], R[-1], L[-1]), "fur_dark"))
+        faces.append(((L[i], L[i + 1], R[i + 1], R[i]), "fur_light"))
+    faces.append(((L[0], R[0], R[-1], L[-1]), "fur_light"))
     return build_object("DSMonkeyTuft", verts, faces)
 
 
@@ -603,17 +630,20 @@ def build_eye_parts(bvh):
         tag = "L" if side < 0 else "R"
         x = EYE_X * side
         verts, faces = [], []
-        shell_disc(verts, faces, bvh, x, EYE_Z, SCLERA_R, 0.0015, "sclera",
-                   segs=16, rings=(0.55, 1.0))
+        # ⚠️ 抬高量不能只有 1.5 mm：脸是**曲面**，眼白外缘（半径 28 mm）比中心
+        # 靠后约 1.9 mm（r²/2R，R≈0.21 m），1.5 mm 的抬高会让**外缘被脸切掉**，
+        # 眼睛看着比参考图小一圈、边缘发暗。抬到 3.5 mm，整片眼白才完整露出来。
+        shell_disc(verts, faces, bvh, x, EYE_Z, SCLERA_R, 0.0035, "sclera",
+                   segs=10, rings=(0.62, 1.0))
         out.append(make_part("DSMonkeyEye_" + tag, verts, faces,
                              surf_at(bvh, x, EYE_Z), recalc=False))
 
         px = x - PUPIL_IN * side
         y0 = surface_front_y(bvh, px, EYE_Z, PUPIL_R)
         verts, faces = [], []
-        flat_disc(verts, faces, px, EYE_Z, y0 + 0.0036, PUPIL_R, "pupil", segs=14)
+        flat_disc(verts, faces, px, EYE_Z, y0 + 0.0036, PUPIL_R, "pupil", segs=10)
         flat_disc(verts, faces, px + GLINT_OFF[0], EYE_Z + GLINT_OFF[1],
-                  y0 + 0.0046, GLINT_R, "glint", segs=8)
+                  y0 + 0.0046, GLINT_R, "glint", segs=6)
         out.append(make_part("DSMonkeyPupil_" + tag, verts, faces,
                              (px, y0 + 0.0036, EYE_Z), recalc=False))
 
@@ -638,7 +668,7 @@ def build_mouth_parts(bvh):
     n = len(path)
     radius = [MOUTH_R * (0.70 + 0.30 * math.sin(math.pi * i / (n - 1.0)))
               for i in range(n)]
-    tube(verts, faces, path, radius, "mark", sides=5)
+    tube(verts, faces, path, radius, "mark", sides=4)
     c = Vector((0.0, 0.0, 0.0))
     for q in path:
         c += q
@@ -651,21 +681,63 @@ def build_mouth_parts(bvh):
              (0.026, -0.119), (0.044, -0.105)]
     out.append(make_part("DSMonkeyMouthLaugh",
                          *mouth_mesh(bvh, laugh, "mouth", "mark", 0.0042,
-                                     tongue=[(0.026, -0.112), (0.011, -0.121),
-                                             (-0.011, -0.121), (-0.026, -0.112),
-                                             (0.0, -0.116)]),
+                                     tongue=[(0.028, -0.106), (0.012, -0.118),
+                                             (-0.012, -0.118), (-0.028, -0.106),
+                                             (0.0, -0.111)]),
                          surf_at(bvh, 0.0, -0.094)))
 
     # --- 惊恐：竖 O 型 ---
-    fear = [(0.0, -0.064), (0.020, -0.078), (0.024, -0.096), (0.012, -0.113),
-            (-0.012, -0.113), (-0.024, -0.096), (-0.020, -0.078)]
+    fear = [(0.0, -0.068), (0.016, -0.080), (0.019, -0.096), (0.010, -0.108),
+            (-0.010, -0.108), (-0.019, -0.096), (-0.016, -0.080)]
     out.append(make_part("DSMonkeyMouthFear",
                          *mouth_mesh(bvh, fear, "mouth", "mark", 0.0040),
                          surf_at(bvh, 0.0, -0.088)))
     return out
 
 
+def tube(verts, faces, path, radii, slot, sides=5):
+    """沿一条折线扫 n 棱管（半径给标量或逐点列表），两端用扇面封口。"""
+    pts = [Vector(p) for p in path]
+    if isinstance(radii, (int, float)):
+        radii = [float(radii)] * len(pts)
+    rings = []
+    for i, p in enumerate(pts):
+        if i == 0:
+            t = pts[1] - pts[0]
+        elif i == len(pts) - 1:
+            t = pts[-1] - pts[-2]
+        else:
+            t = pts[i + 1] - pts[i - 1]
+        t = t.normalized()
+        ref = Vector((0.0, 0.0, 1.0))
+        if abs(t.dot(ref)) > 0.9:
+            ref = Vector((0.0, 1.0, 0.0))
+        u = t.cross(ref).normalized()
+        v = t.cross(u).normalized()
+        r = radii[i]
+        idx = []
+        for k in range(sides):
+            a = 2.0 * math.pi * k / sides
+            idx.append(len(verts))
+            verts.append(p + u * (r * math.cos(a)) + v * (r * math.sin(a)))
+        rings.append(idx)
+    for j in range(len(rings) - 1):
+        ra, rb = rings[j], rings[j + 1]
+        for k in range(sides):
+            k2 = (k + 1) % sides
+            faces.append(((ra[k], ra[k2], rb[k2], rb[k]), slot))
+    ci = len(verts)
+    verts.append(pts[0])
+    for k in range(sides):
+        faces.append(((ci, rings[0][(k + 1) % sides], rings[0][k]), slot))
+    ci = len(verts)
+    verts.append(pts[-1])
+    for k in range(sides):
+        faces.append(((ci, rings[-1][k], rings[-1][(k + 1) % sides]), slot))
+
+
 def mouth_mesh(bvh, outline, slot_fill, slot_lip, rim, tongue=None):
+    """把一张 (x, z) 轮廓做成"贴脸上的洞"：腔底 + 外圈描边 + 可选舌头。"""
     verts, faces = [], []
     pts = [Vector(q) for q in outline]
     # 有向面积 < 0 说明是顺时针，翻过来，保证填充面朝 +Y
@@ -676,116 +748,78 @@ def mouth_mesh(bvh, outline, slot_fill, slot_lip, rim, tongue=None):
         area += x0 * z1 - x1 * z0
     if area < 0.0:
         pts.reverse()
-    ctr = Vector((0.0, 0.0))
+    # 腔底：每个轮廓点打到颅面，**朝镜头方向**抬一点点。
+    # ⚠️ 写成负的（往里压）整块暗腔会埋进脸里，渲染出来只剩一圈描边。
+    # ⚠️ 填充用**中心扇形**而不是一个大 n 边形：轮廓点落在曲面上不是共面的，
+    #    一个 12 边形让 Blender 自由三角化会得到乱糟糟的形状。
+    fill = []
     for q in pts:
-        ctr += q
-    ctr /= len(pts)
+        loc, nor = hit(bvh, Vector((q.x, 1.5, q.y)), Vector((0.0, -1.0, 0.0)))
+        fill.append(len(verts))
+        verts.append(loc + nor * 0.0012)
+    cc = Vector((0.0, 0.0))
+    for q in pts:
+        cc += q
+    cc /= len(pts)
+    loc, nor = hit(bvh, Vector((cc.x, 1.5, cc.y)), Vector((0.0, -1.0, 0.0)))
     ci = len(verts)
-    verts.append(front_point(bvh, ctr.x, ctr.y, 0.0014))
-    idx = []
-    for q in pts:
-        idx.append(len(verts))
-        verts.append(front_point(bvh, q.x, q.y, 0.0014))
-    for i in range(len(pts)):
-        faces.append(((ci, idx[(i + 1) % len(pts)], idx[i]), slot_fill))
+    verts.append(loc + nor * 0.0012)
+    n = len(fill)
+    for i in range(n):
+        faces.append(((ci, fill[i], fill[(i + 1) % n]), slot_fill))
+    # 外圈描边：沿轮廓扫一根细管
+    path = [front_point(bvh, q.x, q.y, -0.0016) for q in pts]
+    tube(verts, faces, path, rim, slot_lip, sides=4)
+    # 舌头：比腔底浅一点
     if tongue:
-        tpts = [Vector(q) for q in tongue]
-        tarea = 0.0
-        for i in range(len(tpts)):
-            x0, z0 = tpts[i]
-            x1, z1 = tpts[(i + 1) % len(tpts)]
-            tarea += x0 * z1 - x1 * z0
-        if tarea < 0.0:
-            tpts.reverse()
-        tctr = Vector((0.0, 0.0))
-        for q in tpts:
-            tctr += q
-        tctr /= len(tpts)
-        ti = len(verts)
-        verts.append(front_point(bvh, tctr.x, tctr.y, 0.0024))
-        tidx = []
-        for q in tpts:
-            tidx.append(len(verts))
-            verts.append(front_point(bvh, q.x, q.y, 0.0024))
-        for i in range(len(tpts)):
-            faces.append(((ti, tidx[(i + 1) % len(tpts)], tidx[i]), "tongue"))
-    path = [front_point(bvh, q.x, q.y, -0.0016) for q in pts + pts[:1]]
-    tube(verts, faces, path, rim, slot_lip, sides=5)
+        tfill = []
+        for q in tongue:
+            loc, nor = hit(bvh, Vector((q[0], 1.5, q[1])), Vector((0.0, -1.0, 0.0)))
+            tfill.append(len(verts))
+            verts.append(loc + nor * 0.0022)
+        tc = Vector((0.0, 0.0))
+        for q in tongue:
+            tc += Vector(q)
+        tc /= len(tongue)
+        loc, nor = hit(bvh, Vector((tc.x, 1.5, tc.y)), Vector((0.0, -1.0, 0.0)))
+        ci = len(verts)
+        verts.append(loc + nor * 0.0022)
+        n = len(tfill)
+        for i in range(n):
+            faces.append(((ci, tfill[i], tfill[(i + 1) % n]), "tongue"))
     return verts, faces
 
 
 def build_mark_parts(bvh):
+    """眉毛（贴面的细管）+ 鼻孔（两片小扁片）。"""
     out = []
-    # --- 眉毛：左右各一个物体（枢轴在眉心） ---
     for side in (1, -1):
         tag = "L" if side < 0 else "R"
-        tx, tz = -math.cos(BROW_TILT) * side, math.sin(BROW_TILT)
-        ctr, n = face_plane(bvh, BROW_X * side, BROW_Z, BROW_LEN * 0.5)
-        u, v = plane_frame(n)
         verts, faces = [], []
-        flat_plate(verts, faces, ctr, n, u, v,
-                   BROW_LEN * 0.5, BROW_THICK * 0.5,
-                   math.atan2(tz, tx), "mark")
-        out.append(make_part("DSMonkeyBrow_" + tag, verts, faces, ctr, recalc=True))
-
-    # --- 鼻孔：用**贴面小薄片**，不要用管子 ---
-    # 原来两条 6 棱 × 13 环的管子花了 312 三角面（整颗头预算的 15%），渲染出来只是
-    # 两道 3 mm 粗的暗痕。鼻孔是「画在脸上的一道斜痕」，和眉毛同一种东西，所以用
-    # flat_plate（10 三角面/个）：轮廓是干净的四边形，贴在平盾上不会被颅骨顶穿。
+        # 内端高、外端低的一道斜杠（参考图眉毛就是斜的）
+        dz = math.tan(BROW_TILT) * BROW_LEN * 0.5
+        arc = []
+        for i in range(5):
+            u = i / 4.0
+            x = BROW_X * side + (u - 0.5) * BROW_LEN * side
+            z = BROW_Z + dz * (1.0 - 2.0 * u)
+            arc.append(front_point(bvh, x, z, -0.0016))
+        tube(verts, faces, arc, BROW_THICK * 0.5, "mark", sides=4)
+        c = Vector((0.0, 0.0, 0.0))
+        for q in arc:
+            c += q
+        out.append(make_part("DSMonkeyBrow_" + tag, verts, faces, c / len(arc),
+                             recalc=True))
+    # 鼻孔：两片小扁片
     verts, faces = [], []
     for side in (1, -1):
-        cx = NOSTRIL_X * side
-        cz = NOSTRIL_Z - 0.0007
-        ctr, nrm = face_plane(bvh, cx, cz, 0.008)
-        u, v = plane_frame(nrm)
-        # 从外上 → 内下，稍微内低一点（参考图就是两道朝鼻梁塌下去的斜痕）
-        ang = math.atan2(-0.0064, -0.0160 * side)
-        flat_plate(verts, faces, ctr, nrm, u, v, 0.0086, 0.0017, ang, "mark",
-                   depth=0.0016)
+        c = front_point(bvh, NOSTRIL_X * side, NOSTRIL_Z, 0.0)
+        flat_plate(verts, faces, c, Vector((0.0, 1.0, 0.0)),
+                   Vector((1.0, 0.0, 0.0)), Vector((0.0, 0.0, 1.0)),
+                   0.0068, 0.0028, math.radians(-14.0 * side), "mark", 0.0014)
     out.append(make_part("DSMonkeyNostrils", verts, faces,
-                         surf_at(bvh, 0.0, NOSTRIL_Z), recalc=True))
+                         (0.0, 0.0, NOSTRIL_Z), recalc=True))
     return out
-
-
-def tube(verts, faces, path, radius, slot, sides=6):
-    n = len(path)
-    rings = []
-    u = None
-    for i, p in enumerate(path):
-        if i == 0:
-            t = (path[1] - path[0])
-        elif i == n - 1:
-            t = (path[-1] - path[-2])
-        else:
-            t = (path[i + 1] - path[i - 1])
-        t.normalize()
-        if u is None:
-            ref = Vector((0.0, 0.0, 1.0))
-            if abs(t.dot(ref)) > 0.9:
-                ref = Vector((0.0, 1.0, 0.0))
-            u = t.cross(ref).normalized()
-        v = t.cross(u).normalized()
-        u = v.cross(t).normalized()
-        r = radius[i] if isinstance(radius, (list, tuple)) else radius
-        ring = []
-        for k in range(sides):
-            a = 2.0 * math.pi * k / sides
-            ring.append(len(verts))
-            verts.append(p + u * (r * math.cos(a)) + v * (r * math.sin(a)))
-        rings.append(ring)
-    for i in range(n - 1):
-        for k in range(sides):
-            k2 = (k + 1) % sides
-            faces.append(((rings[i][k], rings[i][k2],
-                           rings[i + 1][k2], rings[i + 1][k]), slot))
-    ci = len(verts)
-    verts.append(path[0])
-    for k in range(sides):
-        faces.append(((ci, rings[0][(k + 1) % sides], rings[0][k]), slot))
-    ci = len(verts)
-    verts.append(path[-1])
-    for k in range(sides):
-        faces.append(((ci, rings[-1][k], rings[-1][(k + 1) % sides]), slot))
 
 
 # =====================================================================
@@ -802,11 +836,11 @@ def build_ear(side):
     C = Vector((EAR_X * side, EAR_Y, EAR_Z))
 
     # (椭圆 x 系数, y 系数, 沿法线的深度)：耳窝是**竖长**的（参考图投影 0.04 x 0.08 m）
-    rings = [(1.00, 1.00, -0.014), (1.00, 1.00, 0.002), (0.94, 0.95, 0.010),
-             (0.78, 0.82, 0.014), (0.58, 0.72, 0.008), (0.42, 0.68, 0.003)]
-    slot_of = ["fur_dark", "fur", "fur", "fur", "ear_in"]
+    rings = [(1.00, 1.00, -0.014), (1.00, 1.00, 0.002), (0.95, 0.96, 0.010),
+             (0.88, 0.92, 0.014), (0.76, 0.86, 0.008), (0.56, 0.80, 0.003)]
+    slot_of = ["fur", "fur_light", "fur_light", "fur_light", "ear_in"]
     EAR_VAR = [1.00, 0.975, 1.02, 0.985, 1.015, 0.99, 1.005, 0.97, 1.01]
-    NSEG = 9
+    NSEG = 8
     UP_SHIFT = 0.14                        # 盘底往上偏（相对 EAR_RY）
     verts, faces, ring_idx = [], [], []
     for (fx, fy, d) in rings:
@@ -829,6 +863,14 @@ def build_ear(side):
     for k in range(NSEG):
         k2 = (k + 1) % NSEG
         faces.append(((ring_idx[-1][k], ring_idx[-1][k2], ctr), "ear_in"))
+    # ⚠️ **背面必须封口**：耳朵是个"碗"，碗口朝前（+n）。不封背面的话，
+    # 从脑后看进去直接看见碗底的**橘色耳窝**，耳朵正反面分不清（实测）。
+    # 封一个朝 −n 的棕色（fur）扇面：背面 = 棕毛，正面 = 橘耳窝。
+    back = len(verts)
+    verts.append(C + e2 * (UP_SHIFT * EAR_RY) - n * 0.004)
+    for k in range(NSEG):
+        k2 = (k + 1) % NSEG
+        faces.append(((back, ring_idx[0][k2], ring_idx[0][k]), "fur"))
 
     name = "DSMonkeyEar_L" if side < 0 else "DSMonkeyEar_R"
     return build_object(name, verts, faces)

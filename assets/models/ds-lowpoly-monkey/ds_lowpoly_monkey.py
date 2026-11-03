@@ -73,10 +73,10 @@ random.seed(20251028)
 # body panels and the separate head mesh read as one monkey.
 # --------------------------------------------------------------------------
 PALETTE = {
-    "Fur":       (0.508, 0.265, 0.145),   # == monkey_head PAL["fur"]
-    "FurDark":   (0.365, 0.192, 0.110),   # == monkey_head PAL["fur_dark"]
-    "Tan":       (0.858, 0.652, 0.438),   # == monkey_head PAL["face"]
-    "TanDeep":   (0.826, 0.606, 0.392),   # belly / hands / feet (a touch deeper)
+    "Fur":       (0.478, 0.271, 0.153),   # #7A4527 == monkey_head PAL["fur"]
+    "FurDark":   (0.306, 0.173, 0.114),   # #4E2C1D == monkey_head PAL["fur_dark"]
+    "Tan":       (0.859, 0.659, 0.431),   # #DBA86E == monkey_head PAL["face"]
+    "TanDeep":   (0.788, 0.561, 0.341),   # #C98F57 belly / hands / feet (a touch deeper)
 }
 MAT_ORDER = ["Fur", "FurDark", "Tan", "TanDeep"]
 MAT_INDEX = {n: i for i, n in enumerate(MAT_ORDER)}
@@ -87,7 +87,7 @@ MAT_INDEX = {n: i for i, n in enumerate(MAT_ORDER)}
 # The shared head is modelled around a 0.300 m skull.  The body it replaces had
 # a 0.360 m skull, and the chibi proportions live on that ratio, so the whole
 # head is scaled by 1.20 in the mesh data (never by an object scale).
-HEAD_SCALE = 1.20
+HEAD_SCALE = 1.05
 HEAD_SKULL_C = Vector((0.0, 0.0, 0.175))   # skull centre in the head object
 
 # shared-head object name -> body node name (Godot reads these)
@@ -485,13 +485,13 @@ for side, sx in (("R", 1.0), ("L", -1.0)):
     # upper arm was ~75% inside the torso at chest height and read as a fold of
     # the body (see base_stand()).
     add_joint(PREFIX + "_Arm_%s_Upper" % side, PREFIX + "_Torso",
-              (0.102 * sx, 0, 0.185), (0, 0, 0))
+              (0.122 * sx, 0, 0.185), (0, 0, 0))
     add_joint(PREFIX + "_Arm_%s_Fore" % side, PREFIX + "_Arm_%s_Upper" % side,
               (0, 0, -0.145), (0, 0, 0))
     add_joint(PREFIX + "_Arm_%s_Hand" % side, PREFIX + "_Arm_%s_Fore" % side,
               (0, 0, -0.135))
     add_joint(PREFIX + "_Leg_%s_Thigh" % side, PREFIX + "_Hips",
-              (0.058 * sx, 0, -0.010), (0, 0, 0))
+              (0.070 * sx, 0, -0.010), (0, 0, 0))
     add_joint(PREFIX + "_Leg_%s_Shin" % side, PREFIX + "_Leg_%s_Thigh" % side,
               (0, 0, -0.150), (0, 0, 0))
     add_joint(PREFIX + "_Leg_%s_Foot" % side, PREFIX + "_Leg_%s_Shin" % side,
@@ -666,7 +666,7 @@ def import_shared_head():
 TORSO_C = Vector((0.0, 0.0, 0.105))
 # Slimmer than the old barrel: with the big shared head the reference body is
 # clearly narrower than the skull, and a 0.23 m torso swallowed the upper arm.
-TORSO_R = (0.0925, 0.094, 0.132)
+TORSO_R = (0.113, 0.101, 0.140)
 
 
 def torso_deform(d, p):
@@ -701,7 +701,7 @@ def build_torso(collection):
     return ob
 
 
-HIPS_R = (0.092, 0.086, 0.084)
+HIPS_R = (0.110, 0.094, 0.088)
 
 
 def hips_surface(d, lift=0.0):
@@ -728,25 +728,25 @@ def build_arm(side, sx, collection):
     # Slimmer than the torso surface is thick: the arm has to clear the widest
     # part of the torso at the elbow, not just at the shoulder.
     b = MeshBuilder()
-    ball(b, (0, 0, 0.002), 0.0355, 10, 6, "Fur")
-    tube(b, (0, 0, 0.004), (0, 0, -0.145), 0.0325, 0.0265, 10, "Fur")
+    ball(b, (0, 0, 0.002), 0.0395, 10, 6, "Fur")
+    tube(b, (0, 0, 0.004), (0, 0, -0.145), 0.0360, 0.0300, 10, "Fur")
     OBJ[up_name] = make_object(up_name, b, collection)
 
     b = MeshBuilder()
-    ball(b, (0, 0, 0), 0.0305, 10, 6, "Fur")
-    tube(b, (0, 0, -0.004), (0, 0, -0.135), 0.0265, 0.0225, 10, "Fur")
+    ball(b, (0, 0, 0), 0.0335, 10, 6, "Fur")
+    tube(b, (0, 0, -0.004), (0, 0, -0.135), 0.0295, 0.0255, 10, "Fur")
     OBJ[fore_name] = make_object(fore_name, b, collection)
 
     b = MeshBuilder()
     ball(b, (0, 0, 0), 0.026, 10, 6, "TanDeep")
     # small palm
-    sphere(b, (0.0, 0.005, -0.030), (0.030, 0.024, 0.036), 10, 6, "TanDeep")
+    sphere(b, (0.0, 0.005, -0.030), (0.034, 0.027, 0.040), 10, 6, "TanDeep")
     # three short curled fingers
     for fx in (-0.017, 0.0, 0.017):
         p0 = Vector((fx, 0.013, -0.050))
         p1 = Vector((fx, 0.028, -0.068))
-        tube(b, p0, p1, 0.0090, 0.0078, 6, "TanDeep")
-        ball(b, p1, 0.0080, 6, 4, "TanDeep")
+        tube(b, p0, p1, 0.0100, 0.0086, 6, "TanDeep")
+        ball(b, p1, 0.0088, 6, 4, "TanDeep")
     # thumb on the body side
     p0 = Vector((-sx * 0.024, 0.008, -0.020))
     p1 = Vector((-sx * 0.035, 0.021, -0.040))
@@ -761,13 +761,13 @@ def build_leg(side, sx, collection):
     foot_name = PREFIX + "_Leg_%s_Foot" % side
 
     b = MeshBuilder()
-    ball(b, (0, 0, 0.004), 0.045, 10, 6, "Fur")
-    tube(b, (0, 0, 0.008), (0, 0, -0.150), 0.045, 0.033, 10, "Fur")
+    ball(b, (0, 0, 0.004), 0.048, 10, 6, "Fur")
+    tube(b, (0, 0, 0.008), (0, 0, -0.150), 0.047, 0.036, 10, "Fur")
     OBJ[thigh_name] = make_object(thigh_name, b, collection)
 
     b = MeshBuilder()
-    ball(b, (0, 0, 0), 0.036, 10, 6, "Fur")
-    tube(b, (0, 0, -0.004), (0, 0, -0.115), 0.032, 0.025, 10, "Fur")
+    ball(b, (0, 0, 0), 0.039, 10, 6, "Fur")
+    tube(b, (0, 0, -0.004), (0, 0, -0.115), 0.035, 0.028, 10, "Fur")
     OBJ[shin_name] = make_object(shin_name, b, collection)
 
     b = MeshBuilder()
@@ -828,10 +828,12 @@ def build_tail(collection):
         OBJ[nm] = ob
 
 
+# 肚皮椭圆：参考图（simple-lowpoly-monkey）里橘色肚皮几乎盖住整个肚子，
+# 这里把方位角上限从 0.51 放到 0.78（≈45°），肚皮才够大。
 BELLY_OUTLINE_HALF = [
-    (0.000, 0.620), (0.165, 0.588), (0.320, 0.500), (0.440, 0.355),
-    (0.500, 0.145), (0.508, -0.090), (0.470, -0.330), (0.380, -0.535),
-    (0.230, -0.675), (0.000, -0.720),
+    (0.000, 0.700), (0.290, 0.660), (0.545, 0.545), (0.730, 0.380),
+    (0.800, 0.155), (0.795, -0.110), (0.700, -0.330), (0.540, -0.520),
+    (0.320, -0.640), (0.000, -0.690),
 ]
 
 
@@ -839,7 +841,7 @@ def build_belly(collection):
     b = MeshBuilder()
     right = [dir_az_el(az, el) for (az, el) in BELLY_OUTLINE_HALF]
     left = [dir_az_el(-az, el) for (az, el) in reversed(BELLY_OUTLINE_HALF[1:-1])]
-    shell_patch(b, torso_surface, right + left, 4, 0.0036, "TanDeep", TORSO_C)
+    shell_patch(b, torso_surface, right + left, 4, 0.0036, "Tan", TORSO_C)
     ob = make_object(PREFIX + "_Belly", b, collection, recalc=False)
     OBJ[PREFIX + "_Belly"] = ob
     return ob
