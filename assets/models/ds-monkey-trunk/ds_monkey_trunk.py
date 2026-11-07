@@ -87,6 +87,10 @@ RENDER_DIR = os.path.join(HERE, "_render_tmp")
 
 PREFIX = "DSMonkeyTrunk"
 
+# 当作**零件库**被别的脚本 import 时，只建几何，不导出、不渲染
+# （否则 import 会顺手覆盖自己的 .glb / 预览图，还把身体的 .blend 借进场景）
+STANDALONE = (__name__ == "__main__")
+
 
 # =====================================================================
 # 0. 干净起点 + 公制
@@ -746,14 +750,15 @@ def aim_camera(cam, target, distance, ortho_scale, az_deg):
 # =====================================================================
 # 10. 存 .blend（在把 ds-monkey-body 借进场景之前存，免得把别人也写进来）
 # =====================================================================
-bpy.ops.wm.save_as_mainfile(filepath=BLEND_PATH)
+if STANDALONE:
+    bpy.ops.wm.save_as_mainfile(filepath=BLEND_PATH)
 
 
 # =====================================================================
 # 11. 导出 5 个 .glb（每个模型都只有一个网格物体；原点在关节）
 # =====================================================================
 EXPORTS = []
-for ob in PARTS:
+for ob in (PARTS if STANDALONE else []):
     fname = ob["fname"]
     path = os.path.join(HERE, "ds_monkey_trunk_%s.glb" % fname)
     saved = ob.location.copy()
@@ -829,7 +834,8 @@ def render_parts():
     bpy.context.view_layer.update()
 
 
-render_parts()
+if STANDALONE:
+    render_parts()
 
 
 # =====================================================================
@@ -916,7 +922,8 @@ def render_fit():
     print("fit preview ->", FIT_PNG)
 
 
-render_fit()
+if STANDALONE:
+    render_fit()
 
 
 # =====================================================================
