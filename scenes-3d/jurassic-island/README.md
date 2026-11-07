@@ -27,7 +27,7 @@
 - 两套环境光/太阳叠加，画面过曝；
 - 组件里按 62 m 场景做的草石乘 32 倍后，会变成二十多米高的巨草、几十米宽的巨石。
 
-现在的做法是 **直接实例化组件本体 `island.tscn`**，把它的三个展示开关关掉：
+现在的做法是 **直接实例化组件本体 `island.tscn`**，把它的展示开关关掉：
 
 ```
 [ext_resource ... path="res://components/island/island.tscn" id="2_island"]
@@ -36,11 +36,19 @@
 show_presentation = false   # 不要组件自带的环境 / 三盏灯 / 预览相机
 show_scatter = false        # 不要 62 m 尺度的 922 草 + 66 石
 show_perimeter = false      # 不要 62 m 尺度的围墙 + 大门
+show_vegetation = false     # 不要 62 m 尺度的 290 棵香蕉树
+show_dinosaurs = false      # 不要 62 m 尺度的 10 只恐龙
 ```
 
-隐藏的同时，`island.gd` 会把被隐藏的草石 / 围墙的 `build_collision` 一起关掉
+隐藏的同时，`island.gd` 会把被隐藏的草石 / 围墙 / 植被的 `build_collision` 一起关掉
 （在 `_enter_tree()` 里，早于子节点 `_ready()`），所以不会留下隐形碰撞体。
 主场景自己的相机、灯光、静态草石、1:1 米制的 `ParkEntrance` 接管画面。
+
+> ⚠️ `show_vegetation` / `show_dinosaurs` 是**必须**关的：组件里的香蕉树是按
+> 62 m 岛尺度烘的（4.77 m 高），乘上 32 倍会变成 150 m 高的巨树，树干碰撞也会
+> 变成 10 m 粗的柱子；恐龙更夸张，11 m 的霸王龙会变成 350 m 长。
+> 2000 m 的大世界要自己烘一份 1:1 米制的植被和恐龙，或者用更稀疏的树 + LOD ——
+> 290 棵 × 2 万棵的顶点数在大世界里是扛不住的。
 
 这样主场景永远吃的是最新版组件，不会像以前的 `island_terrain.tscn` 副本那样各改各的
 （那份副本就漏同步过山体的 `transform`，已经删除）。
@@ -60,6 +68,22 @@ show_perimeter = false      # 不要 62 m 尺度的围墙 + 大门
    给 `Ground` / `Mountain` 补三角面碰撞（这是组件级行为，主场景本身没有脚本）。
    本地草石的视觉是 MultiMesh（不是上千个节点）；石头碰撞由 `ground_scatter.gd` 运行时补，
    形状资源共享，所以 180 块石头只占一份形状数据。
+
+## 碰撞层
+
+主场景里所有东西都靠 5 个 3D 碰撞层分家（`project.godot` 的 `layer_names`）：
+
+| 层 | 名字 | 谁在上面 | 玩家撞吗 | 恐龙撞吗 |
+| --- | --- | --- | --- | --- |
+| 1 | world | 地形、山体、岛体 | ✅ | ✅ |
+| 2 | vegetation | 香蕉树的树干 | ✅ | ❌ |
+| 3 | structure | 园区围墙、大门 | ✅ | ❌ |
+| 4 | prop | 石头、碎石 | ✅ | ❌ |
+| 5 | creature | 玩家、恐龙 | — | ✅ |
+
+玩家（`collision_layer = 16`、`collision_mask = 31`）照旧什么都撞得到；
+恐龙只勾 world + creature —— **树、围墙、石头都挡不住它们**，巡逻不会卡住
+（见 `components/vegetation/dinosaur/README.md`）。
 
 ## 关键比例
 

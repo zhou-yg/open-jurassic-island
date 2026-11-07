@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ducsr1os52prt"
-path="res://.godot/imported/T-Rex.glb-3a308d00961531629ccb0c90b525ffd6.scn"
+uid="uid://btqdn5er3sgar"
+path="res://.godot/imported/Stegosaurus.glb-56131480fc1ec59ed9a6ec4fbebd7f08.scn"
 
 [deps]
 
-source_file="res://scenes-3d/gray-box/dinosaour/T-Rex.glb"
-dest_files=["res://.godot/imported/T-Rex.glb-3a308d00961531629ccb0c90b525ffd6.scn"]
+source_file="res://assets/models/dinosaour/Stegosaurus.glb"
+dest_files=["res://.godot/imported/Stegosaurus.glb-56131480fc1ec59ed9a6ec4fbebd7f08.scn"]
 
 [params]
 

@@ -6,6 +6,8 @@
 [ext_resource type="PackedScene" uid="uid://dw3ug3ca682d8" path="res://components/island/ground_scatter/island_scatter.tscn" id="10_scatter"]
 [ext_resource type="PackedScene" path="res://components/island/park_perimeter/park_perimeter.tscn" id="11_perimeter"]
 [ext_resource type="MultiMesh" uid="uid://cfokfxis7ddbh" path="res://components/island/ground/island_ground.res" id="12_ground"]
+[ext_resource type="PackedScene" path="res://components/island/vegetation/island_vegetation.tscn" id="13_vegetation"]
+[ext_resource type="PackedScene" path="res://components/island/vegetation/island_dinosaurs.tscn" id="14_dinosaurs"]
 
 [sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_island"]
 sky_top_color = Color(0.05098, 0.2, 0.478431, 1)
@@ -88,3 +90,7 @@ transform = Transform3D(0.98017454, 0, -0.19813651, 0, 1.0000005, 0, 0.19813651,
 [node name="ParkPerimeter" parent="." unique_id=1661770466 instance=ExtResource("11_perimeter")]
 
 [node name="Scatter" parent="." unique_id=2111060182 instance=ExtResource("10_scatter")]
+
+[node name="Vegetation" parent="." instance=ExtResource("13_vegetation")]
+
+[node name="Dinosaurs" parent="." instance=ExtResource("14_dinosaurs")]

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://ddfrnx4ecci66"
-path="res://.godot/imported/Apatosaurus.glb-d0f7fd0ff9e19bfd276632dfd47b4b62.scn"
+uid="uid://tayjrr5ecstl"
+path="res://.godot/imported/Velociraptor.glb-4591181ab578fc35f4ee726f582b43e5.scn"
 
 [deps]
 
-source_file="res://scenes-3d/gray-box/dinosaour/Apatosaurus.glb"
-dest_files=["res://.godot/imported/Apatosaurus.glb-d0f7fd0ff9e19bfd276632dfd47b4b62.scn"]
+source_file="res://assets/models/dinosaour/Velociraptor.glb"
+dest_files=["res://.godot/imported/Velociraptor.glb-4591181ab578fc35f4ee726f582b43e5.scn"]
 
 [params]
 

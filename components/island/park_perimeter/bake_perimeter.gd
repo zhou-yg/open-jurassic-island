@@ -26,7 +26,13 @@ const RUBBLE_SCENE := "res://assets/models/stone-rubble/low_poly_rubble.glb"
 const ISLAND_AREA := 3504.0
 
 # --- 布局参数 ---------------------------------------------------------------
-const INSET := 5.0            # 墙离岛缘多远
+const INSET := 10.5            # 墙离岛缘多远（外圈巡逻路走墙和崖之间那条带子）
+## 恐龙巡逻的辐条**穿过围墙**的角度（度）。这几个角度上必须留出大门洞，
+## 恐龙才能从外圈走进内圈 —— 跟
+## `components/island/vegetation/bake_vegetation.gd` 的 SPOKE_ANGLES 一致。
+const OPENING_ANGLES := [30.0, 150.0, 210.0, 330.0]
+## 门洞宽度（米，沿墙量）。
+const OPENING_WIDTH := 7.0
 const SPAN_DEG := 140.0       # 大门两侧各绕多少度 → 背后留 80° 豁口
 const GATE_ANGLE_DEG := 90.0  # 大门朝向（90° = +Z，默认预览相机那一侧）
 const EDGE_SAMPLES := 144     # 岛缘采样的角度份数
@@ -121,6 +127,17 @@ func _outward_drop(c: Vector2) -> float:
 	return h0 - h1
 
 
+## 这个角度是不是落在某扇门洞里（辐条要从这儿穿过去）。
+##
+## 用**墙自己的半径**换算弧长 —— 用岛缘半径会算宽，门洞边上会漏一段墙。
+func _in_opening(angle: float, radius: float) -> bool:
+	for deg in OPENING_ANGLES:
+		var d := absf(fposmod(angle - deg_to_rad(float(deg)) + PI, TAU) - PI)
+		if d * radius < OPENING_WIDTH * 0.5:
+			return true
+	return false
+
+
 func _yaw_of(heading: Vector2) -> float:
 	return atan2(-heading.y, heading.x)
 
@@ -196,6 +213,10 @@ func _process(_dt: float) -> bool:
 				last_y = gate_y
 			for i in k:
 				var c: Vector2 = pos + dir * (SEG_LEN * 0.5)
+				# 门洞里不放墙：辐条要从这儿穿过去
+				if _in_opening(atan2(c.y, c.x), maxf(MIN_RING_R, _edge_at(atan2(c.y, c.x)) - INSET)):
+					pos += dir * SEG_LEN
+					continue
 				var y := _ground(c.x, c.y)
 				if y == -INF:
 					break
@@ -224,7 +245,8 @@ func _process(_dt: float) -> bool:
 			var gap := _rng.randf_range(GAP_MIN, GAP_MAX)
 			var gap_center: Vector2 = pos + dir * (gap * 0.5)
 			var gy := _ground(gap_center.x, gap_center.y)
-			if gy != -INF:
+			if gy != -INF and not _in_opening(atan2(gap_center.y, gap_center.x),
+					maxf(MIN_RING_R, _edge_at(atan2(gap_center.y, gap_center.x)) - INSET)):
 				var r: Node3D = load(RUBBLE_SCENE).instantiate()
 				r.name = "Rubble_%02d" % rubble_n
 				r.position = Vector3(gap_center.x, gy - SINK, gap_center.y)

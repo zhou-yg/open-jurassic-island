@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://exl1da3q202j" path="res://components/vegetation/dinosaur/dinosaur.gd" id="1_dino"]
+[ext_resource type="PackedScene" uid="uid://ducsr1os52prt" path="res://assets/models/dinosaour/T-Rex.glb" id="2_model"]
+[ext_resource type="Script" uid="uid://ccq0ox7molu8h" path="res://components/ai/dinosaur/dinosaur_ai.gd" id="3_ai"]
+[ext_resource type="Script" uid="uid://mdqslbo35ugh" path="res://components/ai/dinosaur/dinosaur_ai_config.gd" id="4_cfg"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_t_rex"]
+radius = 1.1
+height = 4.4
+
+[sub_resource type="Resource" id="DinosaurAIConfig_t_rex"]
+script = ExtResource("4_cfg")
+sight_range = 24.0
+sight_half_angle_deg = 55.0
+hearing_range = 16.0
+eye_height = 4.0
+reaction_time = 0.3
+memory_time = 8.0
+patrol_speed_scale = 1.0
+chase_speed_scale = 1.45
+attack_range = 4.2
+attack_cooldown = 2.2
+attack_damage = 24.0
+max_health = 140.0
+flee_health_ratio = 0.25
+body_size = 11.0
+threat_radius = 12.0
+turn_speed_deg = 40.0
+separation_radius = 5.0
+separation_strength = 0.9
+avoid_distance = 4.5
+
+[node name="TRex" type="CharacterBody3D" groups=["dinosaur"]]
+collision_layer = 16
+collision_mask = 55
+script = ExtResource("1_dino")
+base_speed = 2.6
+turn_speed_deg = 40.0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+shape = SubResource("CapsuleShape3D_t_rex")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0.35778, 0, 0, 0, 0.35778, 0, 0, 0, 0.35778, 0, 0, 0)
+
+[node name="AI" type="Node" parent="."]
+script = ExtResource("3_ai")
+config = SubResource("DinosaurAIConfig_t_rex")

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://tayjrr5ecstl"
-path="res://.godot/imported/Velociraptor.glb-b7e2d541787900ad4739f8a384d693b6.scn"
+uid="uid://bp8rjpjrr6p8l"
+path="res://.godot/imported/Parasaurolophus.glb-9d7ccf7ec17cce7afa8497cfb22a0850.scn"
 
 [deps]
 
-source_file="res://scenes-3d/gray-box/dinosaour/Velociraptor.glb"
-dest_files=["res://.godot/imported/Velociraptor.glb-b7e2d541787900ad4739f8a384d693b6.scn"]
+source_file="res://assets/models/dinosaour/Parasaurolophus.glb"
+dest_files=["res://.godot/imported/Parasaurolophus.glb-9d7ccf7ec17cce7afa8497cfb22a0850.scn"]
 
 [params]
 

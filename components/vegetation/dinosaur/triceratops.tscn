@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://exl1da3q202j" path="res://components/vegetation/dinosaur/dinosaur.gd" id="1_dino"]
+[ext_resource type="PackedScene" uid="uid://y34jlb54ycas" path="res://assets/models/dinosaour/Triceratops.glb" id="2_model"]
+[ext_resource type="Script" uid="uid://ccq0ox7molu8h" path="res://components/ai/dinosaur/dinosaur_ai.gd" id="3_ai"]
+[ext_resource type="Script" uid="uid://mdqslbo35ugh" path="res://components/ai/dinosaur/dinosaur_ai_config.gd" id="4_cfg"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_triceratops"]
+radius = 0.9
+height = 3.3
+
+[sub_resource type="Resource" id="DinosaurAIConfig_triceratops"]
+script = ExtResource("4_cfg")
+sight_range = 18.0
+sight_half_angle_deg = 65.0
+hearing_range = 12.0
+eye_height = 3.0
+reaction_time = 0.45
+memory_time = 6.0
+patrol_speed_scale = 1.0
+chase_speed_scale = 1.25
+attack_range = 3.6
+attack_cooldown = 3.0
+attack_damage = 14.0
+max_health = 130.0
+flee_health_ratio = 0.2
+body_size = 8.0
+threat_radius = 8.0
+turn_speed_deg = 35.0
+separation_radius = 4.5
+separation_strength = 0.8
+avoid_distance = 4.0
+
+[node name="Triceratops" type="CharacterBody3D" groups=["dinosaur"]]
+collision_layer = 16
+collision_mask = 55
+script = ExtResource("1_dino")
+base_speed = 1.8
+turn_speed_deg = 35.0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.65, 0)
+shape = SubResource("CapsuleShape3D_triceratops")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0.41163, 0, 0, 0, 0.41163, 0, 0, 0, 0.41163, 0, 0, 0)
+
+[node name="AI" type="Node" parent="."]
+script = ExtResource("3_ai")
+config = SubResource("DinosaurAIConfig_triceratops")

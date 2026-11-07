@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://exl1da3q202j" path="res://components/vegetation/dinosaur/dinosaur.gd" id="1_dino"]
+[ext_resource type="PackedScene" uid="uid://btqdn5er3sgar" path="res://assets/models/dinosaour/Stegosaurus.glb" id="2_model"]
+[ext_resource type="Script" uid="uid://ccq0ox7molu8h" path="res://components/ai/dinosaur/dinosaur_ai.gd" id="3_ai"]
+[ext_resource type="Script" uid="uid://mdqslbo35ugh" path="res://components/ai/dinosaur/dinosaur_ai_config.gd" id="4_cfg"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_stegosaurus"]
+radius = 0.85
+height = 3.2
+
+[sub_resource type="Resource" id="DinosaurAIConfig_stegosaurus"]
+script = ExtResource("4_cfg")
+sight_range = 16.0
+sight_half_angle_deg = 70.0
+hearing_range = 10.0
+eye_height = 3.0
+reaction_time = 0.55
+memory_time = 6.0
+patrol_speed_scale = 1.0
+chase_speed_scale = 1.2
+attack_range = 3.4
+attack_cooldown = 3.4
+attack_damage = 11.0
+max_health = 120.0
+flee_health_ratio = 0.2
+body_size = 8.5
+threat_radius = 8.0
+turn_speed_deg = 30.0
+separation_radius = 5.0
+separation_strength = 0.8
+avoid_distance = 4.0
+
+[node name="Stegosaurus" type="CharacterBody3D" groups=["dinosaur"]]
+collision_layer = 16
+collision_mask = 55
+script = ExtResource("1_dino")
+base_speed = 1.6
+turn_speed_deg = 30.0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.6, 0)
+shape = SubResource("CapsuleShape3D_stegosaurus")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0.39793, 0, 0, 0, 0.39793, 0, 0, 0, 0.39793, 0, 0, 0)
+
+[node name="AI" type="Node" parent="."]
+script = ExtResource("3_ai")
+config = SubResource("DinosaurAIConfig_stegosaurus")

@@ -26,6 +26,14 @@ extends Node3D
 ## 接进大世界时设为 false：主场景 `Island` 节点放大 32 倍，围墙会变成半径
 ## 近 1 km 的一圈"巨墙"，大门也会被拉成几百米宽。
 @export var show_perimeter: bool = true
+## 是否显示组件自带的香蕉树林（`Vegetation`，按 62 m 岛尺度烘的）。
+## 接进大世界时设为 false：主场景 `Island` 节点放大 32 倍，4.8 m 的香蕉树
+## 会变成 150 m 高的巨树。
+@export var show_vegetation: bool = true
+## 是否显示组件自带的恐龙（`Dinosaurs`，按 62 m 岛尺度烘的）。
+## 接进大世界时设为 false：主场景 `Island` 节点放大 32 倍，11 m 的霸王龙
+## 会变成 350 m 长。
+@export var show_dinosaurs: bool = true
 ## 需要补碰撞的节点组（相对本节点）。默认覆盖地形和山体。
 ##
 ## 注意：草/石头**不在这里**。它们已经被合并成 MultiMesh（见
@@ -84,6 +92,14 @@ func _apply_visibility() -> void:
 		(perimeter as Node3D).visible = show_perimeter
 		if not show_perimeter:
 			_disable_collision(perimeter)
+	var vegetation := get_node_or_null("Vegetation")
+	if vegetation is Node3D:
+		(vegetation as Node3D).visible = show_vegetation
+		if not show_vegetation:
+			_disable_collision(vegetation)
+	var dinosaurs := get_node_or_null("Dinosaurs")
+	if dinosaurs is Node3D:
+		(dinosaurs as Node3D).visible = show_dinosaurs
 
 
 ## 把整棵子树里所有带 `build_collision` 开关的子组件关掉。

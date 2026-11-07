@@ -4,12 +4,12 @@ importer="scene"
 importer_version=1
 type="PackedScene"
 uid="uid://y34jlb54ycas"
-path="res://.godot/imported/Triceratops.glb-16d9219f0ef6d3ac61c8b0f6667ae3af.scn"
+path="res://.godot/imported/Triceratops.glb-46cc0392fc8c805f4edda05d09c222f6.scn"
 
 [deps]
 
-source_file="res://scenes-3d/gray-box/dinosaour/Triceratops.glb"
-dest_files=["res://.godot/imported/Triceratops.glb-16d9219f0ef6d3ac61c8b0f6667ae3af.scn"]
+source_file="res://assets/models/dinosaour/Triceratops.glb"
+dest_files=["res://.godot/imported/Triceratops.glb-46cc0392fc8c805f4edda05d09c222f6.scn"]
 
 [params]
 

@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://exl1da3q202j" path="res://components/vegetation/dinosaur/dinosaur.gd" id="1_dino"]
+[ext_resource type="PackedScene" uid="uid://tayjrr5ecstl" path="res://assets/models/dinosaour/Velociraptor.glb" id="2_model"]
+[ext_resource type="Script" uid="uid://ccq0ox7molu8h" path="res://components/ai/dinosaur/dinosaur_ai.gd" id="3_ai"]
+[ext_resource type="Script" uid="uid://mdqslbo35ugh" path="res://components/ai/dinosaur/dinosaur_ai_config.gd" id="4_cfg"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_velociraptor"]
+radius = 0.22
+height = 0.8
+
+[sub_resource type="Resource" id="DinosaurAIConfig_velociraptor"]
+script = ExtResource("4_cfg")
+sight_range = 20.0
+sight_half_angle_deg = 70.0
+hearing_range = 22.0
+eye_height = 0.8
+reaction_time = 0.2
+memory_time = 9.0
+patrol_speed_scale = 1.0
+chase_speed_scale = 1.9
+attack_range = 2.4
+attack_cooldown = 1.6
+attack_damage = 7.0
+max_health = 45.0
+flee_health_ratio = 0.5
+body_size = 2.2
+threat_radius = 10.0
+turn_speed_deg = 90.0
+separation_radius = 3.0
+separation_strength = 1.2
+avoid_distance = 3.0
+
+[node name="Velociraptor" type="CharacterBody3D" groups=["dinosaur"]]
+collision_layer = 16
+collision_mask = 55
+script = ExtResource("1_dino")
+base_speed = 4.0
+turn_speed_deg = 90.0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.4, 0)
+shape = SubResource("CapsuleShape3D_velociraptor")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0.17387, 0, 0, 0, 0.17387, 0, 0, 0, 0.17387, 0, 0, 0)
+
+[node name="AI" type="Node" parent="."]
+script = ExtResource("3_ai")
+config = SubResource("DinosaurAIConfig_velociraptor")

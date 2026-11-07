@@ -1,7 +1,8 @@
 # 低模岛组件
 
 `components/island/island.tscn` — 一座可直接实例化的 low-poly 漂浮岛：
-岛北侧一座雪峰低山，绿色草毯覆盖岛面，岛缘和山体上散落着石头，草丛成簇分布。
+岛北侧一座雪峰低山，绿色草毯覆盖岛面，岛缘和山体上散落着石头，草丛成簇分布，
+**大片香蕉林按噪声图铺满全岛**，林间留出环岛小路和支路，空地上站着恐龙。
 
 ![3/4 预览](island_preview.png)
 
@@ -24,15 +25,23 @@ Island (Node3D, island.gd)
 │   └── Terrain           MultiMeshInstance3D（116 块 plain_terrain 合批）
 ├── Mountain              low_poly_low_mountain.glb，scale 0.8，偏心摆在岛北侧
 │   └── LowMountain
-└── Scatter
-    ├── Rocks             66 块 low_poly_rock
-    │   ├── RimBoulders   岛缘大石
-    │   ├── FieldBoulders 草地上的石头与前景石组
-    │   ├── MountainFoot  山脚碎石
-    │   └── MountainBoulders 山腰坡面上的石头
-    └── Grass             922 丛 grass_tuft / grass_clump
-        ├── IslandGrass
-        └── MountainGrass
+├── Scatter
+│   ├── Rocks             66 块 low_poly_rock
+│   │   ├── RimBoulders   岛缘大石
+│   │   ├── FieldBoulders 草地上的石头与前景石组
+│   │   ├── MountainFoot  山脚碎石
+│   │   └── MountainBoulders 山腰坡面上的石头
+│   └── Grass             922 丛 grass_tuft / grass_clump
+│       ├── IslandGrass
+│       └── MountainGrass
+├── ParkPerimeter         沿岛缘内缩的断续围墙 + 大门
+└── Vegetation            香蕉树林（MultiMesh）+ 恐龙
+    ├── Trees
+    │   ├── ShortTrees    MultiMeshInstance3D（116 棵矮款香蕉树）
+    │   └── TallTrees     MultiMeshInstance3D（95 棵高款香蕉树）
+    ├── Dinosaurs         10 只恐龙，每只一个场景 + 一条烘好的巡逻路线
+    │   └── TRex_00 …     instances of components/vegetation/dinosaur/*.tscn
+    └── TreeCollision     运行时生成：1 个 StaticBody3D + 211 个共享圆柱形状
 ```
 
 ## 关键尺度
@@ -46,6 +55,8 @@ Island (Node3D, island.gd)
 | 山脚过渡 | 20 块抬升地形 | 只叠在草毯上（不互相堆叠），把山脚埋进缓坡里 |
 | 石头 | 2.9 m 模型，scale 0.20–1.7 | 岛缘大石、草地石、山脚碎石、山腰石四档 |
 | 草 | 0.41–0.77 m 模型，scale 0.7–1.7 | 约 100 个草簇，岛面 + 山坡 |
+| 香蕉树 | 矮款 2.66 m / 高款 4.77 m | 290 棵（164 矮 + 126 高），scale 0.86–1.16，按噪声密度铺开 |
+| 恐龙 | 2.2 m（迅猛龙）– 17 m（蜥脚龙） | 10 只，骨架实测体长后缩放到真实尺寸；每种一个场景，行为在 `components/ai/dinosaur/` |
 
 所有变换都已烘进 `.tscn`（静态摆放，无运行时随机）。同一份场景每次打开的位置完全一致。
 
@@ -86,27 +97,29 @@ Island (Node3D, island.gd)
 
 如果只想要视觉、不想要碰撞，把 `Island.build_collision` 设为 `false` 即可。
 
-## 一个场景，三个开关
+## 一个场景，四个开关
 
 `island.tscn` 是**唯一真源**：岛体、地形、山、环境 / 三盏灯 / 预览相机、922 丛草、
-66 块石头、沿岛缘的围墙和大门，全都在这一个场景里。
+66 块石头、沿岛缘的围墙和大门、290 棵香蕉树和 10 只恐龙，全都在这一个场景里。
 
-其他场景用三个导出开关按需关掉其中一部分（默认全开，单独打开 `island.tscn` 就是预览图的样子）：
+其他场景用四个导出开关按需关掉其中一部分（默认全开，单独打开 `island.tscn` 就是预览图的样子）：
 
 | 开关 | 关掉什么 | 什么时候关 |
 | --- | --- | --- |
 | `show_presentation` | WorldEnvironment / Sun / FillLight / BounceLight / PreviewCamera | 接进自带环境、灯光和相机的场景（主场景） |
 | `show_scatter` | `Scatter`（922 草 + 66 石，62 m 尺度） | 接进大世界，改用大世界自己烘的 `local_scatter.tscn`（720 草 + 180 石） |
 | `show_perimeter` | `ParkPerimeter`（围墙 + 大门，62 m 尺度） | 接进大世界，改用 1:1 米制的 `park_entrance_local.tscn` |
+| `show_vegetation` | `Vegetation`（290 棵香蕉树，62 m 尺度） | 接进大世界：4.8 m 的香蕉树乘 32 倍会变成 150 m 高的巨树 |
+| `show_dinosaurs` | `Dinosaurs`（10 只恐龙，62 m 尺度） | 接进大世界：11 m 的霸王龙乘 32 倍会变成 350 m 长 |
 
-三个开关都在 `_enter_tree()` 里生效（不是 `_ready()`）：被隐藏的草石 / 围墙会同时把
+四个开关都在 `_enter_tree()` 里生效（不是 `_ready()`）：被隐藏的草石 / 围墙 / 植被会同时把
 子组件的 `build_collision` 关掉，所以隐藏之后**不会留下隐形碰撞体**。这一点很关键——
 它们的碰撞是按 62 m 岛尺度补的，乘上主场景的 32 倍会变成几十米宽的隐形石头、
-半径近 1 km 的隐形围墙。
+半径近 1 km 的隐形围墙、150 m 高的隐形树干。
 
 主场景 `scenes-3d/jurassic-island/jurassic-island.tscn` 就是这么用的：
 
-- 实例化 `island.tscn`，把三个开关全部设为 `false`；
+- 实例化 `island.tscn`，把这些开关按需设为 `false`；
 - 自己实例化烘焙好的 `local_scatter.tscn`（720 草 + 180 石）和 1:1 米制的
   `park_entrance_local.tscn`；
 - 主场景本身没有运行时脚本；地形/山体碰撞仍由 `island.gd` 在组件内补齐，
@@ -114,7 +127,7 @@ Island (Node3D, island.gd)
 
 之前那份精简副本 `island_terrain.tscn` 已经删掉了：它和 `island.tscn` 会各自漂移
 （比如山体的 `transform` 就漏同步过一次），主场景现在直接吃最新版本。
-`park_perimeter/bake_perimeter.gd` 烘围墙时也是实例化 `island.tscn` 并关掉这三个开关。
+`park_perimeter/bake_perimeter.gd` 烘围墙时也是实例化 `island.tscn` 并关掉这几个开关。
 
 ## 园区入口 `ParkPerimeter`
 
@@ -223,3 +236,31 @@ Scatter                        ← MultiMesh 散布（17 个节点 / 988 个实�
   `bake_scatter.gd`。细节和踩过的坑见 `ground_scatter/README.md`。
 - `island.gd` 的 `collision_groups` 里**不再包含** `Scatter/Rocks`：MultiMesh 不是
   `MeshInstance3D`，三角面补碰撞那套扫不到它，石头碰撞改由散布组件自己负责。
+
+## 香蕉树林 + 恐龙也是 MultiMesh
+
+`Vegetation` 节点实例化了
+`components/island/vegetation/island_vegetation.tscn`：
+
+```
+Vegetation                    ← 290 棵树（1 个节点 / 4 个 draw call）
+  ├─ Trees
+  │   ├─ ShortTrees           ← MultiMeshInstance3D（116 棵矮款，2.66 m）
+  │   └─ TallTrees            ← MultiMeshInstance3D（95 棵高款，4.77 m）
+  ├─ Dinosaurs                ← 10 只（T-Rex / 三角龙 / 剑龙 / 副栉龙 / 迅猛龙 / 蜥脚龙）
+  └─ TreeCollision            ← 运行时生成：1 个 StaticBody3D + 211 个共享圆柱形状
+```
+
+- 布局按 **FastNoiseLite 噪声**采样：密度场决定哪里是林子、款式场决定高矮交错，
+  环岛小路 + 三条支路留出通道（冒险者能跑，恐龙能巡逻，林子里的树当掩体）。
+- **烘死的静态场景**，没有运行时随机、也没有程序化生成：位置数据的源是
+  `vegetation/island_vegetation.json`，产物是 `island_vegetation_*_trees.res`
+  （二进制 MultiMesh）。改完要重跑 `vegetation/bake_vegetation.gd`。
+- 树是**真的挡路**：树干碰撞在运行时补（矮款 / 高款各共享一份圆柱形状），
+  玩家可以贴着树躲恐龙。
+- 恐龙是**独立场景**（`island_dinosaurs.tscn`），不跟树挤在一个场景里；
+  行为在独立 AI 模块 `components/ai/dinosaur/`（感官 → 黑板 → 决策 → 转向 → 身体）。
+- 恐龙在**植被层以外**：碰撞掩码只勾地面和生物，所以树、围墙、石头都挡不住
+  它们 —— 巡逻不会卡住；但**视线**会被树挡住，玩家能躲树（细节见
+  `components/ai/dinosaur/README.md`）。
+- 细节、参数和踩过的坑见 `vegetation/README.md`。

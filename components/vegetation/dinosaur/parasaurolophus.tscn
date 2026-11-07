@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://exl1da3q202j" path="res://components/vegetation/dinosaur/dinosaur.gd" id="1_dino"]
+[ext_resource type="PackedScene" uid="uid://bp8rjpjrr6p8l" path="res://assets/models/dinosaour/Parasaurolophus.glb" id="2_model"]
+[ext_resource type="Script" uid="uid://ccq0ox7molu8h" path="res://components/ai/dinosaur/dinosaur_ai.gd" id="3_ai"]
+[ext_resource type="Script" uid="uid://mdqslbo35ugh" path="res://components/ai/dinosaur/dinosaur_ai_config.gd" id="4_cfg"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_parasaurolophus"]
+radius = 0.45
+height = 2.4
+
+[sub_resource type="Resource" id="DinosaurAIConfig_parasaurolophus"]
+script = ExtResource("4_cfg")
+sight_range = 22.0
+sight_half_angle_deg = 55.0
+hearing_range = 18.0
+eye_height = 2.2
+reaction_time = 0.3
+memory_time = 7.0
+patrol_speed_scale = 1.0
+chase_speed_scale = 1.7
+attack_range = 3.0
+attack_cooldown = 2.0
+attack_damage = 9.0
+max_health = 75.0
+flee_health_ratio = 0.45
+body_size = 6.0
+threat_radius = 9.0
+turn_speed_deg = 60.0
+separation_radius = 4.0
+separation_strength = 1.0
+avoid_distance = 3.5
+
+[node name="Parasaurolophus" type="CharacterBody3D" groups=["dinosaur"]]
+collision_layer = 16
+collision_mask = 55
+script = ExtResource("1_dino")
+base_speed = 3.2
+turn_speed_deg = 60.0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, 0)
+shape = SubResource("CapsuleShape3D_parasaurolophus")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0.50768, 0, 0, 0, 0.50768, 0, 0, 0, 0.50768, 0, 0, 0)
+
+[node name="AI" type="Node" parent="."]
+script = ExtResource("3_ai")
+config = SubResource("DinosaurAIConfig_parasaurolophus")

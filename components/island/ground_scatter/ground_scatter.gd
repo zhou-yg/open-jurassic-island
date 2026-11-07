@@ -17,6 +17,11 @@ extends Node3D
 ## 本组件由 `components/island/ground_scatter/` 下的生成脚本烘出来，
 ## 一般不需要手改；要挪草石的位置，重新跑生成脚本。
 
+## 碰撞层：地面（地形 / 山体 / 岛体）。
+const LAYER_WORLD := 1
+## 碰撞层：杂物（石头 / 碎石）。
+const LAYER_PROP := 8
+
 ## 哪些 MultiMesh 节点需要补碰撞：按**节点名前缀**匹配。
 ## 石头层在烘场景时叫 Rock（分组层级保留为 Rocks/RimBoulders/Rock 这种），
 ## 所以用前缀递归找，不写死在某条路径上。
@@ -61,6 +66,9 @@ func _build_rock_collision() -> void:
 
 	var body := StaticBody3D.new()
 	body.name = "RockCollision"
+	# 石头在**杂物层**：玩家撞得到，恐龙不撞（巡逻不能被石头卡住）。
+	body.collision_layer = LAYER_PROP
+	body.collision_mask = LAYER_WORLD
 	# 形状资源共享：同一块石头的网格只生成一份形状数据，N 个实例共用它
 	var shape_cache := {}
 	for mmi in sources:

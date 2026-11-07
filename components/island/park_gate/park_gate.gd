@@ -44,6 +44,11 @@ signal closed
 ## 开门/关门的播放速度倍率（1.0 = 原速，0.4 s 开完）。
 @export_range(0.25, 4.0, 0.05) var speed: float = 1.0
 
+## 碰撞层：地面。
+const LAYER_WORLD := 1
+## 碰撞层：建筑（围墙 / 大门）。
+const LAYER_STRUCTURE := 4
+
 const ANIM_OPEN := "Gate_Open"
 const ANIM_CLOSE := "Gate_Close"
 
@@ -112,6 +117,9 @@ func _build_collision() -> void:
 			continue
 		var body := StaticBody3D.new()
 		body.name = "Body"
+		# 大门在**建筑层**：玩家推得开，恐龙不撞（巡逻不能被门卡住）。
+		body.collision_layer = LAYER_STRUCTURE
+		body.collision_mask = LAYER_WORLD
 		var col := CollisionShape3D.new()
 		col.name = "Shape"
 		col.shape = mesh_inst.mesh.create_trimesh_shape()

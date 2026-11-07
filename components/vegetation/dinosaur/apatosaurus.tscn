@@ -1,0 +1,50 @@
+[gd_scene load_steps=5 format=3]
+
+[ext_resource type="Script" uid="uid://exl1da3q202j" path="res://components/vegetation/dinosaur/dinosaur.gd" id="1_dino"]
+[ext_resource type="PackedScene" uid="uid://ddfrnx4ecci66" path="res://assets/models/dinosaour/Apatosaurus.glb" id="2_model"]
+[ext_resource type="Script" uid="uid://ccq0ox7molu8h" path="res://components/ai/dinosaur/dinosaur_ai.gd" id="3_ai"]
+[ext_resource type="Script" uid="uid://mdqslbo35ugh" path="res://components/ai/dinosaur/dinosaur_ai_config.gd" id="4_cfg"]
+
+[sub_resource type="CapsuleShape3D" id="CapsuleShape3D_apatosaurus"]
+radius = 0.9
+height = 4.4
+
+[sub_resource type="Resource" id="DinosaurAIConfig_apatosaurus"]
+script = ExtResource("4_cfg")
+sight_range = 16.0
+sight_half_angle_deg = 80.0
+hearing_range = 10.0
+eye_height = 4.0
+reaction_time = 0.6
+memory_time = 5.0
+patrol_speed_scale = 0.85
+chase_speed_scale = 1.15
+attack_range = 4.6
+attack_cooldown = 3.6
+attack_damage = 18.0
+max_health = 200.0
+flee_health_ratio = 0.15
+body_size = 17.0
+threat_radius = 7.0
+turn_speed_deg = 25.0
+separation_radius = 6.0
+separation_strength = 0.7
+avoid_distance = 5.0
+
+[node name="Apatosaurus" type="CharacterBody3D" groups=["dinosaur"]]
+collision_layer = 16
+collision_mask = 55
+script = ExtResource("1_dino")
+base_speed = 1.5
+turn_speed_deg = 25.0
+
+[node name="Collision" type="CollisionShape3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 2.2, 0)
+shape = SubResource("CapsuleShape3D_apatosaurus")
+
+[node name="Model" parent="." instance=ExtResource("2_model")]
+transform = Transform3D(0.35157, 0, 0, 0, 0.35157, 0, 0, 0, 0.35157, 0, 0, 0)
+
+[node name="AI" type="Node" parent="."]
+script = ExtResource("3_ai")
+config = SubResource("DinosaurAIConfig_apatosaurus")

@@ -3,13 +3,13 @@
 importer="scene"
 importer_version=1
 type="PackedScene"
-uid="uid://bp8rjpjrr6p8l"
-path="res://.godot/imported/Parasaurolophus.glb-b3899662b9c42b50cb5942af8b4f3ebf.scn"
+uid="uid://ddfrnx4ecci66"
+path="res://.godot/imported/Apatosaurus.glb-3919b6438ac3a37126c3fdfffc75424a.scn"
 
 [deps]
 
-source_file="res://scenes-3d/gray-box/dinosaour/Parasaurolophus.glb"
-dest_files=["res://.godot/imported/Parasaurolophus.glb-b3899662b9c42b50cb5942af8b4f3ebf.scn"]
+source_file="res://assets/models/dinosaour/Apatosaurus.glb"
+dest_files=["res://.godot/imported/Apatosaurus.glb-3919b6438ac3a37126c3fdfffc75424a.scn"]
 
 [params]
 
