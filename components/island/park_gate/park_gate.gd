@@ -1,4 +1,3 @@
-@tool
 extends Node3D
 ## 侏罗纪园区入口大门（门楣写 "dinosaur"）—— 可复用的场景组件。
 ##
@@ -60,7 +59,7 @@ func _ready() -> void:
 	_anim = find_child("AnimationPlayer", true, false) as AnimationPlayer
 	if _anim != null:
 		_anim.speed_scale = speed
-	if not Engine.is_editor_hint() and build_collision:
+	if build_collision:
 		_build_collision()
 	# 静止姿态统一由 is_open 决定，不依赖 GLB 的 autoplay / rest pose。
 	_apply_state(true)

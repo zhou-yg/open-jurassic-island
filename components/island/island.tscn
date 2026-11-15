@@ -1,11 +1,8 @@
 [gd_scene format=3 uid="uid://byexlo2qp8k2y"]
 
-[ext_resource type="Script" uid="uid://cre5sthpbtt14" path="res://components/island/island.gd" id="1_script"]
-[ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/models/island/sky-island-basic.glb" id="2_island"]
-[ext_resource type="PackedScene" uid="uid://xa58df0nkbt2" path="res://assets/models/low-mountain/low_poly_low_mountain.glb" id="4_mountain"]
-[ext_resource type="PackedScene" uid="uid://dw3ug3ca682d8" path="res://components/island/ground_scatter/island_scatter.tscn" id="10_scatter"]
+[ext_resource type="PackedScene" path="res://components/island/terrain.tscn" id="1_terrain"]
+[ext_resource type="PackedScene" path="res://components/island/ground_scatter/island_scatter.tscn" id="10_scatter"]
 [ext_resource type="PackedScene" path="res://components/island/park_perimeter/park_perimeter.tscn" id="11_perimeter"]
-[ext_resource type="MultiMesh" uid="uid://cfokfxis7ddbh" path="res://components/island/ground/island_ground.res" id="12_ground"]
 [ext_resource type="PackedScene" path="res://components/island/vegetation/island_vegetation.tscn" id="13_vegetation"]
 [ext_resource type="PackedScene" path="res://components/island/vegetation/island_dinosaurs.tscn" id="14_dinosaurs"]
 
@@ -41,7 +38,8 @@ adjustment_contrast = 1.12
 adjustment_saturation = 1.45
 
 [node name="Island" type="Node3D" unique_id=1030798146]
-script = ExtResource("1_script")
+
+[node name="Terrain" parent="." unique_id=350273795 instance=ExtResource("1_terrain")]
 
 [node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=78206675]
 environment = SubResource("Environment_island")
@@ -70,27 +68,10 @@ fov = 50.0
 near = 0.1
 far = 560.0
 
-[node name="IslandBase" type="Node3D" parent="." unique_id=350273794]
-transform = Transform3D(13, 0, 0, 0, 13, 0, 0, 0, 13, 0, -9.23, 0)
-
-[node name="SkyIsland" parent="IslandBase" unique_id=785939420 instance=ExtResource("2_island")]
-
-[node name="Ground" type="Node3D" parent="." unique_id=405707074]
-
-[node name="Terrain" type="MultiMeshInstance3D" parent="Ground" unique_id=1377863685]
-gi_mode = 0
-multimesh = ExtResource("12_ground")
-
-[node name="Mountain" type="Node3D" parent="." unique_id=1420064557]
-transform = Transform3D(0.760845, 0, -0.247214, 0, 0.8, 0, 0.247214, 0, 0.760845, -2.99874, -0.25, -9.77039)
-
-[node name="LowMountain" parent="Mountain" unique_id=2143380307 instance=ExtResource("4_mountain")]
-transform = Transform3D(0.98017454, 0, -0.19813651, 0, 1.0000005, 0, 0.19813651, 0, 0.98017454, 0, 1.045428, 0)
-
 [node name="ParkPerimeter" parent="." unique_id=1661770466 instance=ExtResource("11_perimeter")]
 
 [node name="Scatter" parent="." unique_id=2111060182 instance=ExtResource("10_scatter")]
 
-[node name="Vegetation" parent="." instance=ExtResource("13_vegetation")]
+[node name="Vegetation" parent="." unique_id=1087082243 instance=ExtResource("13_vegetation")]
 
-[node name="Dinosaurs" parent="." instance=ExtResource("14_dinosaurs")]
+[node name="Dinosaurs" parent="." unique_id=1487241872 instance=ExtResource("14_dinosaurs")]

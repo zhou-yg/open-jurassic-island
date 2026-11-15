@@ -1,4 +1,3 @@
-@tool
 extends Node3D
 ## 园区围墙的**碰撞**：给残墙、倒伏的墙、碎石补上三角面碰撞。
 ##
@@ -24,7 +23,7 @@ var _built := false
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint() or not build_collision:
+	if not build_collision:
 		return
 	_build_wall_collision()
 

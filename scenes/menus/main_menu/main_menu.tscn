@@ -88,7 +88,8 @@ anchors_preset = 10
 anchor_right = 1.0
 grow_horizontal = 2
 auto_advance_time = true
-day_length_seconds = 120.0
+start_hour = 0.0
+day_length_seconds = 1440.0
 
 [connection signal="button_up" from="MarginContainer/TitleImage/VBoxContainer/StartButton" to="." method="_on_start_button_button_up"]
 [connection signal="button_up" from="MarginContainer/TitleImage/VBoxContainer/SettingsButton" to="." method="_on_settings_button_button_up"]

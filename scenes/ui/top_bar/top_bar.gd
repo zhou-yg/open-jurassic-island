@@ -203,6 +203,18 @@ func set_time(hour: float, minute: int = 0) -> void:
 	time_changed.emit(int(_hour), _minute)
 
 
+## Set the clock from a fractional hour of the day (0.0 = midnight, 13.75 = 13:45).
+##
+## Used when an **external** clock drives the HUD — the main scene wires
+## Sky3D's [TimeOfDay].[signal TimeOfDay.time_changed] to this method, so the
+## number on the bar and the position of the sun in the sky can never drift
+## apart. See [member auto_advance_time] for the self-driven alternative.
+func set_time_of_day(hour_of_day: float) -> void:
+	var total := fposmod(hour_of_day, 24.0)
+	var whole_hours := floorf(total)
+	set_time(whole_hours, int(floor((total - whole_hours) * 60.0)))
+
+
 func set_day_night(is_day: bool) -> void:
 	_is_day = is_day
 	_refresh_time_display()

@@ -1,4 +1,3 @@
-@tool
 extends Node3D
 ## 单段破败石墙 —— 手工逐段拼接时用这个（想自动拼多段用 ruined_wall_run.tscn）。
 ##
@@ -12,7 +11,7 @@ extends Node3D
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint() or not build_collision:
+	if not build_collision:
 		return
 	_add_collision(self)
 

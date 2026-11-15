@@ -4,15 +4,15 @@
 [ext_resource type="MultiMesh" path="res://components/island/vegetation/island_vegetation_short_trees.res" id="2_hofbq"]
 [ext_resource type="MultiMesh" path="res://components/island/vegetation/island_vegetation_tall_trees.res" id="3_f6u6c"]
 
-[node name="IslandVegetation" type="Node3D" unique_id=2065242777]
+[node name="IslandVegetation" type="Node3D" unique_id=788550955]
 script = ExtResource("1_8nf1w")
 
-[node name="Trees" type="Node3D" parent="." unique_id=220295828]
+[node name="Trees" type="Node3D" parent="." unique_id=517098351]
 
-[node name="ShortTrees" type="MultiMeshInstance3D" parent="Trees" unique_id=475833158]
+[node name="ShortTrees" type="MultiMeshInstance3D" parent="Trees" unique_id=29095143]
 gi_mode = 0
 multimesh = ExtResource("2_hofbq")
 
-[node name="TallTrees" type="MultiMeshInstance3D" parent="Trees" unique_id=2136333140]
+[node name="TallTrees" type="MultiMeshInstance3D" parent="Trees" unique_id=1165767750]
 gi_mode = 0
 multimesh = ExtResource("3_f6u6c")

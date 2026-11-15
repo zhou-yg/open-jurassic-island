@@ -85,5 +85,10 @@ const LAYER_BOUNDARY := 32
 @export_group("目标")
 ## 要盯着的目标在哪个组里。
 @export var target_group: String = "player"
+## **建筑**目标在哪个组里。留空 = 不看建筑（默认）。
+##
+## 玩家盖的房子要能被恐龙拆，就得多一条"盯建筑"的通道：
+## 看见了就冲过去啃。留空的话恐龙只追玩家（默认行为不变）。
+@export var structure_target_group: String = ""
 ## 同伴恐龙在哪个组里（用于分离和威胁判断）。
 @export var herd_group: String = "dinosaur"

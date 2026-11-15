@@ -60,8 +60,28 @@ components/ai/dinosaur/
 | `INVESTIGATE` | 走到可疑点看看 | 到了 / 超时 → `PATROL`；看见目标 → `CHASE` |
 | `CHASE` | 追目标（Run 动画） | 够到 → `ATTACK`；跟丢 → `INVESTIGATE`（去最后已知位置）；被吓到 → `FLEE` |
 | `ATTACK` | 停下面向目标，播攻击动画、发 `attacked` 信号 | 目标跑远 → `CHASE`；跟丢 → `INVESTIGATE` |
-| `FLEE` | 往反方向跑 | 安全了 → `PATROL` |
+| `FLEE` | 往反方向跑 | 逃够 `FLEE_DURATION` 秒 → `PATROL` |
 | `DEAD` | 播死亡动画，停 | —— |
+| `UNSTICK` | 往后退一下脱困 | 退够了 → `PATROL` |
+
+## ⚠️ 朝向：Godot 的前方是 **-Z**
+
+这是这块代码里最容易写错、错了最难查的一处：
+
+```gdscript
+# ❌ 错的：atan2(x, z) 是 +Z 方向
+rotation.y = atan2(desired.x, desired.z)
+
+# ✅ 对的：Godot 的前方是 -Z
+rotation.y = atan2(-desired.x, -desired.z)
+```
+
+写错的后果特别隐蔽：**恐龙速度是满的，方向是反的** —— 它会一路**倒着开**，
+离自己的巡逻路线越来越远，最后一头撞进树丛里被顶住，然后卡死。
+表现是"恐龙在原地抖动 / 到处乱窜"，看起来像 AI 出了问题，其实是朝向量反了。
+
+同一个陷阱在**烘焙脚本**里也有：恐龙的初始朝向要用
+`atan2(dir.x, dir.z) + PI`，和身体里的转向逻辑保持一致。
 
 ## 三个关键设计
 
@@ -76,19 +96,29 @@ query.collision_mask = LAYER_VEGETATION | LAYER_STRUCTURE | LAYER_WORLD
 
 所以玩家躲在香蕉树后面，恐龙**看不见** —— 这是整套 AI 的核心玩法。
 
-注意：**身体能穿过去，看不见**。恐龙的碰撞掩码里没有植被层（不然巡逻
-会被树干卡住），但视线会被树干挡住。身体和视线 purposely 分开：
-能走过去，但看不清。
+注意：**身体是实心的**，恐龙撞得到树干和残墙（树是掩体、围墙是建筑，
+都得站得住），但**看不见**。身体和视线是两回事：
+撞得到，但看不清。
+
+为了不让实心的恐龙在巡逻时被树干顶住，布局那边会**沿着整条巡逻路线
+清出一条走廊**（宽度 = 恐龙胶囊半径 + 树干半径 + 余量），
+再加上转向里的软避让和卡住看门狗，巡逻不会一顿一顿的。
 
 大恐龙眼睛高，看得**过**矮树（视线从 4 m 高往下斜，矮树挡不住）；
 小恐龙（迅猛龙眼睛 0.8 m）矮树就能挡。体型越大越"看得远"，天然成立。
 
 ### 2. 反应延迟 + 记忆
 
-- **反应延迟**（`reaction_time`）：看见目标不是立刻追，先愣 0.2~0.6 秒。
+- **反应延迟**（`reaction_time`）：看见目标不是立刻追，先愣 0.2~0.6 秒
+  （`DinosaurAI._update_reaction()` 记下"什么时候才能开始追"，
+  `remembers_target()` / `can_attack()` 都卡这个时间）。
   玩家才有时间跑掉，恐龙也才不像自动炮台。
 - **记忆**（`memory_time`）：目标跑进树丛看不见了，恐龙会**奔着最后知道的
   位置**去找（`INVESTIGATE`），而不是当场傻站。记忆过期（5~9 秒）才放弃。
+- **调查超时**（`investigate_time`）：查了 8 秒还找不到，就放弃回去巡逻，
+  不会为了一个够不着的动静在原地站到天荒地老。
+- **休息有尽头**（`rest_time`）：巡完一圈歇 6 秒，歇完接着巡逻。
+  （"想歇"是一个独立的开关 `_wants_rest`，不是"巡完一圈就永远歇着"。）
 
 ### 3. 群体行为
 
@@ -111,6 +141,8 @@ query.collision_mask = LAYER_VEGETATION | LAYER_STRUCTURE | LAYER_WORLD
 | `eye_height` | 眼睛高度 | 4 m | 0.8 m |
 | `reaction_time` | 反应延迟 | 0.30 s | 0.20 s |
 | `memory_time` | 记忆力 | 8 s | 9 s |
+| `investigate_time` | 调查最多花多久 | 8 s | 8 s |
+| `rest_time` | 歇多久再接着巡逻 | 6 s | 6 s |
 | `patrol_speed_scale` | 巡逻速度倍率 | 1.0 | 1.0 |
 | `chase_speed_scale` | 追击速度倍率 | 1.45 | 1.9 |
 | `attack_range` | 够多近才动手 | 4.2 m | 2.4 m |
@@ -128,14 +160,22 @@ query.collision_mask = LAYER_VEGETATION | LAYER_STRUCTURE | LAYER_WORLD
 | 层 | 名字 | 恐龙撞吗 |
 | --- | --- | --- |
 | 1 | world | ✅ 踩着走 |
-| 2 | vegetation | ❌ 不撞（但**挡视线**） |
-| 3 | structure | ❌ |
-| 4 | prop | ❌ |
+| 2 | vegetation | ✅ 撞（树干是实心的） |
+| 3 | structure | ✅ 撞（残墙是建筑） |
+| 4 | prop | ❌ 不撞（石头最高 5 m，跨得过去） |
 | 5 | creature | ✅ 跟同类、玩家 |
+| 6 | boundary | ✅ 撞（岛缘的隐形围栏，只挡恐龙） |
 
-恐龙的 `collision_mask = world | creature`：**树、墙、石头都挡不住它们**，
-巡逻不会卡住。代价是会从树干里穿过去 —— 用软避让（两侧射线）往空的一边
-偏一点来缓解。
+恐龙的 `collision_mask = world | vegetation | structure | creature | boundary`：
+**树、墙挡得住它们，石头挡不住**。
+
+代价是可能被顶住 —— 所以有三重保险：
+1. **布局**：沿整条巡逻路线清出一条走廊（宽度 = 胶囊半径 + 树干半径 + 余量），
+   路线上不长树；
+2. **软避让**（转向里的两侧射线）—— 撞上就沿障碍滑行，不偏离路线；
+3. **卡住看门狗** —— 想走却挪不动超过 2 s 就换个路点。
+
+这套规则由 `components/island/tests/verify_island.gd` 守着。
 
 ## 对外接口
 

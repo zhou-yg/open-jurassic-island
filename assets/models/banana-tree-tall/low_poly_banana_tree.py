@@ -5,6 +5,7 @@
 #   blender --background --python low_poly_banana_tree.py -- tall    # 强制生成高款
 #   blender --background --python low_poly_banana_tree.py -- short   # 强制生成矮款
 #   blender --background --python low_poly_banana_tree.py -- tall --nopreview
+#   blender --background --python low_poly_banana_tree.py -- tall lod   # 额外生成减面版 (LOD)
 #
 # 产物（写入 <款式目录>）: low_poly_banana_tree.blend / .glb / _preview.png
 #
@@ -192,12 +193,67 @@ STYLES = {
     },
 }
 
+def _lod_style(cfg):
+    """从完整款式派生一个**减面版**（LOD）。
+
+    砍掉的是"面数"，不是"尺寸"：
+    - 树冠每层的叶子数减半
+    - 叶片横截面用减面剖面（见 LEAF_PROFILE_LOD）
+    - 假茎的环带 / 周向分段数减半，根部根隆、茎顶纤维也减半
+
+    **整树高度和假茎剖面（stalk_r_bottom / stalk_r_top / fit_target）不变** ——
+    游戏里的树干碰撞、果串位置都按这些数算的。
+    """
+    out = dict(cfg)
+    out["_name"] = str(cfg.get("_name", "?")) + "_lod"
+    out["lod"] = True
+    out["stalk_bands"] = max(3, cfg["stalk_bands"] // 2)
+    out["stalk_sides"] = 6
+    out["leaf_scars"] = max(3, cfg["leaf_scars"] // 2)
+    out["root_flare"] = max(6, cfg["root_flare"] // 2)
+    out["root_wraps"] = min(2, cfg["root_wraps"])
+    out["fringe"] = max(8, cfg["fringe"] // 3)
+    out["crown_blades"] = max(4, cfg["crown_blades"] // 2)
+    out["suckers"] = cfg["suckers"][:2]
+    out["crown_tiers"] = [
+        dict(t, count=max(1, t["count"] // 2)) for t in cfg["crown_tiers"]
+    ]
+    return out
+
+
 # ==================== 叶片的横截面剖面 ====================
 # 每个档位 = 站点表 + 每个站点的"下垂量" + 沿叶长的段数。
 # 下垂量约定与旧版一致：**正 = 往下（叶缘垂），负 = 往上（主脉抬起、褶皱隆起）**。
 #   hi : 树冠大叶，9 站点 × 11 段（144 顶点 / 88 面）
 #   mid: 茎顶新叶苞，7 站点 × 8 段
 #   lo : 根出小苗的小叶，5 站点 × 6 段
+# LOD（减面）版的叶片剖面：站点更少、沿叶长的段数更少。
+#
+# 为什么要减面版：2000 m 的大世界里要放**上千棵** 1:1 米制的香蕉树，
+# 原版一棵树 2600~3100 面，上千棵就是几百万面 —— GPU 直接扛不住。
+# 减面版把面数砍到 ~1/6，但**整树高度和假茎剖面不变**（游戏里的树干碰撞、
+# 果串位置都按这个算），远看跟原版没区别。
+LEAF_PROFILE_LOD = {
+    "hi": {
+        "sites": (0.00, 0.50, 1.00),
+        "droop": (0.55, -0.48, 0.55),
+        "center": 1,
+        "seg": 3,
+    },
+    "mid": {
+        "sites": (0.00, 0.50, 1.00),
+        "droop": (0.50, -0.48, 0.50),
+        "center": 1,
+        "seg": 2,
+    },
+    "lo": {
+        "sites": (0.00, 0.50, 1.00),
+        "droop": (0.30, -0.30, 0.30),
+        "center": 1,
+        "seg": 2,
+    },
+}
+
 LEAF_PROFILE = {
     "hi": {
         # 7 站 = 6 条横带：暗边 / 交错带 / 亮主脉 / 交错带 / 暗边 …
@@ -669,7 +725,7 @@ def build_frond(name, cfg, mat, length, width, arch_deg, margin=1,
     [param margin] 是暗边的宽度（几条横向带）。越宽 → 整片叶越暗（老叶）。
     [param parity] 是交错的相位偏移（让不同层的叶子花纹不一样）。
     """
-    prof = LEAF_PROFILE[detail]
+    prof = LEAF_PROFILE_LOD[detail] if cfg.get("lod") else LEAF_PROFILE[detail]
     sites = prof["sites"]
     droop = prof["droop"]
     n = len(sites)
@@ -888,7 +944,8 @@ def build_crown(cfg, mat):
             width = cfg["leaf_width"] * tier["wid"] * rng.uniform(0.95, 1.05)
             # 外层叶更长，但叶柄抬角更低 → 大而外翻的树冠
             ob = build_frond("Frond_%02d" % len(objs), sub, mat, length, width,
-                             tier["arch"], tier["margin"], detail="hi",
+                             tier["arch"], tier["margin"],
+                             detail="hi",
                              phase=rng.uniform(0.0, 6.28),
                              parity=tier["parity"])
             # 叶柄起点：沿弯曲中轴往下铺开，越外层越低
@@ -1045,9 +1102,10 @@ def build_tree(cfg, render=True):
     print("  nodes      %s / %s   scale=%s" % (
         stalk.name, leaves.name, ["%.3f" % s for s in scales]))
 
-    blend_path = os.path.join(BASE_DIR, "low_poly_banana_tree.blend")
+    suffix = "_lod" if cfg.get("lod") else ""
+    blend_path = os.path.join(BASE_DIR, "low_poly_banana_tree%s.blend" % suffix)
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
-    glb_path = os.path.join(BASE_DIR, "low_poly_banana_tree.glb")
+    glb_path = os.path.join(BASE_DIR, "low_poly_banana_tree%s.glb" % suffix)
     bpy.ops.export_scene.gltf(
         filepath=glb_path, export_format='GLB',
         export_vertex_color='MATERIAL', use_selection=False,
@@ -1056,7 +1114,8 @@ def build_tree(cfg, render=True):
     print("SAVED", glb_path)
 
     if render:
-        render_preview(os.path.join(BASE_DIR, "low_poly_banana_tree_preview.png"), cfg)
+        render_preview(os.path.join(BASE_DIR,
+            "low_poly_banana_tree%s_preview.png" % suffix), cfg)
     return stalk, leaves
 
 
@@ -1169,8 +1228,13 @@ if not wanted:
     dir_style = _style_from_dir()
     wanted = [dir_style] if dir_style else list(STYLES.keys())
 do_render = "--nopreview" not in argv
+do_lod = ("lod" in argv) or ("--lod" in argv)
 for key in wanted:
     cfg = dict(STYLES[key])
     cfg["_name"] = key
     build_tree(cfg, render=do_render)
-print("ALL_DONE", wanted)
+    if do_lod:
+        # 减面版：大世界里要放上千棵 1:1 米制的树，原版面数扛不住
+        lod_cfg = _lod_style(cfg)
+        build_tree(lod_cfg, render=do_render)
+print("ALL_DONE", wanted, "lod=%s" % do_lod)

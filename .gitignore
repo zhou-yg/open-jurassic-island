@@ -3,4 +3,21 @@
 .mcp/
 # 无头运行时的项目内 HOME（存放 Godot 日志与着色器缓存）
 .godot_home/
-assets/models/_shared/
+
+# macOS 资源管理器垃圾
+.DS_Store
+
+# Python 字节码（可再生）
+__pycache__/
+*.pyc
+
+# Blender 自动备份
+*.blend1
+
+# 渲染脚本的临时产物（草稿图）
+_render_tmp/
+
+# ⚠️ assets/models/_shared/ **不要**再写回 ignore ——
+# 里面的 ruin_kit.py 是残墙 / 大门 / 碎石三个模型的唯一几何来源
+# （low_poly_ruined_wall.py / low_poly_jurassic_gate.py / low_poly_rubble.py 都 import 它），
+# 放在那儿的新文件必须能提交上去。

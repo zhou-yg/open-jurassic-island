@@ -1,4 +1,3 @@
-@tool
 extends Node3D
 ## 地面散布物（草 / 石头）的批量渲染与碰撞。
 ##
@@ -37,7 +36,7 @@ var _built := false
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint() or not build_collision:
+	if not build_collision:
 		return
 	_build_rock_collision()
 

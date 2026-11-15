@@ -122,13 +122,18 @@ func face_towards(direction: Vector3) -> void:
 	direction.y = 0.0
 	if direction.length_squared() < 0.0001:
 		return
-	rotation.y = atan2(direction.x, direction.z)
+	# 同上：前方是 -Z，atan2(x, z) 是 +Z 方向，要转 180°。
+	rotation.y = atan2(-direction.x, -direction.z)
 
 
 func _physics_process(delta: float) -> void:
 	# 转向：慢慢转过去
 	if _desired_dir != Vector3.ZERO:
-		var target_yaw := atan2(_desired_dir.x, _desired_dir.z)
+		# **Godot 的"前方"是 -Z**（`-basis.z`），而 `atan2(x, z)` 算出来的是
+		# **+Z** 方向 —— 直接用会让恐龙**背对着想去的方向**走：
+		# 速度是满的，方向是反的，恐龙会一路开倒车离开自己的巡逻路线。
+		# 所以要转 180°（等价于 atan2(-x, -z)）。
+		var target_yaw := atan2(-_desired_dir.x, -_desired_dir.z)
 		rotation.y = rotate_toward(rotation.y, target_yaw,
 			deg_to_rad(turn_speed_deg) * delta)
 	# 前进：沿身体自己的朝向走（转向和前进分开，弯道是圆的）

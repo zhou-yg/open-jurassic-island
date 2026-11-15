@@ -25,7 +25,9 @@ attack_damage = 7.0
 max_health = 45.0
 flee_health_ratio = 0.5
 body_size = 2.2
-threat_radius = 10.0
+# 2.2 m 的迅猛龙：10 m 内有大个子就逃 —— 62 m 的小岛上到处都是
+# 比它大的，它会永远在逃、一圈都巡不完。缩到 6 m：只有真的逼近了才炸毛。
+threat_radius = 6.0
 turn_speed_deg = 90.0
 separation_radius = 3.0
 separation_strength = 1.2

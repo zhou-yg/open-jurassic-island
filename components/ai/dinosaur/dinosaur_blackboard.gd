@@ -31,7 +31,12 @@ var health: float = 100.0
 var attack_cooldown: float = 0.0
 
 
+## 血量上限（用来算"血量见底"的比例）。
+var _max_health: float = 100.0
+
+
 func _init(max_health: float = 100.0) -> void:
+	_max_health = max_health
 	health = max_health
 
 
@@ -79,5 +84,8 @@ func take_damage(amount: float, attacker: Node3D) -> void:
 
 
 ## 是不是快没血了。
+##
+## 阈值按**自己的血量上限**算，不能写死 100 ——
+## 霸王龙 140 血、迅猛龙 45 血，写死的话迅猛龙血量一半就"见底"了。
 func is_weak(ratio: float) -> bool:
-	return health <= maxf(1.0, 100.0 * ratio)
+	return health <= maxf(1.0, _max_health * ratio)

@@ -1,10 +1,12 @@
 class_name DinosaurSteering
 extends RefCounted
-## 恐龙的**转向 / 避障 / 群体分离** —— 决定"这一帧往哪走"。
+## 恐龙的转向 / 避障 / 群体分离 —— 决定"这一帧往哪走"。
 ##
-## 恐龙的身体**不跟树、墙碰撞**（不然巡逻会被卡住），
-## 所以撞到东西要靠"软避让"绕开：往左右各打一条射线，
-## 哪边空就往哪边偏。
+## 恐龙的**身体是实心的**（树、墙都撞得到），所以撞到东西要靠"软避让"绕开：
+## 往左右各打一条射线，哪边空就往哪边偏。
+##
+## 布局那边会沿着整条巡逻路线清出一条走廊，所以正常情况下根本撞不到树；
+## 这里的软避让是给"玩家站在路中间""风把树吹歪了"这类意外兜底的。
 ##
 ## 最后还会把同伴推开：几只恐龙挤在同一条路上会互相顶，
 ## 群体分离让它们自然散开、保持队形。
@@ -20,13 +22,17 @@ const CLIFF_DROP_LIMIT := 1.2
 ##
 ## [param body] 恐龙身体，[param goal] 想去的点，
 ## [param neighbours] 同伴（[Dinosaur] 或 [Node3D]），
-## [param config] 调参表。
+## [param config] 调参表，[param ignore] 避障射线要忽略的刚体。
+##
+## [param ignore] 是给"**追着目标走**"用的：目标本身（玩家 / 建筑）
+## 也是实心的，避障射线要是把它也算成障碍，恐龙就会围着目标转圈，
+## 永远靠不上去 —— 想啃建筑就啃不到。
 func compute(body: Node3D, goal: Vector3, neighbours: Array,
-		config: DinosaurAIConfig) -> Vector3:
+		config: DinosaurAIConfig, ignore: Array = []) -> Vector3:
 	var direction := _seek(body, goal)
 	if direction == Vector3.ZERO:
 		return Vector3.ZERO
-	direction = _avoid(body, direction, config)
+	direction = _avoid(body, direction, config, ignore)
 	direction = _cliff_guard(body, direction)
 	direction = _separate(body, direction, neighbours, config)
 	return direction.normalized()
@@ -41,7 +47,7 @@ func _seek(body: Node3D, goal: Vector3) -> Vector3:
 	return to_goal.normalized()
 
 
-## 软避让：**沿着障碍滑行**，而不是转开。
+## 软避让：**沿着障碍滑行**，并且**离它远一点**。
 ##
 ## 转开（把方向旋转 30°~150°）会让恐龙**偏离自己的路线** ——
 ## 躲一下树就偏到路边，躲两下就钻进树丛里，然后被树顶住卡死。
@@ -50,17 +56,22 @@ func _seek(body: Node3D, goal: Vector3) -> Vector3:
 ## 具体做法：往正前方打一条射线，撞到就把期望方向**投影到障碍的切平面**上
 ## （去掉撞进去的那部分分量），剩下的就是沿着障碍走的方向。
 ## 正对着障碍（切向分量几乎为零）才挑一边绕。
-func _avoid(body: Node3D, direction: Vector3, config: DinosaurAIConfig) -> Vector3:
+##
+## 只投影是不够的 —— 贴着树干走，身体迟早会蹭上去（恐龙是**实心的**，
+## 蹭上去就卡住）。所以再叠一个**推离分量**：离障碍越近推得越狠，
+## 让恐龙在还没蹭上之前就偏开。
+func _avoid(body: Node3D, direction: Vector3, config: DinosaurAIConfig,
+		ignore: Array = []) -> Vector3:
 	if config.avoid_distance <= 0.0:
 		return direction
 	# 射线压得**低**（0.5 m）：石头最小的才 0.6 m 高，射线打高了会从石头上方
 	# 掠过去，恐龙一头撞上去就卡住。树干和残墙更高，0.5 m 一样能测到。
 	var origin := body.global_position + Vector3.UP * AVOID_RAY_HEIGHT
 	var dist := config.avoid_distance
-	var hit := _ray_hit_normal(origin, direction, dist, body, _blockers())
+	var hit := _ray_hit_normal(origin, direction, dist, body, _blockers(), ignore)
 	if hit.is_empty():
 		# 正前方是通的：只要躲开两侧有东西的那一边
-		return _side_bias(body, direction, origin, dist, config)
+		return _side_bias(body, direction, origin, dist, config, ignore)
 	# 正前方被挡：沿着障碍滑行
 	var normal: Vector3 = hit["normal"]
 	normal.y = 0.0
@@ -68,10 +79,19 @@ func _avoid(body: Node3D, direction: Vector3, config: DinosaurAIConfig) -> Vecto
 		normal = Vector3.UP
 	normal = normal.normalized()
 	var tangent := direction - normal * direction.dot(normal)
+	# 推离分量：障碍越近推得越狠（平方曲线：远的时候几乎不推，
+	# 快贴上去了才猛地偏开，免得一路贴着树干蹭）
+	# 注意：Godot 4 的 intersect_ray 结果里**没有** "distance" 键
+	#（那是 Godot 3 的），得自己从命中点算。
+	var hit_pos: Vector3 = hit["position"]
+	var hit_dist := origin.distance_to(hit_pos)
+	var prox := clampf(1.0 - hit_dist / maxf(0.01, dist), 0.0, 1.0)
+	var push := prox * prox * 1.8
 	if tangent.length_squared() < 0.01:
 		# 正对着障碍：挑一边绕
-		return direction.rotated(Vector3.UP, deg_to_rad(90.0))
-	return tangent.normalized()
+		tangent = direction.rotated(Vector3.UP, deg_to_rad(90.0))
+	var away := -normal
+	return (tangent.normalized() + away * push).normalized()
 
 
 ## **悬崖保护**：往前探一步，脚下的地面要是掉下去了，就别走。
@@ -120,34 +140,13 @@ func _ground_ok(body: Node3D, ground: float) -> bool:
 	return body.global_position.y - ground <= CLIFF_DROP_LIMIT
 
 
-## 往左右各探一步，挑地面更高的那边转过去。
-func _turn_to_ground(body: Node3D, direction: Vector3) -> Vector3:
-	var best := direction
-	var best_ground := -INF
-	for angle in [-90.0, -60.0, -35.0, 35.0, 60.0, 90.0]:
-		var probe := direction.rotated(Vector3.UP, deg_to_rad(float(angle)))
-		var ahead := body.global_position + probe * CLIFF_PROBE_AHEAD
-		var query := PhysicsRayQueryParameters3D.create(
-			ahead + Vector3.UP * 3.0, ahead + Vector3.DOWN * 8.0)
-		query.collision_mask = DinosaurAIConfig.LAYER_WORLD
-		query.exclude = [body.get_rid()]
-		var hit := body.get_world_3d().direct_space_state.intersect_ray(query)
-		if hit.is_empty():
-			continue
-		var ground: float = (hit["position"] as Vector3).y
-		if ground > best_ground:
-			best_ground = ground
-			best = probe
-	return best
-
-
 ## 两侧有东西就往空的那边偏一点（幅度小，免得偏离路线）。
 func _side_bias(body: Node3D, direction: Vector3, origin: Vector3, dist: float,
-		config: DinosaurAIConfig) -> Vector3:
+		config: DinosaurAIConfig, ignore: Array = []) -> Vector3:
 	var left_hit := _ray_hit_normal(origin, direction.rotated(Vector3.UP, deg_to_rad(45.0)),
-		dist, body, _blockers())
+		dist, body, _blockers(), ignore)
 	var right_hit := _ray_hit_normal(origin, direction.rotated(Vector3.UP, deg_to_rad(-45.0)),
-		dist, body, _blockers())
+		dist, body, _blockers(), ignore)
 	# 幅度要小：偏得太多恐龙就偏离自己的路线，跑到没路的树丛里去
 	if left_hit.is_empty() and not right_hit.is_empty():
 		return direction.rotated(Vector3.UP, deg_to_rad(-10.0))
@@ -156,11 +155,16 @@ func _side_bias(body: Node3D, direction: Vector3, origin: Vector3, dist: float,
 	return direction
 
 
-## 会挡住恐龙的层：植被 / 建筑 / 杂物。
+## 会挡住恐龙的层：植被 / 建筑 / 杂物 / **边界围栏**。
+##
+## 围栏也要算进来：它是岛缘的隐形矮墙，只有 0.6 m 厚，恐龙（实心的）
+## 贴上去就卡住，滑行也脱不开。之前就有恐龙被压在围栏上不动 ——
+## 让它提前进入避让逻辑，滑着走 + 往外推，就不会贴上去。
 func _blockers() -> int:
 	return (DinosaurAIConfig.LAYER_VEGETATION
 		| DinosaurAIConfig.LAYER_STRUCTURE
-		| DinosaurAIConfig.LAYER_PROP)
+		| DinosaurAIConfig.LAYER_PROP
+		| DinosaurAIConfig.LAYER_BOUNDARY)
 
 
 ## 群体分离：把离得太近的同伴推开。
@@ -184,11 +188,15 @@ func _separate(body: Node3D, direction: Vector3, neighbours: Array,
 
 
 ## 往前打一条射线。打到就返回命中信息（含法线），打不到返回空字典。
+##
+## [param ignore] 里的刚体**不参与检测**（比如当前正在追的那个目标）。
 func _ray_hit_normal(origin: Vector3, direction: Vector3, distance: float,
-		body: Node3D, mask: int) -> Dictionary:
+		body: Node3D, mask: int, ignore: Array = []) -> Dictionary:
 	var query := PhysicsRayQueryParameters3D.create(
 		origin, origin + direction * distance)
 	query.collision_mask = mask
 	query.exclude = [body.get_rid()]
+	for rid in ignore:
+		query.exclude.append(rid)
 	# 转向不是节点，所以世界从身体那儿拿
 	return body.get_world_3d().direct_space_state.intersect_ray(query)

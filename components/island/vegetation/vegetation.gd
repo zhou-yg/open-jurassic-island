@@ -1,4 +1,3 @@
-@tool
 extends Node3D
 ## 岛屿植被组件：**香蕉树林**（MultiMesh）。
 ##
@@ -38,12 +37,20 @@ const LAYER_VEGETATION := 2
 @export var tall_trunk_height: float = 3.26
 ## 关掉后只有视觉、没有树干碰撞。
 @export var build_collision: bool = true
+## 用 **PhysicsServer 直接挂形状**，不生成 CollisionShape3D 节点。
+##
+## 大世界里要放几千棵树：每棵树一个 CollisionShape3D 就是几千个节点
+## （场景树、内存、加载时间全吃紧）。直接往物理服务器挂形状，
+## 一个节点都不要 —— 形状还是共享的同一份 CylinderShape3D。
+@export var collision_via_physics_server: bool = false
 
 var _built := false
+## 用物理服务器挂的形状资源（物理服务器只认 RID，资源得留在内存里）。
+var _keep_shapes: Array[Shape3D] = []
 
 
 func _ready() -> void:
-	if Engine.is_editor_hint() or not build_collision:
+	if not build_collision:
 		return
 	_build_trunk_collision()
 
@@ -70,15 +77,21 @@ func _build_trunk_collision() -> void:
 	_built = true
 	var body := StaticBody3D.new()
 	body.name = "TreeCollision"
-	# 树干在**植被层**：玩家要撞得到树，恐龙不撞（它要从林子里穿过去巡逻）。
+	# 树干在**植被层**：玩家要撞得到树，恐龙也撞得到（恐龙是实心的，
+	# 树是掩体，得站得住）。巡逻不会被卡住 —— 布局那边沿整条巡逻路线
+	# 清出了走廊。
 	body.collision_layer = LAYER_VEGETATION
 	body.collision_mask = LAYER_WORLD
+	# 先入树：物理服务器要等 body 进了场景树才认它，
+	# 之后往上面挂形状才有效。
+	add_child(body)
 
 	var specs := {
 		"ShortTrees": [short_trunk_radius, short_trunk_height],
 		"TallTrees": [tall_trunk_radius, tall_trunk_height],
 	}
 	var count := 0
+	var keep_alive: Array[Shape3D] = []   # 物理服务器只认 RID，得把资源留住
 	for node in find_children("*", "MultiMeshInstance3D", true, false):
 		var mmi := node as MultiMeshInstance3D
 		if mmi.multimesh == null or mmi.multimesh.mesh == null:
@@ -92,6 +105,14 @@ func _build_trunk_collision() -> void:
 		shape.radius = radius
 		shape.height = height
 		var rel := global_transform.affine_inverse() * mmi.global_transform
+		if collision_via_physics_server:
+			keep_alive.append(shape)
+			for i in mmi.multimesh.instance_count:
+				PhysicsServer3D.body_add_shape(body.get_rid(), shape.get_rid(),
+					rel * mmi.multimesh.get_instance_transform(i)
+					* Transform3D(Basis.IDENTITY, Vector3(0.0, height * 0.5, 0.0)))
+				count += 1
+			continue
 		for i in mmi.multimesh.instance_count:
 			var cs := CollisionShape3D.new()
 			cs.shape = shape
@@ -100,5 +121,8 @@ func _build_trunk_collision() -> void:
 			body.add_child(cs)
 			count += 1
 	if count == 0:
+		body.queue_free()
 		return
-	add_child(body)
+	if not keep_alive.is_empty():
+		# 把形状资源留在内存里，别让 GC 回收了（物理服务器只拿着 RID）
+		_keep_shapes = keep_alive

@@ -17,7 +17,7 @@ extends SceneTree
 ## 用法（**必须带真实渲染器**，headless 的渲染/物理都是 dummy）：
 ##   godot --path . --script res://components/island/park_perimeter/bake_perimeter.gd -- <out_tscn> [seed]
 
-const TERRAIN_SCENE := "res://components/island/island.tscn"
+const TERRAIN_SCENE := "res://components/island/terrain.tscn"
 const GATE_SCENE := "res://components/island/park_gate/park_gate.tscn"
 const WALL_SCENE := "res://assets/models/ruined-wall/low_poly_ruined_wall.glb"
 const RUBBLE_SCENE := "res://assets/models/stone-rubble/low_poly_rubble.glb"
@@ -66,12 +66,11 @@ func _initialize() -> void:
 		return
 	_rng.seed = int(args[1]) if args.size() > 1 else 20260715
 	_terrain = load(TERRAIN_SCENE).instantiate()
-	# 只借地形：展示节点（环境 / 灯光 / 预览相机）、草石和现有的围墙全关掉。
-	# 否则量岛缘的射线会打在旧围墙 / 大门上（它们的碰撞也是按 62 m 尺度补的）。
-	_terrain.set("show_presentation", false)
-	_terrain.set("show_scatter", false)
-	_terrain.set("show_perimeter", false)
-	_terrain.collision_groups = [NodePath("Ground")] as Array[NodePath]
+	# 只借地形：`terrain.tscn` 只有岩台 + 山体，射线不会打在旧围墙 / 草石上。
+	# 岛面（台面）是模型自带的碰撞（sky-island-basic.glb 的 `-col` 节点），
+	# 不需要脚本再补 —— 所以这里把要补碰撞的分组清空，
+	# 只留岛体那份碰撞面供射线探测。
+	_terrain.collision_groups = [] as Array[NodePath]
 	root.add_child(_terrain)
 
 

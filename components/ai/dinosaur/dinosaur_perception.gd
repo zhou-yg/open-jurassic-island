@@ -11,8 +11,8 @@ extends Node
 ## 所以玩家躲在香蕉树后面，恐龙**看不见** —— 这正是这套 AI 的核心玩法：
 ## 树不只是掩体，还是"视野的遮蔽物"。
 ##
-## 注意：恐龙的**身体**不跟树碰撞（巡逻不能被挡住），但**视线**会被树挡住。
-## 身体能穿过去，看不见 —— 这是有意为之。
+## 注意：恐龙的**身体**是实心的（树、墙都撞得到），但**视线**会被树挡住。
+## 身体和视线是两回事：撞得到，但看不清。
 
 ## 视线被什么挡住。
 @export_flags_3d_physics var sight_blockers: int = (
@@ -36,11 +36,13 @@ func poll(body: Node3D, config: DinosaurAIConfig, blackboard: DinosaurBlackboard
 		now: float) -> void:
 	if body == null or config == null:
 		return
-	var targets := get_tree().get_nodes_in_group(config.target_group)
+	var targets := _targets(config)
 	var best: Node3D = null
 	var best_distance := INF
 	for target in targets:
-		if target == body or not (target is Node3D):
+		if target == body or not is_instance_valid(target):
+			continue
+		if not (target is Node3D):
 			continue
 		var node := target as Node3D
 		var to_target := node.global_position - body.global_position
@@ -64,15 +66,34 @@ func poll(body: Node3D, config: DinosaurAIConfig, blackboard: DinosaurBlackboard
 		blackboard.remember_target(best, best.global_position, now)
 		blackboard.alert = minf(1.0, blackboard.alert + 0.6)
 		blackboard.has_interest = false
+		_last_sight_ok = {"target": best, "time": now}
 		return
 	# 看不见 —— 但听得见
+	_last_sight_ok = {}
 	_listen(body, config, blackboard, targets)
+
+
+## 要盯的目标：**玩家组** + （配了的）**建筑组**。
+##
+## 两个组都收进来一起比远近：谁近就盯谁。
+## 建筑组默认是空的（[member DinosaurAIConfig.structure_target_group]），
+## 所以不配的时候行为跟以前一模一样。
+func _targets(config: DinosaurAIConfig) -> Array:
+	var targets := get_tree().get_nodes_in_group(config.target_group)
+	var structure_group := String(config.structure_target_group)
+	if not structure_group.is_empty():
+		for node in get_tree().get_nodes_in_group(structure_group):
+			if not targets.has(node):
+				targets.append(node)
+	return targets
 
 
 ## 听觉：目标跑得快就算有声音，声音传多远跟速度成正比。
 func _listen(body: Node3D, config: DinosaurAIConfig,
 		blackboard: DinosaurBlackboard, targets: Array) -> void:
 	for target in targets:
+		if not is_instance_valid(target):
+			continue
 		if not (target is CharacterBody3D):
 			continue
 		var mover := target as CharacterBody3D
@@ -90,12 +111,22 @@ func _listen(body: Node3D, config: DinosaurAIConfig,
 
 
 ## 从眼睛到目标胸口这条线有没有被挡住。
+##
+## ⚠️ **目标自己的碰撞体要排除掉**：射向建筑的那条线会**先打到建筑自己**
+## —— 建筑是实心的（挡视线），于是恐龙永远"看不见"它，也就不会去啃它。
+## 排除目标自己的刚体之后，恐龙才能看见并攻击建筑。
 func _has_line_of_sight(body: Node3D, target: Node3D, config: DinosaurAIConfig) -> bool:
+	# ⚠️ 先判有效再判类型：目标可能刚被拆掉，对已释放的实例做 `is` 判断
+	# 会直接报错。
+	if not is_instance_valid(target):
+		return false
 	var from := body.global_position + Vector3.UP * config.eye_height
 	var to := target.global_position + Vector3.UP * (config.eye_height * 0.6)
 	var query := PhysicsRayQueryParameters3D.create(from, to)
 	query.collision_mask = sight_mask
 	query.exclude = [body.get_rid()]
+	if target is CollisionObject3D:
+		query.exclude.append((target as CollisionObject3D).get_rid())
 	# 感知是普通节点，3D 世界从身体那儿拿
 	return not body.get_world_3d().direct_space_state.intersect_ray(query).is_empty()
 

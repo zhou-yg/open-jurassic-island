@@ -46,8 +46,8 @@ static func build(ai: DinosaurAI) -> BehaviorTree:
 
 	# ---- 3. 逃跑 ----
 	var flee := BtComposite.Sequence.new("逃跑")
-	flee.add_child(BtLeaf.condition("威胁逼近", func(_d: float) -> bool:
-		return ai.is_threatened()))
+	flee.add_child(BtLeaf.condition("该逃命了", func(_d: float) -> bool:
+		return ai.should_flee()))
 	flee.add_child(BtLeaf.action("远离威胁", func(d: float) -> int:
 		return ai.behave_flee(d)))
 	root.add_child(flee)
