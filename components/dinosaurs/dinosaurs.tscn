@@ -1,0 +1,50 @@
+[gd_scene load_steps=12 format=3]
+
+[ext_resource type="Script" path="res://components/dinosaurs/dinosaurs.gd" id="1_herd"]
+[ext_resource type="Script" path="res://components/dinosaurs/dinosaur_species.gd" id="2_species"]
+[ext_resource type="PackedScene" path="res://components/vegetation/dinosaur/t_rex.tscn" id="3_trex"]
+[ext_resource type="PackedScene" path="res://components/vegetation/dinosaur/triceratops.tscn" id="4_tri"]
+[ext_resource type="PackedScene" path="res://components/vegetation/dinosaur/stegosaurus.tscn" id="5_steg"]
+[ext_resource type="PackedScene" path="res://components/vegetation/dinosaur/parasaurolophus.tscn" id="6_para"]
+[ext_resource type="PackedScene" path="res://components/vegetation/dinosaur/velociraptor.tscn" id="7_velo"]
+[ext_resource type="PackedScene" path="res://components/vegetation/dinosaur/apatosaurus.tscn" id="8_apato"]
+
+[sub_resource type="Resource" id="Resource_trex"]
+script = ExtResource("2_species")
+scene = ExtResource("3_trex")
+display_name = "TRex"
+weight = 18.0
+
+[sub_resource type="Resource" id="Resource_tri"]
+script = ExtResource("2_species")
+scene = ExtResource("4_tri")
+display_name = "Triceratops"
+weight = 18.0
+
+[sub_resource type="Resource" id="Resource_steg"]
+script = ExtResource("2_species")
+scene = ExtResource("5_steg")
+display_name = "Stegosaurus"
+weight = 14.0
+
+[sub_resource type="Resource" id="Resource_para"]
+script = ExtResource("2_species")
+scene = ExtResource("6_para")
+display_name = "Parasaurolophus"
+weight = 18.0
+
+[sub_resource type="Resource" id="Resource_velo"]
+script = ExtResource("2_species")
+scene = ExtResource("7_velo")
+display_name = "Velociraptor"
+weight = 20.0
+
+[sub_resource type="Resource" id="Resource_apato"]
+script = ExtResource("2_species")
+scene = ExtResource("8_apato")
+display_name = "Apatosaurus"
+weight = 12.0
+
+[node name="Dinosaurs" type="Node3D"]
+script = ExtResource("1_herd")
+pool = Array[Resource]([SubResource("Resource_trex"), SubResource("Resource_tri"), SubResource("Resource_steg"), SubResource("Resource_para"), SubResource("Resource_velo"), SubResource("Resource_apato")])

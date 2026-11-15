@@ -1,0 +1,25 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://components/island/vegetation/vegetation.gd" id="1_l276a"]
+[ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/world_vegetation_short_trees.res" id="2_p2pbr"]
+[ext_resource type="MultiMesh" path="res://scenes-3d/jurassic-island/world_vegetation_tall_trees.res" id="3_f1r5e"]
+
+[node name="WorldVegetation" type="Node3D" unique_id=1549486739]
+script = ExtResource("1_l276a")
+short_trunk_radius = 0.435
+short_trunk_height = 2.4505
+tall_trunk_radius = 0.522
+tall_trunk_height = 4.726999999999999
+collision_via_physics_server = true
+
+[node name="Trees" type="Node3D" parent="." unique_id=1147259167]
+
+[node name="ShortTrees" type="MultiMeshInstance3D" parent="Trees" unique_id=819825139]
+cast_shadow = 0
+gi_mode = 0
+multimesh = ExtResource("2_p2pbr")
+
+[node name="TallTrees" type="MultiMeshInstance3D" parent="Trees" unique_id=1518050364]
+cast_shadow = 0
+gi_mode = 0
+multimesh = ExtResource("3_f1r5e")

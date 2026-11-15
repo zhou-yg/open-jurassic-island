@@ -1,0 +1,6 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scenes-3d/jurassic-island/tests/verify_jurassic_island_core.gd" id="1_core"]
+
+[node name="VerifyJurassicIsland" type="Node"]
+script = ExtResource("1_core")

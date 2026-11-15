@@ -1,0 +1,19 @@
+[gd_scene format=3 uid="uid://dqdxuoxo8xoob"]
+
+[ext_resource type="Script" uid="uid://ckxhol0i45fwx" path="res://components/island/terrain.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://5q2aqttl30h" path="res://assets/models/island/sky-island-basic.glb" id="2_island"]
+[ext_resource type="PackedScene" uid="uid://xa58df0nkbt2" path="res://assets/models/low-mountain/low_poly_low_mountain.glb" id="4_mountain"]
+
+[node name="Terrain" type="Node3D" unique_id=77530556]
+script = ExtResource("1_script")
+
+[node name="IslandBase" type="Node3D" parent="." unique_id=1537424586]
+transform = Transform3D(13, 0, 0, 0, 13, 0, 0, 0, 13, 0, -9.23, 0)
+
+[node name="SkyIsland" parent="IslandBase" unique_id=969172916 instance=ExtResource("2_island")]
+
+[node name="Mountain" type="Node3D" parent="." unique_id=1398799572]
+transform = Transform3D(0.760845, 0, -0.247214, 0, 0.8, 0, 0.247214, 0, 0.760845, -2.99874, -1.045428, -9.77039)
+
+[node name="LowMountain" parent="Mountain" unique_id=1208578777 instance=ExtResource("4_mountain")]
+transform = Transform3D(0.98017454, 0, -0.19813651, 0, 1.0000005, 0, 0.19813651, 0, 0.98017454, 0, 1.045428, 0)
