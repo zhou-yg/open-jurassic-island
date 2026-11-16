@@ -22,6 +22,11 @@ extends Node3D
 ## [br]- 入口在矩形边缘，数量为 [member entrance_count]；
 ## [br]- 出口集中在中心房间，数量为 [member exit_count]；
 ## [br]- 所有空地一定连通（可走通）。
+##
+## 道路宽度：
+## 迷宫布局按"道路格"生成，一格道路展开成 [member road_width] × [member road_width]
+## 个物理单元（[member cell_size] 见方）。所以道路宽 road_width × cell_size，
+## 墙也厚 road_width × cell_size。道路格数 = round(总长 / (cell_size × road_width))。
 
 ## 生成完成后发出，参数为自身，便于外部读取入口 / 出口位置。
 signal map_generated(map: RandomMap)
@@ -41,7 +46,7 @@ const CONTAINER_NAMES: Array[StringName] = [
 const MIN_UNIT_SIZE: float = 0.001
 ## 地图总长 / 总宽的最小值（米）。
 const MIN_MAP_EXTENT: float = 1.0
-## 地图最少格子数（每条边），与 [MazeCellularAutomata] 保持一致。
+## 地图最少道路格数（每条边），与 [MazeCellularAutomata] 保持一致。
 const MIN_GRID_SIZE: int = 5
 
 @export_group("基本单元")
@@ -65,14 +70,14 @@ const MIN_GRID_SIZE: int = 5
 
 @export_group("尺寸")
 ## 地图总长度（沿 X 方向，单位：米）。
-## 格子数 = round(总长度 / 单元长)，至少 5 格；实际总长度用
+## 道路格数 = round(总长度 / (单元长 × 道路宽度))，至少 5 格；实际总长度用
 ## [method get_actual_map_size] 查询（因为格子数是整数）。
 @export_range(1.0, 2000.0, 0.5) var map_length: float = 64.0:
 	set(value):
 		map_length = maxf(value, MIN_MAP_EXTENT)
 		_update_map_size()
 ## 地图总宽度（沿 Z 方向，单位：米）。
-## 格子数 = round(总宽度 / 单元宽)，至少 5 格。
+## 道路格数 = round(总宽度 / (单元宽 × 道路宽度))，至少 5 格。
 @export_range(1.0, 2000.0, 0.5) var map_width: float = 64.0:
 	set(value):
 		map_width = maxf(value, MIN_MAP_EXTENT)
@@ -81,6 +86,16 @@ const MIN_GRID_SIZE: int = 5
 @export var cell_size: Vector2 = Vector2(1.0, 1.0):
 	set(value):
 		cell_size = Vector2(maxf(value.x, MIN_UNIT_SIZE), maxf(value.y, MIN_UNIT_SIZE))
+		_update_map_size()
+## 道路宽度（格）：一条道路占多少个 [member cell_size] 的宽度，默认 2（= 2 倍 cell size）。
+##
+## 迷宫布局按"道路格"生成，一格道路展开成 road_width × road_width 个物理单元，
+## 所以道路宽 road_width × cell_size、墙厚 road_width × cell_size。
+## 道路格数 = round(总长 / (cell_size × road_width))，道路变宽意味着同尺寸地图里的
+## 走廊条数变少（CA 参数以道路格为单位，见 [member ca_config]）。
+@export_range(1, 8, 1) var road_width: int = 2:
+	set(value):
+		road_width = maxi(value, 1)
 		_update_map_size()
 ## 墙壁高度，默认 2m。
 @export_range(0.1, 20.0, 0.1) var wall_height: float = 2.0
@@ -93,7 +108,7 @@ const MIN_GRID_SIZE: int = 5
 ## 出口数量：全部位于中心房间内，第一个永远是地图正中心。
 @export_range(0, 16, 1) var exit_count: int = 1
 ## 中心房间半径（格）。0 表示只有中心 1 格；出口放不下时会自动扩大。
-@export_range(0, 16, 1) var center_room_radius: int = 1
+@export_range(0, 16, 1) var center_room_radius: int = 4
 
 @export_group("元胞自动机")
 ## 元胞自动机参数（墙壁疏密、生长 / 存活阈值等）。
@@ -107,8 +122,10 @@ const MIN_GRID_SIZE: int = 5
 ## 是否在控制台输出本次生成的统计信息。
 @export var print_debug_stats: bool = false
 
-## 由 [member map_length] / [member map_width] 与 [member cell_size] 推导出的格子数
-## （只读）。需要按格子数指定大小时，请用 [method set_map_size_in_cells]。
+## 由 [member map_length] / [member map_width] 与 [member cell_size] /
+## [member road_width] 推导出的**道路格**数（只读）。
+## 一个道路格 = road_width × road_width 个物理单元，尺寸见 [method get_unit_grid_size]。
+## 需要按道路格数指定大小时，请用 [method set_map_size_in_cells]。
 var map_size: Vector2i = Vector2i(32, 32)
 
 ## 最近一次生成实际使用的种子。
@@ -157,30 +174,43 @@ func generate_with_seed(p_seed: int) -> void:
 	map_generated.emit(self)
 
 
-## 直接按"格子数"设置地图大小（内部会换算成总长度 / 总宽度）。
+## 直接按"道路格数"设置地图大小（内部会换算成总长度 / 总宽度）。
 func set_map_size_in_cells(cells: Vector2i) -> void:
 	var grid := Vector2i(maxi(cells.x, MIN_GRID_SIZE), maxi(cells.y, MIN_GRID_SIZE))
-	map_length = float(grid.x) * cell_size.x
-	map_width = float(grid.y) * cell_size.y
+	var block := _road_block_size()
+	map_length = float(grid.x) * block.x
+	map_width = float(grid.y) * block.y
 	_update_map_size()
 
 
-## 地图实际总尺寸（米）= 格子数 x 单元尺寸，返回值 (总长度, 总宽度)。
+## 地图实际总尺寸（米）= 道路格数 x 道路块尺寸，返回值 (总长度, 总宽度)。
 ## 因为格子数只能取整，实际尺寸可能与 [member map_length] / [member map_width] 略有出入。
 func get_actual_map_size() -> Vector2:
+	var block := _road_block_size()
+	return Vector2(float(map_size.x) * block.x, float(map_size.y) * block.y)
+
+
+## 物理单元网格的边长（格）：每个道路格展开成 road_width × road_width 个单元，
+## 地板 / 墙壁单元就是按这个网格逐格摆放的。
+func get_unit_grid_size() -> Vector2i:
+	return Vector2i(map_size.x * road_width, map_size.y * road_width)
+
+
+## 一个道路块的尺寸（米）= cell_size × road_width，即道路的宽度。
+func _road_block_size() -> Vector2:
+	var road: int = maxi(road_width, 1)
 	return Vector2(
-		float(map_size.x) * maxf(cell_size.x, MIN_UNIT_SIZE),
-		float(map_size.y) * maxf(cell_size.y, MIN_UNIT_SIZE)
+		maxf(cell_size.x, MIN_UNIT_SIZE) * float(road),
+		maxf(cell_size.y, MIN_UNIT_SIZE) * float(road)
 	)
 
 
-## 由总长度 / 总宽度与单元尺寸推导格子数。
+## 由总长度 / 总宽度与道路块尺寸推导道路格数。
 func _update_map_size() -> void:
-	var unit_length: float = maxf(cell_size.x, MIN_UNIT_SIZE)
-	var unit_width: float = maxf(cell_size.y, MIN_UNIT_SIZE)
+	var block := _road_block_size()
 	map_size = Vector2i(
-		maxi(MIN_GRID_SIZE, roundi(maxf(map_length, MIN_MAP_EXTENT) / unit_length)),
-		maxi(MIN_GRID_SIZE, roundi(maxf(map_width, MIN_MAP_EXTENT) / unit_width))
+		maxi(MIN_GRID_SIZE, roundi(maxf(map_length, MIN_MAP_EXTENT) / maxf(block.x, MIN_UNIT_SIZE))),
+		maxi(MIN_GRID_SIZE, roundi(maxf(map_width, MIN_MAP_EXTENT) / maxf(block.y, MIN_UNIT_SIZE)))
 	)
 
 
@@ -200,7 +230,8 @@ func get_maze() -> MazeCellularAutomata:
 	return _maze
 
 
-## 地图格子数（不是米）。总尺寸用 [method get_actual_map_size]。
+## 地图道路格数（不是米）。总尺寸用 [method get_actual_map_size]，
+## 物理单元网格用 [method get_unit_grid_size]。
 func get_map_size() -> Vector2i:
 	return map_size
 
@@ -277,24 +308,27 @@ func get_goal_position() -> Vector3:
 	return get_cell_surface_position(_maze.exit_cells[0])
 
 
-## 某一格中心的"地面表面"位置（本地坐标，y = 0，因为地图是平的）。
+## 某一道路格中心的"地面表面"位置（本地坐标，y = 0，因为地图是平的）。
+## 道路格中心 = 道路块（road_width × road_width 个单元）的中心。
 func get_cell_surface_position(cell: Vector2i) -> Vector3:
-	var half_x: float = float(map_size.x) * cell_size.x * 0.5
-	var half_z: float = float(map_size.y) * cell_size.y * 0.5
+	var block := _road_block_size()
+	var half_x: float = float(map_size.x) * block.x * 0.5
+	var half_z: float = float(map_size.y) * block.y * 0.5
 	return Vector3(
-		(float(cell.x) + 0.5) * cell_size.x - half_x,
+		(float(cell.x) + 0.5) * block.x - half_x,
 		0.0,
-		(float(cell.y) + 0.5) * cell_size.y - half_z
+		(float(cell.y) + 0.5) * block.y - half_z
 	)
 
 
-## 世界坐标 → 格子坐标，越界时返回 (-1, -1)。
+## 世界坐标 → 道路格坐标，越界时返回 (-1, -1)。
 func get_cell_from_world(world_position: Vector3) -> Vector2i:
 	var local_position: Vector3 = to_local(world_position) if is_inside_tree() else world_position
-	var half_x: float = float(map_size.x) * cell_size.x * 0.5
-	var half_z: float = float(map_size.y) * cell_size.y * 0.5
-	var x: int = int(floor((local_position.x + half_x) / maxf(cell_size.x, MIN_UNIT_SIZE)))
-	var y: int = int(floor((local_position.z + half_z) / maxf(cell_size.y, MIN_UNIT_SIZE)))
+	var block := _road_block_size()
+	var half_x: float = float(map_size.x) * block.x * 0.5
+	var half_z: float = float(map_size.y) * block.y * 0.5
+	var x: int = int(floor((local_position.x + half_x) / maxf(block.x, MIN_UNIT_SIZE)))
+	var y: int = int(floor((local_position.z + half_z) / maxf(block.y, MIN_UNIT_SIZE)))
 	var cell := Vector2i(x, y)
 	if _maze != null and not _maze.is_inside(cell):
 		return Vector2i(-1, -1)
@@ -338,41 +372,50 @@ func _clear_generated() -> void:
 
 ## 把整张地图实例化成地板与墙壁。
 ##
-## 分两趟进行：先给所有格子（墙壁格也包含在内）铺一层地板，再在地板顶面上
+## 分两趟进行：先给所有单元格（墙壁格也包含在内）铺一层地板，再在地板顶面上
 ## 摆墙壁单元。这样墙壁是"立在地板上"的，不会出现地板缺口。
+##
+## 迷宫布局是"道路格"（[member map_size]），每个道路格展开成
+## road_width × road_width 个物理单元（[method get_unit_grid_size]），
+## 于是道路宽 road_width × cell_size、墙厚 road_width × cell_size。
 func _build_units() -> void:
 	var walls := _container(CONTAINER_WALLS)
 	var floors := _container(CONTAINER_FLOORS)
 	var wall_packed := _resolve_unit_scene(wall_scene, true)
 	var floor_packed := _resolve_unit_scene(floor_scene, false)
-	var half_x: float = float(map_size.x) * cell_size.x * 0.5
-	var half_z: float = float(map_size.y) * cell_size.y * 0.5
+	var unit_grid := get_unit_grid_size()
+	var half_x: float = float(unit_grid.x) * cell_size.x * 0.5
+	var half_z: float = float(unit_grid.y) * cell_size.y * 0.5
 	var wall_packed_is_box: bool = _unit_scene_is_box(wall_packed)
-	# 第一趟：所有格子都铺地板。
-	for y in map_size.y:
-		for x in map_size.x:
-			_spawn_floor(Vector2i(x, y), _cell_base(Vector2i(x, y), half_x, half_z), floors, floor_packed)
+	# 第一趟：所有单元格都铺地板。
+	for y in unit_grid.y:
+		for x in unit_grid.x:
+			var unit_cell := Vector2i(x, y)
+			_spawn_floor(unit_cell, _unit_base(unit_cell, half_x, half_z), floors, floor_packed)
 	# 第二趟：在墙壁格的地板顶面上摆墙壁。
 	for y in map_size.y:
 		for x in map_size.x:
 			var cell := Vector2i(x, y)
 			if not _maze.is_wall(cell):
 				continue
-			_spawn_wall(
-				cell,
-				_cell_base(cell, half_x, half_z),
-				walls,
-				wall_packed,
-				wall_packed_is_box
-			)
+			for j in road_width:
+				for i in road_width:
+					var unit_cell := Vector2i(x * road_width + i, y * road_width + j)
+					_spawn_wall(
+						unit_cell,
+						_unit_base(unit_cell, half_x, half_z),
+						walls,
+						wall_packed,
+						wall_packed_is_box
+					)
 
 
-## 某一格中心的本地坐标（y = 地面高度 0）。
-func _cell_base(cell: Vector2i, half_x: float, half_z: float) -> Vector3:
+## 某一物理单元格的中心的本地坐标（y = 地面高度 0）。
+func _unit_base(unit_cell: Vector2i, half_x: float, half_z: float) -> Vector3:
 	return Vector3(
-		(float(cell.x) + 0.5) * cell_size.x - half_x,
+		(float(unit_cell.x) + 0.5) * cell_size.x - half_x,
 		0.0,
-		(float(cell.y) + 0.5) * cell_size.y - half_z
+		(float(unit_cell.y) + 0.5) * cell_size.y - half_z
 	)
 
 
@@ -437,7 +480,7 @@ func _tree_contains_random_map(node: Node) -> bool:
 
 
 func _spawn_wall(
-	cell: Vector2i,
+	unit_cell: Vector2i,
 	base: Vector3,
 	container: Node3D,
 	packed: PackedScene,
@@ -445,7 +488,7 @@ func _spawn_wall(
 ) -> void:
 	if packed == null or container == null:
 		return
-	var instance := _instantiate_unit(packed, container, "Wall_%d_%d" % [cell.x, cell.y])
+	var instance := _instantiate_unit(packed, container, "Wall_%d_%d" % [unit_cell.x, unit_cell.y])
 	if instance == null:
 		return
 	# 场景自己声明的锚点偏移（相对格子中心的地面），保留作者的摆放意图。
@@ -468,7 +511,7 @@ func _spawn_wall(
 
 
 func _spawn_floor(
-	cell: Vector2i,
+	unit_cell: Vector2i,
 	base: Vector3,
 	container: Node3D,
 	packed: PackedScene
@@ -479,7 +522,7 @@ func _spawn_floor(
 	var top: float = 0.0
 	var bottom: float = -floor_thickness
 	var height: float = maxf(top - bottom, MIN_UNIT_SIZE)
-	var instance := _instantiate_unit(packed, container, "Floor_%d_%d" % [cell.x, cell.y])
+	var instance := _instantiate_unit(packed, container, "Floor_%d_%d" % [unit_cell.x, unit_cell.y])
 	if instance == null:
 		return
 	instance.position = base + Vector3(0.0, (top + bottom) * 0.5, 0.0)
@@ -603,12 +646,16 @@ func _print_stats() -> void:
 	if _maze == null:
 		return
 	var actual_size := get_actual_map_size()
+	var unit_grid := get_unit_grid_size()
 	print(
-		"[RandomMap] seed=%d 尺寸=%d格x%d格（%.1fm x %.1fm）空地=%.0f%% 入口=%d 出口=%d"
+		"[RandomMap] seed=%d 道路格=%d格x%d格（路宽=%d格 单元=%dx%d）尺寸=%.1fm x %.1fm 空地=%.0f%% 入口=%d 出口=%d"
 		% [
 			_last_seed,
 			map_size.x,
 			map_size.y,
+			road_width,
+			unit_grid.x,
+			unit_grid.y,
 			actual_size.x,
 			actual_size.y,
 			_maze.floor_ratio() * 100.0,

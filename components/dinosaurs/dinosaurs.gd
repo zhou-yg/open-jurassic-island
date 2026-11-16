@@ -222,12 +222,12 @@ func _pick_species(index: int) -> SpeciesScript:
 		return pool[index]
 	var total := 0.0
 	for s in pool:
-		total += maxf(0.0, s.weight)
+		total += maxf(0.0, s.weight())
 	if total <= 0.0:
 		return null
 	var pick := _rng.randf() * total
 	for s in pool:
-		pick -= maxf(0.0, s.weight)
+		pick -= maxf(0.0, s.weight())
 		if pick <= 0.0:
 			return s
 	return pool[pool.size() - 1]

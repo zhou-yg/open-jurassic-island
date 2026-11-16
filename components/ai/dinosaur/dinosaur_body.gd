@@ -12,9 +12,20 @@ extends CharacterBody3D
 ## 掉了出去送回原地、以及**模型正不正**（Godot 的前方是 -Z，模型不一定）。
 ##
 ## 具体型号的实现见 `components/vegetation/dinosaur/dinosaur.gd`。
+##
+## 恐龙数值的真源是 `components/dinosaurs/dinosaur_species_config.gd`（跨组件引用：
+## 配置跟着"恐龙群"组件放，AI 模块只是读它）。
+const SpeciesConfig := preload("res://components/dinosaurs/dinosaur_species_config.gd")
 
 ## 模型节点名（相对本节点）。模型的前方要和 Godot 的 -Z 对上。
 @export var model_node_name: String = "Model"
+## **种类 id**：对应 `dinosaur_species_config.gd` 里 `SPECIES` 的键
+## （"t_rex" / "triceratops" / …）。
+##
+## 留空 = 不查配置，用下面的默认值（测试用的假恐龙就是这样）。
+## 填了 = 进场景时从 JSON 里把 [member base_speed] / [member turn_speed_deg] 读进来，
+## **场景里不用再写数字**（数值真源见 `requirements/numerical/dinosaur.md`）。
+@export var species_id: String = ""
 ## 巡逻路线（世界坐标路点，首尾相接绕一圈）。留空 = 原地不动。
 ##
 ## 为什么路线在"身体"上而不在 AI 上：Godot 的场景实例化**只允许覆写实例根
@@ -42,6 +53,7 @@ var _one_shot_until: float = 0.0
 
 func _ready() -> void:
 	_setup_animation()
+	_apply_species_values()
 	respawn_position = global_position
 	# 身体是**实心的**：地面、树、围墙、石头、同类都撞得到。
 	# 所以恐龙不会从树干 / 残墙里穿过去（树是掩体，得站得住）。
@@ -54,6 +66,21 @@ func _ready() -> void:
 		| DinosaurAIConfig.LAYER_BOUNDARY)
 	floor_max_angle = deg_to_rad(50.0)
 	floor_snap_length = 0.6
+
+
+## 从配置里读这一种恐龙的速度 / 转向。
+##
+## 没填 [member species_id]（测试用的假恐龙）或者配置里没有这一种，
+## 就保持场景 / 默认值不动。
+func _apply_species_values() -> void:
+	if species_id.is_empty():
+		return
+	var data: Dictionary = SpeciesConfig.get_species(species_id)
+	if data.is_empty():
+		push_warning("DinosaurBody: 配置里没有种类 '%s'" % species_id)
+		return
+	base_speed = float(data.get("base_speed", base_speed))
+	turn_speed_deg = float(data.get("turn_speed_deg", turn_speed_deg))
 
 
 ## AI 给的新意图：往哪走、走多快。

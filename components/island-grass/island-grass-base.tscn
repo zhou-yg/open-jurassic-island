@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://byofs73bs1dbr" path="res://components/island-grass/island_grass_base.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://c6bltv0nshmnf" path="res://assets/models/grass/island_grass_base.glb" id="2_ground"]
+[ext_resource type="PackedScene" uid="uid://dfc7yuf6ilnb3" path="res://assets/models/grass/grass_tuft_lod.glb" id="3_tuft"]
+[ext_resource type="PackedScene" uid="uid://730w8ppdchi4" path="res://assets/models/grass/grass_clump_lod.glb" id="4_clump"]
+
+[node name="IslandGrassBase" type="Node3D"]
+script = ExtResource("1_script")
+
+[node name="Ground" parent="." instance=ExtResource("2_ground")]
+
+[node name="Grass" type="Node3D" parent="."]
+
+[node name="GrassTuft" type="MultiMeshInstance3D" parent="Grass"]
+cast_shadow = 0
+gi_mode = 0
+
+[node name="GrassClump" type="MultiMeshInstance3D" parent="Grass"]
+cast_shadow = 0
+gi_mode = 0
+
+[node name="TuftSource" parent="." instance=ExtResource("3_tuft")]
+visible = false
+
+[node name="ClumpSource" parent="." instance=ExtResource("4_clump")]
+visible = false

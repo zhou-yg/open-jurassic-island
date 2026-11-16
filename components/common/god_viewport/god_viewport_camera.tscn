@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" uid="uid://cd17chkx1xyg3" path="res://components/common/god_viewport/god_viewport_camera.gd" id="1_camera"]
+
+[node name="GodViewportCamera" type="Camera3D"]
+script = ExtResource("1_camera")
+current = true
+fov = 70.0
+near = 0.05
+far = 12000.0

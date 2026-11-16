@@ -1,19 +1,17 @@
-# expendable items
+# 消耗品
 
-消耗品， 作用：随机出现于地图上，提供快捷的消耗
+消耗品，作用：随机出现在地图上，提供快捷的补给
 
+## 道具列表
 
-## items list
+金色恐龙蛋
 
-golden dinosaur egg
+- 提供 5 点石头
 
-- provide 
+水果箱
 
-fruit box
+- 提供 5 点香蕉
 
-- provide 5 banana points
+石料箱
 
-stone box
-
-- provide some banana points
-
+- 提供5点香蕉 + 5 点石头

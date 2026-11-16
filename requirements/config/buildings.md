@@ -1,149 +1,148 @@
-# Buildings
+# 建筑
 
-at config/buildings.gd
+位于 `config/buildings.gd`
 
 > [!NOTE]
-> All numeric values (cost, build time, HP, damage, upgrade levels, ...) live in
-> `config/buildings.gd` (`class_name BuildingsConfig`) and
-> `config/resources.gd` (`class_name ResourcesConfig`).
-> This document describes the design intent; the config is the source of truth.
+> 所有数值（造价、建造时间、HP、伤害、升级等级……）都在
+> `config/buildings.gd`（`class_name BuildingsConfig`）和
+> `config/resources.gd`（`class_name ResourcesConfig`）里。
+> 本文档只描述设计意图；配置是唯一事实来源。
 
-buildings of survival game 
+生存游戏里的建筑
 
-## basic 
+## 基础
 
-- camp
-  - props:
-    - heal point = 5
-  - description:
-    - heal HP
-- campfire
-  - props:
-    - heal point = 1
-  - description:
-    - heal MP
+- 营地
+  - 属性：
+    - 治疗点数 = 5
+  - 描述：
+    - 恢复生命值（HP）
+- 篝火
+  - 属性：
+    - 治疗点数 = 1
+  - 描述：
+    - 恢复魔力（MP）
 
-## monkey worker
+## 猴子工人
 
-- description:
-  - need food to work
-  - stop work when is scared
+- 描述：
+  - 需要消耗食物才能工作
+  - 受到惊吓时停止工作
 
-- wood monkey
-  - description:
-    - collect wood from tree
-    - move to camp
+- 伐木猴
+  - 描述：
+    - 从树上采集木材
+    - 搬运回营地
 
-- stone monkey
-  - description:
-    - collect stone from big stone
-    - move to camp
+- 采石猴
+  - 描述：
+    - 从大石头采集石头
+    - 搬运回营地
 
-## food (banana)
+## 食物（香蕉）
 
-this is a resource provide to food-costed buildings
+一种资源，用于支付需要消耗食物的建筑
 
-- banana factory
-  - description:
-    - hang on banana-tree
-    - must place at least 10m away from other banana-tree
-    - supporting upgrade levels
+- 香蕉工厂
+  - 描述：
+    - 挂在香蕉树上
+    - 必须与其他香蕉树保持至少 10 m 距离
+    - 支持升级等级
 
+## 围墙
 
-## guard
+- 木墙
+  - 描述：
+    - 消耗时间和资源后可升级为石墙
 
-- wooden wall
-  - description:
-    - cost time and resources can be upgraded to stone wall
+- 石墙
 
-- stone wall
+- 木门
+  - 描述：
+    - 可升级为石门
+    - 2 种状态：开启 / 关闭
 
-- wooden gate
-  - description:
-    - can be upgraded to stone gate
-    - 2 states: open / close
+- 石门
 
-- stone gate
+## 防御
 
-## defense
+### 前置科技
 
-### pre-tech
+- 防御学院
+  - 属性：
+    - 建造时间 = 120s
+    - 消耗资源
+      - 木材 = 100
+      - 石头 = 100
+      - 食物 = 1
+        - 描述：
+          - 老教授猴，负责教其他猴子
+  - 描述：
+    - 解锁防御学院 1/2/3 级，或升级到下一级
 
-- defense college
-  - props:
-    - cost time = 120s
-    - cost resources
-      - wood = 100
-      - stone = 100
-      - food = 1
-        - description:
-          - old professor monkey for teaching monkey
-  - description:
-    - enable or upgrade to defense college level.1/2/3
+### 猴子炮塔系列
 
-### monkey turret series
+攻速快，伤害低
 
-fast speed low damage
+- 猴子炮塔 1 级
+- 猴子炮塔 2 级
+- 猴子炮塔 3 级
 
-- monkey turret level.1
-- monkey turret level.2
-- monkey turret level.3
+### 猴子投石机系列
 
-### monkey mangonel series
+攻速慢，伤害高
 
-slow speed high damage
+- 猴子投石机 1 级
+- 猴子投石机 2 级
+- 猴子投石机 3 级
 
-- monkey mangonel level.1
-- monkey mangonel level.2
-- monkey mangonel level.3
+## 军队
 
-## army
+### 前置科技点
 
-### pre-tech point
+- 军事学院
+  - 属性：
+    - 建造时间 = 120s
+    - 消耗资源
+      - 木材 = 100
+      - 石头 = 100
+      - 食物 = 1
+        - 描述：
+          - 老兵猴，负责教其他猴子
+  - 描述：
+    - 解锁猴子军队，或升级到下一级
 
-- army college
-  - props:
-    - cost time = 120s
-    - cost resources
-      - wood = 100
-      - stone = 100
-      - food = 1
-        - description:
-          - old solider monkey for teaching monkey
-  - description:
-    - enable or upgrade to monkey army
+### 军队装备系列
 
-### army equipments series
+- 护甲
+- 枪械
+- RPG（火箭筒）
 
-- armor
-- gun
-- RPG
+## 载具
 
-## vehicle
+### 前置科技点
 
-### pre-tech point
+- 载具学院
+  - 属性：
+    - 建造时间 = 120s
+    - 消耗资源
+      - 木材 = 100
+      - 石头 = 100
+      - 食物 = 1
+        - 描述：
+          - 老兵猴，负责教其他猴子
+  - 描述：
+    - 解锁载具，或升级到下一级
 
-- vehicle college
-  - props:
-    - cost time = 120s
-    - cost resources
-      - wood = 100
-      - stone = 100
-      - food = 1
-        - description:
-          - old solider monkey for teaching monkey
-  - description:
-    - enable or upgrade to vehicle
+### 载具系列
 
-### vehicle series
+- 强壮猴（开局自动拥有）
+- 木制载具
+- 石制载具
 
-- strong monkey (auto enabled at initial)
-- wood vehicle
-- stone vehicle
+# 资源
 
-# resources
+位于 `config/resources.gd`
 
-at config/resources.gd
-
-- wood
-- stone
+- 木材
+- 石头

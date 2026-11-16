@@ -45,7 +45,6 @@ Resources="*res://autoloads/data/resources.gd"
 InputHelper="*uid://cholww48njaeh"
 QuickAudio="*uid://cujwm7u5pvogl"
 
-McpBridge="*res://.mcp/godot-runtime/bridge/mcp_bridge.gd"
 [display]
 
 window/size/viewport_width=2000

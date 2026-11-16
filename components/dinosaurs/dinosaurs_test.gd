@@ -26,6 +26,8 @@ extends Node3D
 ## | `X` | 清空所有柱子 |
 ## | `F` | 锁定 / 释放鼠标 |
 ##
+## 相机本身是公共组件 `components/common/god_viewport/`（自由飞行 + 环顾）。
+##
 ## 左上角 HUD 每 0.2 秒刷新：总数、每种数量、最近三只的**状态**和距离、帧率、
 ## 柱子统计、当前模式。
 ## 地上的彩色折线 = 每只恐龙**当前算出来的巡逻路线**（颜色按种类区分），
@@ -69,15 +71,12 @@ const SPECIES_COLORS := [
 ]
 
 @onready var herd = $Dinosaurs
-@onready var camera: Camera3D = $Camera
-@onready var camera_script = $Camera
+@onready var camera: GodViewportCamera = $Camera
 @onready var pillars_root: Node3D = $Pillars
 @onready var info: Label = $TestHUD/Info
 @onready var obstacle_button: Button = $TestHUD/Bar/Obstacle
 @onready var attack_button: Button = $TestHUD/Bar/Attack
 @onready var clear_pillars_button: Button = $TestHUD/Bar/ClearPillars
-@onready var mouse_button: Button = $TestHUD/Bar/Mouse
-@onready var crosshair: Label = $TestHUD/Crosshair
 
 ## 是否画巡逻路线。
 var show_routes := true
@@ -104,9 +103,6 @@ func _ready() -> void:
 
 
 func _process(delta: float) -> void:
-	# 相机别钻到地面底下（场地下面什么都没有）
-	if camera.global_position.y < 1.0:
-		camera.global_position.y = 1.0
 	_hud_timer -= delta
 	_route_timer -= delta
 	if _hud_timer <= 0.0:
@@ -122,7 +118,7 @@ func _unhandled_input(event: InputEvent) -> void:
 	if event is InputEventMouseButton:
 		var mouse := event as InputEventMouseButton
 		if mouse.button_index == MOUSE_BUTTON_LEFT and mouse.pressed:
-			_click_at(_pointer_position())
+			_click_at(_pointer_position(mouse.position))
 		return
 	if not (event is InputEventKey) or not event.pressed or event.echo:
 		return
@@ -156,19 +152,9 @@ func _connect_ui() -> void:
 	attack_button.toggled.connect(func(on: bool) -> void:
 		_set_mode(BuildMode.ATTACK if on else BuildMode.NONE))
 	clear_pillars_button.pressed.connect(_clear_pillars)
-	mouse_button.pressed.connect(_toggle_capture)
-	camera_script.capture_changed.connect(_on_capture_changed)
-	_on_capture_changed(camera_script.is_captured())
-
-
-func _toggle_capture() -> void:
-	camera_script.toggle_capture()
-
-
-func _on_capture_changed(captured: bool) -> void:
-	mouse_button.text = "释放鼠标 (F)" if captured else "锁定鼠标 (F)"
-	mouse_button.button_pressed = captured
-	crosshair.visible = captured
+	# 「锁定鼠标」按钮和准星由公共组件
+	# `components/common/god_viewport/god_viewport_capture_button.gd` 自己管，
+	# 这里不用再接线。
 
 
 ## 切到某个放柱子的模式（两个按钮互斥：谁最后开的谁算数）。
@@ -232,11 +218,14 @@ func _clear_pillars() -> void:
 	_last_event = "清空了柱子"
 
 
-## 光标位置（锁定鼠标时 = 屏幕正中）。
-func _pointer_position() -> Vector2:
-	if camera_script.is_captured():
+## 操作点的屏幕坐标：锁定鼠标时 = 屏幕正中（准星），否则 = 点击事件的位置。
+##
+## 用**事件自带的位置**，不要用 `get_mouse_position()`：窗口没聚焦的时候
+## 后者给的是屏幕外的乱坐标，点哪儿都不对。
+func _pointer_position(click_position: Vector2) -> Vector2:
+	if camera.is_captured():
 		return get_viewport().get_visible_rect().size * 0.5
-	return get_viewport().get_mouse_position()
+	return click_position
 
 
 # ==============================================================================

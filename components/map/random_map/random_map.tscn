@@ -8,8 +8,7 @@ script = ExtResource("2_ca_config")
 
 [node name="RandomMap" type="Node3D" unique_id=204373001]
 script = ExtResource("1_map")
-map_length = 32.0
-map_width = 32.0
+center_room_radius = 1
 ca_config = SubResource("Resource_ca_config")
 
 [node name="Floors" type="Node3D" parent="." unique_id=1637594275]

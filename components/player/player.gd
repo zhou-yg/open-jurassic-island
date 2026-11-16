@@ -1,8 +1,10 @@
 extends CharacterBody3D
 
 # 基本属性
-@export var normal_speed: float = 10.0
-@export var sprint_speed: float = 50.0
+# 步行 5 m/s / 冲刺 10 m/s —— 数值设计见 requirements/numerical/organism.md §1.1。
+# 5 m/s 是原始设计值（走一圈 1414 m 的岛 4.7 分钟），快过所有恐龙的追击速度。
+@export var normal_speed: float = 5.0
+@export var sprint_speed: float = 10.0
 @export var jump_velocity: float = 8.0     # 跳跃初速度加倍（原 4.0）
 @export var gravity: float = 4.0           # 重力加倍（原 2.0），让上升下降更干脆
 @export var mousensity: float = 0.005

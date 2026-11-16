@@ -57,8 +57,9 @@ sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(
 from ruin_kit import (  # noqa: E402
     BOX_FACES, PAL, COPING_H_M, COPING_OUT_M, MeshBuilder, PLINTH_M, PLINTH_OUT_M,
     WALL_BAY_M, WALL_H_M, WALL_ROWS, WALL_T_M,
-    box, build_wall_segment, clear_scene, extrude_y, hash01, lerp3,
-    make_materials as _make_materials, shade, tile_layout,
+    box, build_coping_slabs, build_wall_segment, clear_scene, extrude_y, hash01,
+    hewn_block, lerp3, make_materials as _make_materials, shade, stone_base,
+    stone_color, tile_layout,
 )
 
 # ==========================================================================
@@ -151,6 +152,8 @@ def build_arch(b, rng):
                                "bottom": PAL["stone_x"]})
 
     # 墩身：PIER_SEGS 层石砌，最上一层（贴拱肩）可能崩塌
+    # 石头用和两翼矮墙**同一套**（切角块 + 整块一个调子 + 朝上的面长苔），
+    # 否则门是"积木风"、墙是"凿石风"，两套语汇摆在一起更难看。
     seg_h = (CLEAR_H_M - PLINTH_M) / PIER_SEGS
     for sx in (-1, 1):
         for k in range(PIER_SEGS):
@@ -164,14 +167,10 @@ def build_arch(b, rng):
             xi = sx * (x_in + 0.05 * t)
             xo = sx * (x_out - 0.05 * t)
             xa, xb = sorted((xi, xo))
-            c = lerp3(PAL["stone_d"], PAL["stone_m"], 0.20 + 0.55 * t)
-            if rng.random() < 0.30:
-                c = lerp3(c, PAL["stone_x"], 0.45)
-            if rng.random() < 0.16:
-                c = lerp3(c, PAL["moss_m"], 0.55)
-            box(b, xa, xb, y0, y1, z0, z1, S, shade(c, hash01(sx, k, 3)))
-            if k > 0:                                   # 石缝
-                box(b, xa, xb, y0 - 0.012, y1 + 0.012, z0 - 0.02, z0, S, PAL["stone_x"])
+            base, mossy = stone_base(rng, 0.25 + 0.55 * t, 0.22)
+            hewn_block(b, xa, xb, y0, y1, z0, z1, S, stone_color(base, mossy),
+                       chamfer=(0.032, 0.032, 0.026),
+                       yaw=rng.uniform(-1.6, 1.6), tilt=rng.uniform(-0.8, 0.8))
 
     # 拱券：ARCH_RINGS 块楔形石。外缘 = 墩子外侧面（同宽），所以拱与墩是**一条连续
     # 的直边**；厚度方向也给足（y 向外挑 0.08），让"拱券"作为一层凸出来。
@@ -196,9 +195,8 @@ def build_arch(b, rng):
             a = a0 + (a1 - a0) * s / steps
             pts.append((math.cos(a) * r_hi, math.sin(a) * r_hi + z_c))
         # 亮度沿拱"由脚到顶"渐亮：单一灰度递变，一眼就是一个整体
-        c = lerp3(PAL["stone_d"], PAL["stone_l"], 0.15 + 0.75 * i / (ARCH_RINGS - 1.0))
-        if rng.random() < 0.22:
-            c = lerp3(c, PAL["moss_m"], 0.40)
+        # （苔藓不再逐块乱撒 —— 拱券是楔形石，苔藓靠"哪一面朝上"长）
+        c = lerp3(PAL["stone_d"], PAL["stone_l"], 0.22 + 0.52 * i / (ARCH_RINGS - 1.0))
         cf = (lambda col: (lambda pts_: shade(col, hash01(round(pts_[0].z, 3), 11))))(c)
         extrude_y(b, y0 - 0.08, y1 + 0.08, pts, S, cf)
 
@@ -229,10 +227,11 @@ def build_arch(b, rng):
                 cx1 = xa_ + (xb_ - xa_) * (i + 1) / n
                 if rng.random() < 0.05:               # 偶尔缺一块，透光
                     continue
-                box(b, min(sx * cx0, sx * cx1), max(sx * cx0, sx * cx1),
-                    y0, y1, z0, z1, S,
-                    shade(lerp3(PAL["stone_m"], PAL["stone_d"], 0.2 + 0.45 * rng.random()),
-                          hash01(sx, row, i, 5)))
+                base, mossy = stone_base(rng, 0.55 + 0.4 * row / max(1, n_row - 1.0), 0.20)
+                hewn_block(b, min(sx * cx0, sx * cx1), max(sx * cx0, sx * cx1),
+                           y0, y1, z0, z1, S, stone_color(base, mossy),
+                           chamfer=(0.026, 0.026, 0.022),
+                           yaw=rng.uniform(-1.2, 1.2), tilt=rng.uniform(-0.6, 0.6))
 
     # (b) 拱顶 → 实墙顶：贯通横梁墙（两级错缝，看得出是砌起来的）
     band_h = SPANDREL_TOP_M - (CLEAR_H_M + BASE_W_M)
@@ -249,30 +248,20 @@ def build_arch(b, rng):
             cx0c, cx1c = max(cx0, -BASE_W_M), min(cx1, BASE_W_M)
             if cx1c - cx0c < 0.05:
                 continue
-            c = lerp3(PAL["stone_m"], PAL["stone_d"], 0.15 + 0.5 * rng.random())
-            if rng.random() < 0.26:
-                c = lerp3(c, PAL["moss_m"], 0.45)
-            box(b, cx0c, cx1c, y0, y1, z0, z1, S, shade(c, hash01(row, i, 8)))
+            base, mossy = stone_base(rng, 0.85 + 0.15 * row, 0.26)
+            hewn_block(b, cx0c, cx1c, y0, y1, z0, z1, S, stone_color(base, mossy),
+                       chamfer=(0.026, 0.026, 0.022),
+                       yaw=rng.uniform(-1.2, 1.2), tilt=rng.uniform(-0.6, 0.6))
 
-    # ---- 拱肩实墙顶的压顶：木瓦片（与两翼矮墙的压顶同一套做法 / 同一批颜色）----
-    # 匾额撤了以后，墙顶原本由匾额的木底托收口；现在换成**和两翼一样的木瓦压顶**，
-    # 门顶和墙顶就是一套语汇了（瓦片有缺、有高低，不是一根光溜溜的梁）。
+    # ---- 拱肩实墙顶的压顶：和两翼矮墙**同一套石板压顶**（build_coping_slabs）----
+    # 匾额撤了以后，墙顶原本由匾额的木底托收口；现在换成石板压顶 ——
+    # 门顶和墙顶是同一套语汇（一块块有缺、有厚薄、跟着墙头起伏的石板）。
     cop_len = 2 * (BASE_W_M + 0.04)
-    n_tile, tile_w = tile_layout(cop_len, WALL_BAY_M)
-    for i in range(n_tile):
-        if rng.random() < 0.18:            # 缺几片 → 露出下面的实墙顶
-            continue
-        tx0 = -cop_len * 0.5 + i * tile_w
-        tx1 = tx0 + tile_w
-        hh = COPING_H_M * (0.70 + 0.30 * rng.random())
-        c = lerp3(PAL["wood_m"], PAL["wood_l"], 0.35 * rng.random())
-        c = lerp3(c, PAL["moss_m"], 0.55) if rng.random() < 0.38 else lerp3(c, PAL["wood_d"], 0.28)
-        box(b, tx0, tx1,
-            -(WALL_T_M * 0.5 + COPING_OUT_M), WALL_T_M * 0.5 + COPING_OUT_M,
-            SPANDREL_TOP_M, SPANDREL_TOP_M + hh, S,
-            {"top": shade(c, hash01(i, 21, 9)),
-             "side": shade(lerp3(c, PAL["wood_d"], 0.4), hash01(i, 21, 2)),
-             "bottom": PAL["stone_x"]})
+    build_coping_slabs(b, rng, -cop_len * 0.5, cop_len * 0.5,
+                       lambda x0, x1: SPANDREL_TOP_M, S,
+                       t_m=WALL_T_M, coping_h_m=COPING_H_M, coping_out_m=COPING_OUT_M,
+                       bay_m=WALL_BAY_M, joint_start=False, joint_end=False,
+                       joint_z=SPANDREL_TOP_M, tile_miss=0.18)
 
 
 def arch_x_at_z(z):
@@ -555,7 +544,7 @@ def build_ivy(b, rng):
     for k in range(IVY_STRANDS):
         side = -1 if k % 2 == 0 else 1
         x = side * rng.uniform(BASE_W_M + 0.2, BASE_W_M + WING_M * 0.95)
-        y = rng.choice([-WALL_T_M * 0.5 - 0.05, WALL_T_M * 0.5 + 0.05])
+        y = rng.choice([-WALL_T_M * 0.5 + 0.05, WALL_T_M * 0.5 - 0.05])
         z_top = rng.uniform(WALL_H_M * 0.70, WALL_H_M)
         z_bot = rng.uniform(0.25, max(0.3, z_top - 0.5))
         for i in range(IVY_SEGS):
@@ -571,7 +560,10 @@ def build_ivy(b, rng):
                     (xx - w * 0.6, y + w * 0.5, zz + 0.11)]
             b.add(leaf, P, shade(c, hash01(xx, zz, 3)))
 
-    # 苔藓块：整块贴在墙面 / 拱面上（一个平面一块色）
+    # 苔藓团：贴 / 长在墙面、拱面上的**一小块一团的苔**（切角石块）。
+    # ⚠️ 旧版是一张**贴在墙上的绿色矩形片** —— 渲染出来就是"贴纸"，
+    #    和两翼矮墙"朝上的面整块长苔"的语汇也对不上。
+    #    现在改成有厚度、有棱角的小苔团，凸出墙面一点点。
     for k in range(MOSS_PATCHES):
         if rng.random() < 0.4:
             # 只贴**拱肩**（|θ| ≈ 54°~72°）：中间那段留给拱形铭文，
@@ -583,17 +575,22 @@ def build_ivy(b, rng):
             # 贴**拱券的面**（拱券比墙面外挑 0.08；贴墙面就整块埋进石头里看不见）
             y = rng.choice([-(WALL_T_M * 0.5 + 0.08), WALL_T_M * 0.5 + 0.08])
             sgn = -0.045 if y < 0 else 0.045
-            w, h = rng.uniform(0.18, 0.28), rng.uniform(0.16, 0.28)
+            w, h = rng.uniform(0.16, 0.26), rng.uniform(0.14, 0.24)
         else:
             side = -1 if rng.random() < 0.5 else 1
             x = side * rng.uniform(BASE_W_M + 0.1, BASE_W_M + WING_M * 0.9)
             z = rng.uniform(PLINTH_M, WALL_H_M - 0.15)
-            y = rng.choice([-WALL_T_M * 0.5, WALL_T_M * 0.5])
+            y = rng.choice([-WALL_T_M * 0.5 + 0.03, WALL_T_M * 0.5 - 0.03])
             sgn = -0.045 if y < 0 else 0.045
-            w, h = rng.uniform(0.22, 0.55), rng.uniform(0.18, 0.45)
+            w, h = rng.uniform(0.18, 0.42), rng.uniform(0.16, 0.36)
         c = lerp3(PAL["moss_d"], PAL["moss_l"], 0.25 + 0.6 * rng.random())
-        box(b, x - w * 0.5, x + w * 0.5, min(y, y + sgn), max(y, y + sgn),
-            z - h * 0.5, z + h * 0.5, P, shade(c, hash01(x, z, 7)))
+        y0, y1 = sorted((y, y + sgn))
+        hewn_block(b, x - w * 0.5, x + w * 0.5, y0, y1,
+                   z - h * 0.5, z + h * 0.5, P,
+                   (lambda base: (lambda n, c_: shade(base, hash01(n.x * 3.1, n.z * 2.7,
+                                                                  c_.x * 5.0))))(c),
+                   chamfer=(0.035, 0.035, 0.030),
+                   yaw=rng.uniform(-25.0, 25.0), tilt=rng.uniform(-20.0, 20.0))
 
     # 墙脚杂草丛（每丛 3~5 片三角叶）
     for k in range(GRASS_TUFTS):

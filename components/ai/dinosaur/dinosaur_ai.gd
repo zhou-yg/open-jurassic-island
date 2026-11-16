@@ -44,6 +44,10 @@ signal target_lost(target: Node3D)
 ## 被打了一下。
 signal damaged(amount: float, attacker: Node3D)
 
+## 恐龙数值的真源：`components/dinosaurs/dinosaur_species_config.gd`（跨组件引用：
+## 配置跟着"恐龙群"组件放，AI 模块只是读它）。
+const SpeciesConfig := preload("res://components/dinosaurs/dinosaur_species_config.gd")
+
 ## 大多少倍才算"威胁"（相对自己的体型）。
 const THREAT_SIZE_RATIO := 1.6
 ## 挨了打之后躲多久（秒）。
@@ -57,6 +61,10 @@ const FLEE_COOLDOWN := 8.0
 ## 身体节点（默认是父节点）。
 @export var body_path: NodePath = ^".."
 ## 调参表。留空会用一份默认的。
+##
+## 场景里不用写数值：进场景时按身体的 `species_id` 从
+## `dinosaur_species_config.gd` 里把这一种的数值写进来
+## （见 [method DinosaurAIConfig.apply_species]）。
 @export var config: DinosaurAIConfig
 ## 关掉就一动不动（当布景用）。
 @export var enabled: bool = true
@@ -91,18 +99,41 @@ var _flee_until: float = 0.0
 var _flee_cooldown: float = 0.0
 ## 卡住看门狗：想走却挪不动多久算卡住（秒）。
 var _stuck_timer: float = 0.0
-## 脱困：往回退的方向 + 还要退多久（秒）。
+## 脱困的阶段（转向 / 前进）。
+var _unstick_phase: int = UnstickPhase.NONE
+## 这次脱困**一直朝哪边转**（+1 / -1）。
+var _unstick_turn_sign: float = 1.0
+## 这次脱困已经转了多少度（累加，只往同一个方向加）。
+var _unstick_turn_angle: float = 0.0
+## 脱困开始时的朝向（转角都相对它算）。
+var _unstick_base_forward: Vector3 = Vector3.FORWARD
+## 脱困：远离障碍的方向（这一轮脱困选转哪边时用）。
 var _unstick_dir: Vector3 = Vector3.ZERO
+## 当前阶段还要走多久（秒）。
 var _unstick_timer: float = 0.0
+
+
+## 脱困的阶段。
+##
+## 流程：**转向 → 前进**；前进完还是卡着，就**朝同一个方向**再转更大的角度，
+## 一直试到能动为止（见 [method behave_unstick]）。
+enum UnstickPhase {
+	NONE,   ## 没在脱困
+	TURN,   ## 转向：先转到"这次要试的朝向"（原地转，不动）
+	DRIVE,  ## 前进：朝转完的方向走一段
+}
 
 
 func _ready() -> void:
 	if config == null:
 		config = DinosaurAIConfig.new()
+	_body = get_node_or_null(body_path) as DinosaurBody
+	# 数值来自 `dinosaur_species_config.gd`（唯一真源）：
+	# 按身体的 species_id 把这一种的参数写进 config。
+	_apply_species_config()
 	_blackboard = DinosaurBlackboard.new(config.max_health)
 	_perception = DinosaurPerception.new()
 	add_child(_perception)
-	_body = get_node_or_null(body_path) as DinosaurBody
 	if _body == null:
 		push_warning("DinosaurAI: 找不到身体节点（%s）" % body_path)
 		return
@@ -112,6 +143,22 @@ func _ready() -> void:
 	_tree = DinosaurBehavior.build(self)
 	_fsm.state_changed.connect(func(from_state: int, to_state: int) -> void:
 		state_changed.emit(from_state, to_state))
+
+
+## 按身体的 `species_id` 从配置里取这一种的数值，写进 [member config]。
+##
+## 找不到这一种（测试用的假恐龙 / JSON 里漏了）就保持默认配置不动。
+func _apply_species_config() -> void:
+	if _body == null or config == null:
+		return
+	var species_id := _body.species_id
+	if species_id.is_empty():
+		return
+	var data: Dictionary = SpeciesConfig.get_species(species_id)
+	if data.is_empty():
+		push_warning("DinosaurAI: 配置里没有种类 '%s'" % species_id)
+		return
+	config.apply_species(data)
 
 
 func _physics_process(delta: float) -> void:
@@ -388,33 +435,92 @@ func behave_patrol(_delta: float) -> int:
 	return BtNode.Status.SUCCESS
 
 
-## 脱困：被树 / 墙 / 石头卡住了，先往后退一下，再回到路线上。
+## 脱困：被树 / 墙 / 石头卡住了怎么办。
 ##
-## 恐龙的身体是**实心的**，被两个障碍夹在中间就动不了。
-## 这时候硬顶是没用的 —— 得先退出来。所以这里记住"上次撞到的法线"，
-## 往反方向退，退出来再换个路点继续走。巡逻因此不会停。
+## ## 流程
+##
+## ```
+## 卡住 ──▶ ① 转向（原地转到"这次要试的朝向"）
+##          ② 前进（朝转完的方向走一小段）
+##             ├─ 走动了 ──▶ 脱困成功，回到巡逻 / 追击
+##             └─ 还是卡 ──▶ ③ 朝**同一个方向**再转更大的角度 ──▶ 回到 ①
+## ```
+##
+## 转角是**累加**的：30° → 60° → 90° …… 一直朝**同一边**转，
+## 直到找到一个能走的方向（最多转满一圈）。
+## 第一次转的方向取"远离障碍的那一侧"（撞到的东西的法线反方向），
+## 所以大多数情况第一下就能绕开。
+##
+## 恐龙的身体是**实心的**（树、墙、石头都撞得到），被顶住就动不了；
+## 硬顶没用，得先换个方向。
 func behave_unstick(delta: float) -> int:
 	_enter(DinosaurStateMachine.State.UNSTICK)
-	if _unstick_timer <= 0.0:
-		# 第一次进来：算一个退出去的方向
-		_unstick_dir = _unstick_direction()
-		_unstick_timer = config.unstick_time
-	_unstick_timer -= delta
-	var dir := _unstick_dir
-	if dir == Vector3.ZERO:
-		dir = -_body.get_forward()
-	# 退的时候不追求"绕开"，只要能离开卡住的地方。
-	# 用**巡逻速度**退：用追击速度退 1.2 s，迅猛龙能倒着蹿出去五六米，
-	# 离路线更远了，反而更容易再卡住。
-	_body.drive(dir, config.patrol_speed_scale)
-	_body.play_state(&"walk")
-	if _unstick_timer <= 0.0:
-		_unstick_timer = 0.0
-		_stuck_timer = 0.0
-		# 换个路点，重新上路
-		if _route().size() >= 2:
-			_advance_route_index()
+	match _unstick_phase:
+		UnstickPhase.NONE:
+			_begin_unstick()
+		UnstickPhase.TURN:
+			# ① 转向：原地转到"这次要试的朝向"（速度给 0 = 只转不挪）
+			_body.drive(_unstick_heading(), 0.0)
+			_body.play_state(&"idle")
+			_unstick_timer -= delta
+			if _unstick_timer <= 0.0:
+				# 转到位了 → ② 前进
+				_unstick_phase = UnstickPhase.DRIVE
+				_unstick_timer = config.unstick_time
+		UnstickPhase.DRIVE:
+			# ② 前进：朝转完的方向走
+			_body.drive(_unstick_heading(), config.patrol_speed_scale)
+			_body.play_state(&"walk")
+			# 走动了 = 脱困成功
+			if _body.velocity.length() > 0.2:
+				_end_unstick()
+				return BtNode.Status.SUCCESS
+			_unstick_timer -= delta
+			if _unstick_timer <= 0.0:
+				# ③ 还是卡着：朝**同一个方向**再转更大的角度，接着试
+				_unstick_turn_angle = fmod(
+						_unstick_turn_angle + config.unstick_turn_step_deg, 360.0)
+				_unstick_phase = UnstickPhase.TURN
+				_unstick_timer = _unstick_turn_time()
 	return BtNode.Status.SUCCESS
+
+
+## 开始一次脱困：定下"朝哪边转"和"第一个要试的角度"。
+func _begin_unstick() -> void:
+	_unstick_base_forward = _body.get_forward()
+	_unstick_dir = _unstick_direction()
+	if _unstick_dir == Vector3.ZERO:
+		_unstick_dir = _unstick_base_forward
+	# 往"障碍的另一侧"转：取有符号夹角，符号就是转的方向
+	var delta := _unstick_base_forward.signed_angle_to(_unstick_dir, Vector3.UP)
+	_unstick_turn_sign = 1.0 if delta >= 0.0 else -1.0
+	# 第一次就转一个步长 —— 照原方向走肯定还是卡着
+	_unstick_turn_angle = fmod(config.unstick_turn_step_deg, 360.0)
+	_unstick_phase = UnstickPhase.TURN
+	_unstick_timer = _unstick_turn_time()
+
+
+## 这次要试的朝向：起始朝向转过"已转角度"（一直朝同一个方向）。
+func _unstick_heading() -> Vector3:
+	return _unstick_base_forward.rotated(Vector3.UP,
+			deg_to_rad(_unstick_turn_angle * _unstick_turn_sign))
+
+
+## 转一个步长要多久（秒）：按恐龙的转向速度算。
+func _unstick_turn_time() -> float:
+	var speed := maxf(1.0, config.turn_speed_deg)
+	return maxf(0.2, config.unstick_turn_step_deg / speed)
+
+
+## 脱困成功：清掉脱困状态，正常行为（巡逻 / 追击）接着上。
+func _end_unstick() -> void:
+	_unstick_phase = UnstickPhase.NONE
+	_unstick_timer = 0.0
+	_unstick_turn_angle = 0.0
+	_stuck_timer = 0.0
+	# 换个路点，别又走回刚才卡住的地方
+	if _route().size() >= 2:
+		_advance_route_index()
 
 
 ## **预留状态**的统一入口：还没实现，先站住。
@@ -583,8 +689,14 @@ func _flee_goal() -> Vector3:
 ##
 ## 恐龙的**身体**是实心的（树、墙、石头都撞得到），所以被顶住是可能的；
 ## 巡逻必须**不间断**，所以这里兜底。
+##
+## ⚠️ **脱困中要放行**：转向阶段速度是 0（原地转），看门狗会误判成
+## "它不打算动了 = 不卡了"，把脱困状态清掉。于是脱困期间直接不碰看门狗 ——
+## 脱困逻辑自己判断"走动了没有"（见 [method behave_unstick]）。
 func _watch_stuck(delta: float) -> void:
 	if _fsm.current == DinosaurStateMachine.State.DEAD:
+		return
+	if _fsm.current == DinosaurStateMachine.State.UNSTICK:
 		return
 	var wants_to_move := _body.get_speed_scale() > 0.1
 	var moving := _body.velocity.length() > 0.2

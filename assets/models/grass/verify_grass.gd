@@ -1,10 +1,15 @@
 extends SceneTree
-# 校验两款草资产的导入结果：顶点色是否接到材质、面数 / 高度 / 落地情况。
+# 校验草资产的导入结果：顶点色是否接到材质、面数 / 高度 / 落地情况。
 # 用法: Godot --headless --script res://assets/models/grass/verify_grass.gd
+#
+# 四款都要查：原版（266 / 260 面）+ 减面版 LOD（48 / 60 面）。
+# LOD 是铺满整座岛用的，面数必须真的降下来（脚本里 `lod_factor` + 段数减半）。
 
 const ASSETS := [
 	"res://assets/models/grass/grass_tuft.glb",
 	"res://assets/models/grass/grass_clump.glb",
+	"res://assets/models/grass/grass_tuft_lod.glb",
+	"res://assets/models/grass/grass_clump_lod.glb",
 ]
 
 

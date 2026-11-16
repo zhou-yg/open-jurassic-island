@@ -100,10 +100,19 @@ static func is_flat(world: World3D, x: float, z: float,
 
 ## 体型 → 领地半径（米）：**恐龙偏好**的核心映射。
 ##
-## 大个子占地多（11 m 的霸王龙拿满额），小个子挤在边上（2.2 m 的迅猛龙
-## 只拿约 1/4）。8.5 m 是"中大型恐龙"的体型，用来归一化。
+## 大个子占地多（17 m 的蜥脚龙拿满额 106 m），小个子挤在边上（2.2 m 的迅猛龙
+## 只拿约 57 m）。
+##
+## 归一化用的是**整个体型区间** [2.2, 17.0]，不是除以一个中间值：
+## 早先除以 8.5 会让 8.5 m 以上（剑龙 / 霸王龙 / 蜥脚龙）**一律顶格**，
+## 体型这一维在上限段完全失效。
+## 数值设计见 requirements/numerical/dinosaur.md §6.1。
+const BODY_SIZE_MIN := 2.2
+const BODY_SIZE_MAX := 17.0
+
 static func territory_radius(body_size: float, radius_min: float, radius_max: float) -> float:
-	return lerpf(radius_min, radius_max, clampf(body_size / 8.5, 0.0, 1.0))
+	var t := (body_size - BODY_SIZE_MIN) / (BODY_SIZE_MAX - BODY_SIZE_MIN)
+	return lerpf(radius_min, radius_max, clampf(t, 0.0, 1.0))
 
 
 ## 绕着一块地转一圈的巡逻路线（世界坐标路点，首尾相接）。

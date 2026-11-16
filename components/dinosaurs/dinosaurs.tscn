@@ -13,37 +13,37 @@
 script = ExtResource("2_species")
 scene = ExtResource("3_trex")
 display_name = "TRex"
-weight = 18.0
+species_id = "t_rex"
 
 [sub_resource type="Resource" id="Resource_tri"]
 script = ExtResource("2_species")
 scene = ExtResource("4_tri")
 display_name = "Triceratops"
-weight = 18.0
+species_id = "triceratops"
 
 [sub_resource type="Resource" id="Resource_steg"]
 script = ExtResource("2_species")
 scene = ExtResource("5_steg")
 display_name = "Stegosaurus"
-weight = 14.0
+species_id = "stegosaurus"
 
 [sub_resource type="Resource" id="Resource_para"]
 script = ExtResource("2_species")
 scene = ExtResource("6_para")
 display_name = "Parasaurolophus"
-weight = 18.0
+species_id = "parasaurolophus"
 
 [sub_resource type="Resource" id="Resource_velo"]
 script = ExtResource("2_species")
 scene = ExtResource("7_velo")
 display_name = "Velociraptor"
-weight = 20.0
+species_id = "velociraptor"
 
 [sub_resource type="Resource" id="Resource_apato"]
 script = ExtResource("2_species")
 scene = ExtResource("8_apato")
 display_name = "Apatosaurus"
-weight = 12.0
+species_id = "apatosaurus"
 
 [node name="Dinosaurs" type="Node3D"]
 script = ExtResource("1_herd")

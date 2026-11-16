@@ -1,7 +1,8 @@
 [gd_scene format=3 uid="uid://r7er3e8mglpa"]
 
 [ext_resource type="Script" uid="uid://c83mhtxwsspmj" path="res://components/dinosaurs/dinosaurs_test.gd" id="2_test"]
-[ext_resource type="Script" path="res://components/dinosaurs/dinosaurs_test_camera.gd" id="3_camera"]
+[ext_resource type="PackedScene" path="res://components/common/god_viewport/god_viewport_camera.tscn" id="3_camera"]
+[ext_resource type="Script" path="res://components/common/god_viewport/god_viewport_capture_button.gd" id="3_capture_btn"]
 [ext_resource type="PackedScene" path="res://components/dinosaurs/dinosaurs.tscn" id="4_herd"]
 [ext_resource type="Script" uid="uid://cc3048etigw3f" path="res://components/dinosaurs/dinosaur_spawn_group.gd" id="5_group"]
 
@@ -117,14 +118,10 @@ sink = 0.3
 max_altitude = 10.0
 boundary_inset = 8.0
 
-[node name="Camera" type="Camera3D" parent="."]
+[node name="Camera" parent="." instance=ExtResource("3_camera")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, -20)
-script = ExtResource("3_camera")
-current = true
-fov = 70.0
-near = 0.05
-far = 12000.0
 start_look_at = Vector3(0, 0, -60)
+min_height = 1.0
 
 [node name="Pillars" type="Node3D" parent="."]
 
@@ -170,6 +167,8 @@ text = "清空柱子 (X)"
 [node name="Mouse" type="Button" parent="TestHUD/Bar"]
 custom_minimum_size = Vector2(130, 0)
 text = "锁定鼠标 (F)"
+toggle_mode = true
+script = ExtResource("3_capture_btn")
 
 [node name="Crosshair" type="Label" parent="TestHUD"]
 visible = false

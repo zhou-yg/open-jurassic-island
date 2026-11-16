@@ -62,7 +62,7 @@ components/ai/dinosaur/
 | `ATTACK` | 停下面向目标，播攻击动画、发 `attacked` 信号 | 目标跑远 → `CHASE`；跟丢 → `INVESTIGATE` |
 | `FLEE` | 往反方向跑 | 逃够 `FLEE_DURATION` 秒 → `PATROL` |
 | `DEAD` | 播死亡动画，停 | —— |
-| `UNSTICK` | 往后退一下脱困 | 退够了 → `PATROL` |
+| `UNSTICK` | **转向 → 前进**脱困：先原地转一个角度，再朝转完的方向走 | 走动了 → `PATROL`；还是卡 → 继续朝**同一个方向**转更大的角度再试 |
 
 ## ⚠️ 朝向：Godot 的前方是 **-Z**
 
@@ -129,9 +129,38 @@ query.collision_mask = LAYER_VEGETATION | LAYER_STRUCTURE | LAYER_WORLD
 - **卡住看门狗**：想走却挪不动超过 2.5 秒 → 换个路点 / 换个目标。
   玩家站在路中间也不会把巡逻卡死。
 
+## 卡住了怎么办：转向 → 前进 → 再转更大的角度
+
+恐龙的**身体是实心的**（树、墙、石头都撞得到），被顶住就动不了。
+硬顶没用 —— 得**换个方向**走。脱困（`UNSTICK`）就是这么一套：
+
+```
+卡住 ──▶ ① 转向：原地转到"这次要试的朝向"（不动）
+         ② 前进：朝转完的方向走一小段（unstick_time）
+            ├─ 走动了 ──▶ 脱困成功，换个路点，回到巡逻 / 追击
+            └─ 还是卡 ──▶ ③ 朝**同一个方向**再转一个步长 ──▶ 回到 ①
+```
+
+转角是**累加**的：30° → 60° → 90° …… 一直朝**同一边**转，
+最多转满一圈（每个方向都试一遍，总能找到一个能走的方向）。
+
+第一次转的方向不是随机的 —— 取"撞到的东西的法线反方向"那一侧，
+所以大多数情况一下就绕开了。
+
+| 参数 | 作用 | 默认 |
+| --- | --- | --- |
+| `stuck_timeout` | 想走却挪不动多久算卡住（秒） | 2.0 |
+| `unstick_turn_step_deg` | 一次转多少度（步长） | 30 |
+| `unstick_time` | 每次"前进"试多久（秒） | 1.2 |
+
 ## 调参表 `DinosaurAIConfig`
 
-每种恐龙一份（内嵌在各自的场景里当子资源）。改数值就能改性格：
+每种恐龙一份。**数值真源是 `components/dinosaurs/dinosaur_species_config.gd`**（不是场景里的子资源了）：
+场景里只留模型、碰撞胶囊和 `species_id`，进场景时 AI 按 `species_id` 去配置里
+把这一种的数值读进来（见 `DinosaurAIConfig.apply_species()` /
+`components/dinosaurs/dinosaur_species_config.gd`）。改数值只改这一个文件，不用碰场景。
+
+下面这张表是配置的可读版本（设计意图见 `requirements/numerical/dinosaur.md`）：
 
 | 参数 | 作用 | 霸王龙 | 迅猛龙 |
 | --- | --- | --- | --- |
@@ -144,14 +173,15 @@ query.collision_mask = LAYER_VEGETATION | LAYER_STRUCTURE | LAYER_WORLD
 | `investigate_time` | 调查最多花多久 | 8 s | 8 s |
 | `rest_time` | 歇多久再接着巡逻 | 6 s | 6 s |
 | `patrol_speed_scale` | 巡逻速度倍率 | 1.0 | 1.0 |
-| `chase_speed_scale` | 追击速度倍率 | 1.45 | 1.9 |
+| `chase_speed_scale` | 追击速度倍率 | 1.5 | 1.9 |
 | `attack_range` | 够多近才动手 | 4.2 m | 2.4 m |
 | `attack_damage` | 伤害 | 24 | 7 |
 | `max_health` | 血量 | 140 | 45 |
 | `flee_health_ratio` | 血量低于多少就跑 | 0.25 | 0.5 |
 | `body_size` | 体型（比大小用） | 11 m | 2.2 m |
-| `threat_radius` | 多近会怕大个子 | 12 m | 10 m |
+| `threat_radius` | 多近会怕大个子 | 12 m | 6 m |
 | `turn_speed_deg` | 转向速度 | 40°/s | 90°/s |
+| `unstick_turn_step_deg` | 脱困时一次转多少度 | 30° | 30° |
 
 ## 碰撞层
 
@@ -211,6 +241,32 @@ AI 盯着**组**里的节点（`config.target_group`，默认 `"player"`）。
 听觉是"目标跑得快就算有声音"：感知读目标的 `velocity`，
 跑得越快声音传得越远（`noise_speed_threshold` / `noise_reach_scale`）。
 玩家冲刺会被远处的恐龙听见。
+
+### 建筑目标（玩家盖的房子）
+
+玩家用工具盖的房子要能被恐龙拆，就多了一条"盯建筑"的通道：
+
+```gdscript
+# 每种恐龙的 DinosaurAIConfig 里填：
+config.structure_target_group = "dinosaur_structure"
+
+# 房子加进这个组，就会被恐龙盯上
+building.add_to_group("dinosaur_structure")
+```
+
+感知会把**两个组**的目标放一起比，谁近盯谁。
+留空（默认）就只追玩家，行为跟以前一模一样。
+
+建筑是实心的，所以有两个坑，AI 里都处理了：
+
+| 坑 | 现象 | 处理 |
+| --- | --- | --- |
+| 建筑挡住自己的视线 | 射向建筑的那条线**先打到建筑自己**，恐龙永远看不见它 | 视线射线**排除目标自己的刚体**（`DinosaurPerception._has_line_of_sight`） |
+| 避障把目标也躲开 | 恐龙**围着房子转圈**，永远靠不上去 | 避障射线**忽略当前目标**（`DinosaurSteering.compute` 的 `ignore`） |
+
+攻击生效：`behave_attack` 挥嘴时除了发 `attacked` 信号，
+还会对目标调 `take_damage(伤害, 攻击者)` —— 目标实现了这个方法就会掉血
+（测试场里的红色建筑就是这么被啃塌的）。
 
 ## 用法
 

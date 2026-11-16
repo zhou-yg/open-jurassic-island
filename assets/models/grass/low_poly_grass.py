@@ -4,11 +4,14 @@
 #   blender --background --python low_poly_grass.py                 # 两款都生成
 #   blender --background --python low_poly_grass.py -- tuft         # 只生成尖叶草墩
 #   blender --background --python low_poly_grass.py -- clump        # 只生成圆润灌木草
+#   blender --background --python low_poly_grass.py -- lod          # 额外生成减面版 (LOD)
 #   blender --background --python low_poly_grass.py -- --nopreview  # 不渲染预览图
 #
 # 产物（写入 assets/models/grass/）:
 #   grass_tuft.blend  / grass_tuft.glb  / grass_tuft_preview.png
 #   grass_clump.blend / grass_clump.glb / grass_clump_preview.png
+#   grass_tuft_lod.blend  / grass_tuft_lod.glb  / grass_tuft_lod_preview.png   (加 lod 时)
+#   grass_clump_lod.blend / grass_clump_lod.glb / grass_clump_lod_preview.png  (加 lod 时)
 #
 # ---------------------------------------------------------------------------
 # 造型说明（对着参考图做的，两款都刻意做得非常简单）
@@ -237,6 +240,7 @@ STYLES = {
     # 左图：尖叶草墩 —— 细长、尖锐、向上抽
     "tuft": dict(
         object_name="GrassTuft",
+        stem="grass_tuft",
         stops=TUFT_STOPS,
         segs=4, fold=0.50, width_scale=1.0, ao_span=0.45,
         # (数量, 根半径min, 根半径max, 倾角min, 倾角max, 叶长min, 叶长max, 半宽)
@@ -245,11 +249,12 @@ STYLES = {
             (7, 0.045, 0.090, 26.0, 44.0, 0.52, 0.68, 0.030),
             (5, 0.075, 0.120, 54.0, 76.0, 0.30, 0.48, 0.026),
         ],
-        twist=44.0, seed=11,
+        twist=44.0, seed=11, lod_factor=0.45,
     ),
     # 右图：圆润灌木草 —— 短宽、圆钝、团成一坨
     "clump": dict(
         object_name="GrassClump",
+        stem="grass_clump",
         stops=CLUMP_STOPS,
         segs=3, fold=0.52, width_scale=1.0, ao_span=0.50,
         layers=[
@@ -259,9 +264,48 @@ STYLES = {
             (8, 0.062, 0.100, 38.0, 58.0, 0.26, 0.36, 0.080),
             (6, 0.082, 0.118, 60.0, 78.0, 0.24, 0.34, 0.070),   # 外圈下垂裙摆
         ],
-        twist=70.0, seed=23,
+        twist=70.0, seed=23, lod_factor=0.33,
     ),
 }
+
+
+# ---------------------------------------------------------------------------
+# 减面版（LOD）—— 铺满一整座岛时用
+# ---------------------------------------------------------------------------
+# 一丛草要重复几千上万次，所以面数直接乘以实例数：
+# 原版 266 / 260 三角面 → 减面版 **48 / 48**，降到 **1/5.5**。
+#
+# 减面的手法（不动造型逻辑，只砍量）：
+#   1. **沿叶长的段数 4→2 / 3→2**：每片叶子从 4~5 圈环带变成 2 圈，
+#      三角面 14 → 6。这一步收益最大，而且叶子的"V 形折痕"还在
+#      （折痕是截面造型，不是段数给的）。
+#   2. **每层根数砍掉一半**：轮廓靠"外圈那一层"撑，少一半会稀，
+#      所以**半宽同时加宽 20~25%**（width_scale）—— 少而宽，
+#      远看还是一丛草，近看也还有体积。
+#   3. 颜色分层（长度渐变 / 折痕明暗 / 根部 AO / 单叶随机 / 面向打光）
+#      原样保留：减面之后面变少，正是最需要靠颜色撑层次的时候。
+def _lod_style(cfg):
+    """从完整款式派生减面版（LOD）。"""
+    out = dict(cfg)
+    out["object_name"] = cfg["object_name"] + "Lod"
+    out["stem"] = cfg["stem"] + "_lod"
+    out["segs"] = 2                       # 段数减半 —— 面数砍到 ~1/2.3
+    out["width_scale"] = cfg["width_scale"]   # 宽度补偿放在每层的半宽上
+    out["seed"] = cfg["seed"] + 41        # 换随机种子，形状别和原版一样
+    out["layers"] = []
+    factor = cfg.get("lod_factor", 0.45)
+    for (count, r0, r1, l0, l1, h0, h1, hw) in cfg["layers"]:
+        n = max(2, int(round(count * factor)))
+        # 根半径放大 1.55 倍 —— **铺满地面靠的是这个**
+        # 减面之后叶片少了，全都挤在原来那一小圈里，互相叠着：
+        # 一丛 8 片叶子占地 0.25 m²，但叶子的投影加起来有 0.4 m² —— 一半是浪费的。
+        # 把根摊开，一丛就盖住更大一块地，同样的实例数覆盖率翻倍。
+        out["layers"].append((n, r0 * 1.55, r1 * 1.55, l0, l1, h0, h1, hw * 1.40))
+    # 最外层（倒伏裙摆）保留至少 2 片，否则剪影会缺一圈
+    if len(out["layers"]) >= 3:
+        c, r0, r1, l0, l1, h0, h1, hw = out["layers"][-1]
+        out["layers"][-1] = (max(2, c), r0, r1, l0, l1, h0, h1, hw)
+    return out
 
 
 def build_style(cfg):
@@ -316,8 +360,7 @@ def build_style(cfg):
 # ==================== 导出 ====================
 def export_style(cfg, render=True):
     obj = build_style(cfg)
-    name = cfg["object_name"]
-    stem = "grass_%s" % ("tuft" if name == "GrassTuft" else "clump")
+    stem = cfg["stem"]
 
     blend_path = os.path.join(OUT_DIR, stem + ".blend")
     bpy.ops.wm.save_as_mainfile(filepath=blend_path)
@@ -420,10 +463,14 @@ def render_preview(out_path, span_ratio=0.85, shot_count=4):
 def main():
     argv = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
     do_render = "--nopreview" not in argv
+    do_lod = "lod" in argv
     keys = [a for a in argv if a in STYLES]
     for key in (keys or list(STYLES.keys())):
         clear_scene()
         export_style(STYLES[key], render=do_render)
+        if do_lod:
+            clear_scene()
+            export_style(_lod_style(STYLES[key]), render=do_render)
 
 
 if __name__ == "__main__":

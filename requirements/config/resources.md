@@ -1,36 +1,36 @@
-# resources
+# 资源
 
-config/resource-items.gd
+`config/resource-items.gd`
 
 > [!NOTE]
-> All numeric values (amounts, capacities, ...)
-> (`class_name ResourceConfig`, pure static data).
-> This document describes the design intent; the config is the source of truth.
+> 所有数值（数量、容量……）都在
+> `class_name ResourceConfig`（纯静态数据）里。
+> 本文档只描述设计意图；配置是唯一事实来源。
 
-enable Player pick it from the ground or other ways
+允许玩家从地面拾取，或通过其他方式获得
 
-there are types of items:
+道具分为以下类型：
 
-- food
-- resources
-- stone
+- 食物
+- 资源
+- 石头
 
-## stone fragments
+## 石料碎片
 
-different capacities
+容量不同
 
 - 10
 - 50
 - 100
 
-## wood fragments
+## 木材碎片
 
-same above
+同上
 
-## food
+## 食物
 
-just banana
+只有香蕉
 
-- 1 
+- 1
 - 2
 - 5

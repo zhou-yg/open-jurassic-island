@@ -37,6 +37,7 @@ func _run_all() -> void:
 	_test_regenerate_and_clear()
 	_test_map_extent_parameters()
 	_test_split_blocks_config()
+	_test_road_width()
 
 	print("=== 检查项 %d，失败 %d ===" % [_checks, _failures])
 	if _failures == 0:
@@ -226,16 +227,20 @@ func _test_component_default() -> void:
 	map.generate_with_seed(20260101)
 	var elapsed := float(Time.get_ticks_msec() - started)
 
-	var cell_total: int = map.get_map_size().x * map.get_map_size().y
+	var road: int = map.road_width
+	var road_cell_total: int = map.get_map_size().x * map.get_map_size().y
+	var unit_grid := map.get_unit_grid_size()
+	var unit_total: int = unit_grid.x * unit_grid.y
 	_check(map.get_maze() != null, "固定种子重新生成成功")
-	# 第一趟铺满地板：所有格子都有地板
-	_check(_child_count(map, &"Floors") == cell_total,
-		"地板铺满所有格子（%d）" % cell_total)
-	# 第二趟在地板上摆墙：墙数 = 墙壁格数，且墙与地板都有
+	# 第一趟铺满地板：每个物理单元都有地板
+	_check(_child_count(map, &"Floors") == unit_total,
+		"地板铺满所有单元（%d）" % unit_total)
+	# 第二趟在地板上摆墙：墙数 = 墙壁格数 × 道路宽²，且墙与地板都有
 	var wall_cell_count: int = map.get_maze().get_wall_cells().size()
-	_check(_child_count(map, &"Walls") == wall_cell_count,
-		"墙壁数量 = 墙壁格数（%d）" % wall_cell_count)
-	_check(_child_count(map, &"Walls") > 0 and wall_cell_count < cell_total,
+	var wall_unit_count: int = wall_cell_count * road * road
+	_check(_child_count(map, &"Walls") == wall_unit_count,
+		"墙壁数量 = 墙壁格数 × 道路宽²（%d）" % wall_unit_count)
+	_check(_child_count(map, &"Walls") > 0 and wall_cell_count < road_cell_total,
 		"墙壁格同时也是地板格，两者不是互斥关系")
 	_check(_child_count(map, &"Entrances") == 4, "入口标记 4 个")
 	_check(_child_count(map, &"Exits") == 1, "出口标记 1 个")
@@ -270,7 +275,9 @@ func _test_component_default() -> void:
 	if not wall_cells.is_empty():
 		sampled_cells.append(wall_cells[0])
 	for cell in sampled_cells:
-		var floor_node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [cell.x, cell.y]))
+		# 道路格展开成 road_width × road_width 个单元，单元编号从该道路格左上角开始。
+		var unit_cell := Vector2i(cell.x * road, cell.y * road)
+		var floor_node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [unit_cell.x, unit_cell.y]))
 		_check(floor_node != null, "格 %s 铺了地板" % cell)
 		var floor_box := floor_node as CSGBox3D
 		if floor_box != null:
@@ -359,24 +366,26 @@ func _test_two_pass_layering() -> void:
 	map.set_map_size_in_cells(Vector2i(20, 20))
 	map.generate_with_seed(4242)
 	var maze := map.get_maze()
-	var cell_total: int = map.get_map_size().x * map.get_map_size().y
+	var road: int = map.road_width
+	var unit_grid := map.get_unit_grid_size()
+	var unit_total: int = unit_grid.x * unit_grid.y
 
 	# 1. 每一格都有地板，包括墙壁格
 	var floors := map.get_node(NodePath("Floors"))
 	var walls := map.get_node(NodePath("Walls"))
 	var missing_floor: int = 0
 	var checked_wall_floors: int = 0
-	for y in map.get_map_size().y:
-		for x in map.get_map_size().x:
-			var cell := Vector2i(x, y)
-			var floor_node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [cell.x, cell.y]))
+	for y in unit_grid.y:
+		for x in unit_grid.x:
+			var unit_cell := Vector2i(x, y)
+			var floor_node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [unit_cell.x, unit_cell.y]))
 			if floor_node == null:
 				missing_floor += 1
-			elif maze.is_wall(cell):
+			elif maze.is_wall(Vector2i(x / road, y / road)):
 				checked_wall_floors += 1
-	_check(_child_count(map, &"Floors") == cell_total, "地板覆盖全部 %d 格" % cell_total)
+	_check(_child_count(map, &"Floors") == unit_total, "地板覆盖全部 %d 格" % unit_total)
 	_check(missing_floor == 0, "没有缺失的地板格（缺失 %d）" % missing_floor)
-	_check(checked_wall_floors == maze.get_wall_cells().size(),
+	_check(checked_wall_floors == maze.get_wall_cells().size() * road * road,
 		"每个墙壁格都铺了地板（%d 格）" % checked_wall_floors)
 
 	# 2. 墙壁立在地板顶面上：墙底不高于 y = 0，墙顶高于 y = 0
@@ -414,10 +423,11 @@ func _test_regenerate_and_clear() -> void:
 	var first_seed: int = map.get_last_seed()
 	map.generate_with_seed(2)
 	_check(map.get_last_seed() == 2 and first_seed == 1, "重新生成会更新种子")
-	var cell_total: int = 14 * 14
-	_check(_child_count(map, &"Floors") == cell_total,
-		"重新生成后地板仍铺满 %d 格（不累积）" % cell_total)
-	_check(_child_count(map, &"Walls") == map.get_maze().get_wall_cells().size(),
+	var unit_grid := map.get_unit_grid_size()
+	var unit_total: int = unit_grid.x * unit_grid.y
+	_check(_child_count(map, &"Floors") == unit_total,
+		"重新生成后地板仍铺满 %d 格（不累积）" % unit_total)
+	_check(_child_count(map, &"Walls") == map.get_maze().get_wall_cells().size() * map.road_width * map.road_width,
 		"重新生成后墙壁数量 = 墙壁格数")
 	map.clear()
 	_check(map.get_maze() == null, "clear() 清空地图数据")
@@ -434,44 +444,48 @@ func _test_map_extent_parameters() -> void:
 	_section("尺寸参数：地图总长度 / 地图总宽度")
 	var probe := RandomMap.new()
 	probe.auto_generate = false
+	var road: int = probe.road_width
 
 	probe.cell_size = Vector2.ONE
 	probe.map_length = 48.0
 	probe.map_width = 32.0
-	_check(probe.get_map_size() == Vector2i(48, 32),
-		"48m x 32m（1m 单元）→ 48 x 32 格（实际 %s）" % probe.get_map_size())
+	_check(probe.get_map_size() == Vector2i(24, 16),
+		"48m x 32m（1m 单元 / 路宽 %d）→ 24 x 16 道路格（实际 %s）"
+		% [road, probe.get_map_size()])
+	_check(probe.get_unit_grid_size() == Vector2i(48, 32),
+		"物理单元网格 = 道路格数 × 路宽（实际 %s）" % probe.get_unit_grid_size())
 	_check(probe.get_actual_map_size().is_equal_approx(Vector2(48, 32)),
 		"实际总尺寸 = 48m x 32m（实际 %s）" % probe.get_actual_map_size())
 
 	probe.cell_size = Vector2(1.5, 1.5)
-	_check(probe.get_map_size() == Vector2i(32, 21),
-		"换成 1.5m 单元后格子数随之变化（实际 %s）" % probe.get_map_size())
-	_check(probe.get_actual_map_size().is_equal_approx(Vector2(48, 31.5)),
-		"总宽 32m 取整后实际 31.5m（实际 %s）" % probe.get_actual_map_size())
+	_check(probe.get_map_size() == Vector2i(16, 11),
+		"换成 1.5m 单元后道路格数随之变化（实际 %s）" % probe.get_map_size())
+	_check(probe.get_actual_map_size().is_equal_approx(Vector2(48, 33)),
+		"总宽 32m 取整后实际 33m（实际 %s）" % probe.get_actual_map_size())
 
 	probe.map_length = 10.0
 	probe.map_width = 10.0
-	_check(probe.get_map_size() == Vector2i(7, 7),
-		"10m / 1.5m 四舍五入为 7 格（实际 %s）" % probe.get_map_size())
-	_check(is_equal_approx(probe.get_actual_map_size().x, 10.5),
-		"实际总长度 = 10.5m（实际 %.2f）" % probe.get_actual_map_size().x)
+	_check(probe.get_map_size() == Vector2i(5, 5),
+		"10m / 1.5m 不足 5 个道路格时取最小值（实际 %s）" % probe.get_map_size())
+	_check(is_equal_approx(probe.get_actual_map_size().x, 15.0),
+		"实际总长度 = 5 道路格 × 3m = 15m（实际 %.2f）" % probe.get_actual_map_size().x)
 
 	probe.cell_size = Vector2.ONE
 	probe.map_length = 1.0
 	probe.map_width = 1.0
 	_check(probe.get_map_size() == Vector2i(5, 5),
-		"总长 / 总宽过小时至少 5 格（实际 %s）" % probe.get_map_size())
-	_check(probe.get_actual_map_size() == Vector2(5, 5), "最小时实际总尺寸 = 5m x 5m")
+		"总长 / 总宽过小时至少 5 个道路格（实际 %s）" % probe.get_map_size())
+	_check(probe.get_actual_map_size() == Vector2(10, 10), "最小时实际总尺寸 = 10m x 10m")
 
 	probe.set_map_size_in_cells(Vector2i(20, 10))
-	_check(probe.map_length == 20.0 and probe.map_width == 10.0,
-		"按格子数设置会换算成总长 20m / 总宽 10m（实际 %.1f / %.1f）"
+	_check(probe.map_length == 40.0 and probe.map_width == 20.0,
+		"按道路格数设置会换算成总长 40m / 总宽 20m（实际 %.1f / %.1f）"
 		% [probe.map_length, probe.map_width])
 	_check(probe.get_map_size() == Vector2i(20, 10),
-		"按格子数设置后格子数正确（实际 %s）" % probe.get_map_size())
+		"按道路格数设置后道路格数正确（实际 %s）" % probe.get_map_size())
 	probe.free()
 
-	# 实际几何：24m x 18m + 1.5m 单元 → 16 x 12 格，占地范围应正好是 24m x 18m
+	# 实际几何：24m x 18m + 1.5m 单元 → 16 x 12 单元，占地范围应正好是 24m x 18m
 	var map := _spawn_map()
 	if map == null:
 		_check(false, "组件实例化成功")
@@ -480,12 +494,13 @@ func _test_map_extent_parameters() -> void:
 	map.map_length = 24.0
 	map.map_width = 18.0
 	map.generate_with_seed(20260101)
-	_check(map.get_map_size() == Vector2i(16, 12),
-		"24m x 18m（1.5m 单元）→ 16 x 12 格（实际 %s）" % map.get_map_size())
+	_check(map.get_map_size() == Vector2i(8, 6),
+		"24m x 18m（1.5m 单元 / 路宽 %d）→ 8 x 6 道路格（实际 %s）"
+		% [road, map.get_map_size()])
 	_check(_child_count(map, &"Floors") == 16 * 12,
-		"地板数量 = 格子总数（%d）" % (16 * 12))
-	_check(_child_count(map, &"Walls") == map.get_maze().get_wall_cells().size(),
-		"墙壁数量 = 墙壁格数（%d）" % map.get_maze().get_wall_cells().size())
+		"地板数量 = 物理单元总数（%d）" % (16 * 12))
+	_check(_child_count(map, &"Walls") == map.get_maze().get_wall_cells().size() * road * road,
+		"墙壁数量 = 墙壁格数 × 路宽²（%d）" % map.get_maze().get_wall_cells().size())
 	var bounds := _unit_bounds(map)
 	_check(
 		is_equal_approx(bounds.position.x, -12.0) and is_equal_approx(bounds.end.x, 12.0),
@@ -549,7 +564,78 @@ func _test_split_blocks_config() -> void:
 			"seed=%d 放宽阈值后地图仍然连通" % seed)
 
 
+## ---------------- 11. 道路宽度参数 ----------------
+
+func _test_road_width() -> void:
+	_section("道路宽度参数")
+	var map := _spawn_map()
+	if map == null:
+		_check(false, "组件实例化成功")
+		return
+	_check(map.road_width == 2, "默认道路宽度 = 2（实际 %d）" % map.road_width)
+
+	map.cell_size = Vector2(1.5, 1.5)
+	map.map_length = 24.0
+	map.map_width = 18.0
+	map.generate_with_seed(20260101)
+	_check(map.get_maze().size == map.get_map_size(),
+		"迷宫布局网格 = 道路格网格（实际 %s / %s）" % [map.get_maze().size, map.get_map_size()])
+	_check(map.get_map_size() == Vector2i(8, 6),
+		"路宽 2 时 24m x 18m（1.5m 单元）→ 8 x 6 道路格（实际 %s）" % map.get_map_size())
+	_check(map.get_unit_grid_size() == Vector2i(16, 12),
+		"路宽 2 时物理单元网格 = 16 x 12（实际 %s）" % map.get_unit_grid_size())
+	var wide_span := _road_floor_span(map)
+	_check(is_equal_approx(wide_span.x, 3.0) and is_equal_approx(wide_span.y, 3.0),
+		"道路宽 = 2 × cell_size = 3m（实际 %.2f x %.2f）" % [wide_span.x, wide_span.y])
+
+	# 路宽 1：恢复成"1 格 = 1 单元"的老行为
+	map.road_width = 1
+	_check(map.get_map_size() == Vector2i(16, 12),
+		"路宽 1 时道路格数 = 单元数（实际 %s）" % map.get_map_size())
+	_check(map.get_unit_grid_size() == Vector2i(16, 12),
+		"路宽 1 时单元网格不变（实际 %s）" % map.get_unit_grid_size())
+	map.generate_with_seed(20260101)
+	var narrow_span := _road_floor_span(map)
+	_check(is_equal_approx(narrow_span.x, 1.5) and is_equal_approx(narrow_span.y, 1.5),
+		"路宽 1 时道路宽 = 1 × cell_size = 1.5m（实际 %.2f x %.2f）"
+		% [narrow_span.x, narrow_span.y])
+
+	# 路宽 3：道路格更少，地图总尺寸按整格取整
+	map.road_width = 3
+	_check(map.get_map_size() == Vector2i(5, 5),
+		"路宽 3 时 24m x 18m → 至少 5 个道路格（实际 %s）" % map.get_map_size())
+	_check(map.get_actual_map_size().is_equal_approx(Vector2(22.5, 22.5)),
+		"路宽 3 时总尺寸 = 5 × 4.5m = 22.5m（实际 %s）" % map.get_actual_map_size())
+	_free_map(map)
+
+
 ## ---------------- 工具函数 ----------------
+
+## 某条道路（空地道路格）的实际宽度（米）：它所有单元地板的包围盒尺寸。
+func _road_floor_span(map: RandomMap) -> Vector2:
+	var floors := map.get_node(NodePath("Floors"))
+	for y in map.get_map_size().y:
+		for x in map.get_map_size().x:
+			var cell := Vector2i(x, y)
+			if map.is_wall(cell):
+				continue
+			var minimum := Vector2(INF, INF)
+			var maximum := Vector2(-INF, -INF)
+			for j in map.road_width:
+				for i in map.road_width:
+					var unit_cell := Vector2i(x * map.road_width + i, y * map.road_width + j)
+					var node := floors.get_node_or_null(NodePath("Floor_%d_%d" % [unit_cell.x, unit_cell.y]))
+					var box := node as CSGBox3D
+					if box == null:
+						continue
+					minimum.x = minf(minimum.x, box.position.x - box.size.x * 0.5)
+					maximum.x = maxf(maximum.x, box.position.x + box.size.x * 0.5)
+					minimum.y = minf(minimum.y, box.position.z - box.size.z * 0.5)
+					maximum.y = maxf(maximum.y, box.position.z + box.size.z * 0.5)
+			if maximum.x > minimum.x:
+				return maximum - minimum
+	return Vector2.ZERO
+
 
 func _spawn_map(auto: bool = false) -> RandomMap:
 	if MAP_SCENE == null:

@@ -37,6 +37,32 @@ components/island
   脚本不是 `@tool`，编辑器里开关不生效，于是"编辑器里一堆巨树、跑起来全没了"。
   拆成两个场景之后，编辑器看到的和跑起来的一致，也不需要隐藏逻辑了
 
+components/island-grass/
+- **岛屿植被地面**组件（底板 + 铺满的草 + 摇曳），细节见
+  `components/island-grass/README.md`
+- 底板 `assets/models/grass/island_grass_base.glb` 的上表面**和岛面同形**
+  （轮廓直接抄自 `sky-island-basic.glb` 的 `Cubo_44-col` 台面，56 个点，
+  实测偏差 0.85 mm）—— 一根草都不会长到岛外
+- **宽可设、长按固定比例**：`长度 = 宽 × 1.03645`（岛面自己的长宽比）。
+  改宽时整块底板**等比**缩放，"和岛面同形"永远成立
+- 草用**减面版**（`grass_tuft_lod` 48 面 / `grass_clump_lod` 60 面，
+  原版 266 / 260），两种草**不混个体**：按"片"分配类型，
+  每片全是同一种草、片与片棋盘式交错
+- 摇曳走 `components/island-grass/grass_sway.gdshader`（顶点位移 + 每株独立相位）
+- 测试场：`components/island-grass/island_grass_test.tscn`（岛 + 底板 + 草 + 公共相机 + HUD），
+  `1~4` 切宽度预设、`Z`/`X` 调密度、`R` 换种子、`G` 染色看交错、`C` 摇曳、`T` 地形
+
+components/common/god_viewport/
+- **公共测试视口**：所有测试场共用的"管理员视角"（自由飞行 + 环顾 + 鼠标锁定）
+- `god_viewport_camera.tscn` —— 相机（`class_name GodViewportCamera`），
+  `↑↓←→` 前后左右 / `Space` `Ctrl` 升降 / `Shift` 加速 / 右键拖动转视角 / `F` 锁鼠标
+- `god_viewport_capture_button.gd` —— HUD 上的「锁定鼠标 (F)」按钮，
+  挂上就自动和相机联动（**不用写接线**）；准星节点名必须叫 `Crosshair`
+- 相机启动会进 `god_viewport_camera` 组，按钮靠组找它
+- 现在谁在用：`components/dinosaurs/dinosaurs_test.tscn`、
+  `components/island-grass/island_grass_test.tscn`
+- ⚠️ 改公共组件前先看这两个测试场 —— 改坏了两个都跑不起来
+
 components/dinosaurs
 - **恐龙群组件**：按数量把恐龙放进场景，巡逻路线按碰撞 + 习性**运行时算**
 - 入参：`initial_count`（数量）、`pool`（内置池）、`spawn_groups`（多个出生点组）
@@ -116,7 +142,7 @@ scenes-3d/jurassic-island/
 | 草丛 | 0.77 m 高（×0.85~1.55 缩放） | 0.5× | 齐腰 |
 | 草簇 | 0.41 m 高 | 0.3× | 贴地 |
 | 石头 | 2.92 × 1.34 × 2.55 m | 0.9× | 齐胸的大石头 |
-| 残墙 | 2.90 × 2.25 × 0.99 m | 1.5× | 一段 2.9 m |
+| 残墙 | 2.90 × 2.25 × 1.54 m | 1.5× | 一段 2.9 m（厚度**含墙脚碎石堆**） |
 | 园区大门 | 6.34 × 3.74 m | 4.2× | 原模型 10.56 × 6.24 m，**缩到 60%** |
 | 碎石 | 1.82 × 0.46 × 1.90 m | 0.3× | 塌口碎石 |
 | 霸王龙 | 11 m 长 / 胶囊 r1.1 | 7.3× | `t_rex.tscn` |
@@ -158,6 +184,14 @@ scenes-3d/jurassic-island/
 > 世界短暂地跑过一版自己的绿色地表层（709 块 `plain_terrain`），也因为
 > "跟岩台只差 0.5 m、却多一层碰撞 + 一层绘制"删掉了。
 > **现在岛面就只有岩台**，树 / 草 / 石 / 恐龙 / 玩家都直接站在上面。
+
+**（2026-11 新增）可选的植被地面层**：`components/island-grass/island-grass-base.tscn`
+是一块**和岛面同形**的绿色底板 + 铺满的草（带摇曳）。
+它**不改地形**、**不自带碰撞**（碰撞还是岩台那份），只是"长草的那层土"——
+和当年删掉的旧草毯不一样，它的轮廓是**逐点抄岩台**的（56 点，偏差 0.85 mm），
+所以不会再出现"草长到岛外"的问题。
+它**没有**被实例化进 `island.tscn` / `terrain.tscn`，要用自己拖进去。
+细节见 `components/island-grass/README.md`。
 
 **改地面之后必须重烘的东西**（全都在地面上摆着）：
 
