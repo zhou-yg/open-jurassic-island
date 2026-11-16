@@ -74,6 +74,28 @@ components/vegetation
   - 恐龙：**每种一个 .tscn**（`t_rex.tscn` / `triceratops.tscn` / …），
     每个场景里带模型、体型、胶囊和 AI 节点
 
+components/banana-tree
+- **可采集香蕉树**：`gatherable_banana_tree.tscn` —— 树上剩多少根香蕉就显示多少
+  （树顶一个 `Label3D` 写"香蕉 × N"），走近按 `E`（输入动作 `interact`）采走
+- **香蕉是场景里固定的 10 个节点**（`banana_0` … `banana_9`，各是一根
+  `banana.glb` 的实例），摆在假茎上绕一圈；脚本只切它们的 `visible`，
+  **不生成、不摆位置** —— 所以一棵树**最多 10 根**
+- 挂果位位置：高度 **2.25 m**、半径 **0.30 m**、每 **36°** 一个
+  （圆心按该高度处假茎的中轴算，假茎是弯的）
+  - 为什么不是 3.26 m（假茎顶）：**2.5 m 以上是密实的叶冠**
+    （实测叶片最近半径只有 0.03~0.15 m），挂在那儿会被叶子埋掉
+  - 树模型直接用 `assets/models/banana-tree-tall/low_poly_banana_tree.glb`，
+    **不再用 `BananaTree` 摆果串**
+- **记账在 `res://config/resources.gd`**：`ResourcesConfig.add_collected_bananas(n)`
+  累加全局采集数，并同步到全局资源池（`autoloads/data/resources.gd` 的 "banana"）
+- 测试场：`components/banana-tree/gatherable_banana_tree_test.tscn`
+  （一排 5 棵树，数量 0/2/4/7/10 + `Player` + HUD 显示全局配置数值）
+- ⚠️ 大世界里树有几千棵：`_process`（长果）和 `_unhandled_input`（采集）
+  **默认都是关的**，只有玩家走近的树才开 —— 改这个组件别把这层优化弄丢了
+- ⚠️ 这两个 `.tscn` 是手写文本：实例的 property override 要写**属性名**
+  （`banana_count = 3`），写错名字值会落到别的属性上
+- 细节见 `components/banana-tree/README.md`
+
 components/ai/dinosaur
 - 恐龙的**独立 AI 模块**：感官 → 黑板 → **行为树决策** → 转向 → 身体
   - `dinosaur_perception.gd` 视听（**视线会被树挡住**，玩家能躲树）
@@ -290,6 +312,7 @@ HUD 和天空共用一个时钟，**永远不会走偏**。主菜单里是另一
 | --- | --- |
 | `components/vegetation/banana_tree/banana_tree.gd` | 编辑器里把果串挂上去，看得到整棵树 |
 | `components/vegetation/banana_bunch/banana_bunch.gd` | 同上 |
+| `components/banana-tree/gatherable_banana_tree.gd` | 同上 —— 改 `banana_count` 能立刻看到挂果位显隐和数量标签 |
 | `components/island/ruined_wall/ruined_wall_run.gd` | 按 `segments` 在编辑器里拼出整段墙 |
 
 **不开的**（运行时才需要，编辑器里本来就不干活）：`ground_scatter.gd` /

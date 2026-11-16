@@ -1,0 +1,78 @@
+[gd_scene format=3 uid="uid://bpcdq3qgqq1cw"]
+
+[ext_resource type="Script" uid="uid://bnbe4lx4kvjt7" path="res://components/banana-tree/gatherable_banana_tree.gd" id="1_tree"]
+[ext_resource type="PackedScene" uid="uid://dmsnaw5wibm7t" path="res://assets/models/banana-tree-tall/low_poly_banana_tree.glb" id="2_model"]
+[ext_resource type="SystemFont" path="res://common/resources/cjk_font.tres" id="3_font"]
+[ext_resource type="PackedScene" uid="uid://cc2x78icisydp" path="res://assets/models/banana/banana.glb" id="4_banana"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_area"]
+radius = 2.8
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_trunk"]
+height = 3.26
+radius = 0.34
+
+[node name="GatherableBananaTree" type="Node3D" unique_id=1178443485]
+script = ExtResource("1_tree")
+banana_count = 10
+
+[node name="Tree" parent="." unique_id=1822603818 instance=ExtResource("2_model")]
+
+[node name="banana_0" parent="." unique_id=758291892 instance=ExtResource("4_banana")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0.166892, 2.25, 0.374819)
+
+[node name="banana_1" parent="." unique_id=1297601247 instance=ExtResource("4_banana")]
+transform = Transform3D(0.587785, 0, 0.809017, 0, 1, 0, -0.809017, 0, 0.587785, 0.344313, 2.25, 0.3344264)
+
+[node name="banana_2" parent="." unique_id=1655574677 instance=ExtResource("4_banana")]
+transform = Transform3D(0.951057, 0, 0.309017, 0, 1, 0, -0.309017, 0, 0.951057, 0.453965, 2.25, 0.166249)
+
+[node name="banana_3" parent="." unique_id=882691758 instance=ExtResource("4_banana")]
+transform = Transform3D(0.951057, 0, -0.309017, 0, 1, 0, 0.309017, 0, 0.951057, 0.453965, 2.25, -0.020303)
+
+[node name="banana_4" parent="." unique_id=1866287872 instance=ExtResource("4_banana")]
+transform = Transform3D(0.587785, 0, -0.809017, 0, 1, 0, 0.809017, 0, 0.587785, 0.344313, 2.25, -0.171226)
+
+[node name="banana_5" parent="." unique_id=911730956 instance=ExtResource("4_banana")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 0.166892, 2.25, -0.228873)
+
+[node name="banana_6" parent="." unique_id=84727084 instance=ExtResource("4_banana")]
+transform = Transform3D(-0.587785, 0, -0.809017, 0, 1, 0, 0.809017, 0, -0.587785, -0.010528, 2.25, -0.171226)
+
+[node name="banana_7" parent="." unique_id=558922287 instance=ExtResource("4_banana")]
+transform = Transform3D(-0.951057, 0, -0.309017, 0, 1, 0, 0.309017, 0, -0.951057, -0.12018, 2.25, -0.020303)
+
+[node name="banana_8" parent="." unique_id=1582430739 instance=ExtResource("4_banana")]
+transform = Transform3D(-0.951057, 0, 0.309017, 0, 1, 0, -0.309017, 0, -0.951057, -0.12018, 2.25, 0.166249)
+
+[node name="banana_9" parent="." unique_id=1651081189 instance=ExtResource("4_banana")]
+transform = Transform3D(-0.587785, 0, 0.809017, 0, 1, 0, -0.809017, 0, -0.587785, -0.010528, 2.25, 0.317172)
+
+[node name="CountLabel" type="Label3D" parent="." unique_id=506056214]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 5.37, 0)
+pixel_size = 0.004
+billboard = 1
+no_depth_test = true
+render_priority = 2
+modulate = Color(1, 0.85, 0.28, 1)
+outline_modulate = Color(0.08, 0.08, 0.08, 0.9)
+text = "香蕉 × 10"
+font = ExtResource("3_font")
+font_size = 64
+outline_size = 24
+
+[node name="InteractArea" type="Area3D" parent="." unique_id=1588561263]
+collision_layer = 0
+collision_mask = 16
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractArea" unique_id=1453816958]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("SphereShape3D_area")
+
+[node name="Trunk" type="StaticBody3D" parent="." unique_id=1279368261]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trunk" unique_id=2082174045]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.63, 0)
+shape = SubResource("CylinderShape3D_trunk")

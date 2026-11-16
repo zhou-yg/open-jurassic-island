@@ -168,6 +168,40 @@ func get_bunch_aabb() -> AABB:
 	return result
 
 
+## 这一把香蕉的**横向半径**：从果轴（局部原点）到最外侧香蕉的距离（米）。
+##
+## 用来把果串贴到树干上 —— 果轴离树干表面 "假茎半径 + 这个半径" 时，
+## 香蕉的内侧刚好贴着树皮，不会插进假茎里。
+##
+## 注意要**递归**收集网格：香蕉是 `banana.glb` 的实例，根节点是 Node3D，
+## 网格在它的子节点上，只看一层会漏掉（只剩果轴的粗细）。
+func get_bunch_radius() -> float:
+	var result: float = 0.0
+	for visual in _collect_mesh_instances(self):
+		var mesh: Mesh = (visual as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		# 换算到这一把香蕉的本地坐标（含容器缩放）
+		var to_bunch: Transform3D = global_transform.affine_inverse() * (visual as Node3D).global_transform
+		for surface in mesh.get_surface_count():
+			var arrays: Array = mesh.surface_get_arrays(surface)
+			var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+			for v in verts:
+				var local: Vector3 = to_bunch * v
+				result = maxf(result, Vector2(local.x, local.z).length())
+	return result
+
+
+## 收集一个节点下所有 MeshInstance3D（含更深层的）。
+func _collect_mesh_instances(node: Node) -> Array:
+	var result: Array = []
+	if node is MeshInstance3D:
+		result.append(node as MeshInstance3D)
+	for child in node.get_children():
+		result.append_array(_collect_mesh_instances(child))
+	return result
+
+
 ## ---------------- 内部实现 ----------------
 
 func _on_param_changed() -> void:

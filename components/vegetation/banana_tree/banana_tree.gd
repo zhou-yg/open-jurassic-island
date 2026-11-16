@@ -110,9 +110,20 @@ const SHORT_TREE_SCENE: PackedScene = preload(
 ## [code]假茎半径 + 果串自身的横向半径[/code]。
 ## 高款的假茎半径约 0.24~0.32 m、一把 7 根香蕉的横向半径约 0.30 m，
 ## 所以取 0.62 m。调小了靠内侧的香蕉会插进假茎（自检脚本 [11] 项会报出来）。
+## [member hug_stalk] 打开时这个参数不用（果串会自动贴住假茎表面）。
 @export_range(0.0, 1.0, 0.01) var bunch_outset: float = 0.62:
 	set(value):
 		bunch_outset = maxf(value, 0.0)
+		_on_param_changed()
+## 果串是否[b]直接贴在假茎表面[/b]。
+##
+## 打开后：每把果串按它所在高度处的假茎半径往外推，
+## 让香蕉的背面刚好贴住树皮 —— **中间不再有果柄**（果柄是用来跨过那段
+## 空隙的，不贴树干就没有它的必要）。
+## 关掉时：果串挂在固定距离（[member bunch_outset]）上，中间由果柄连着。
+@export var hug_stalk: bool = false:
+	set(value):
+		hug_stalk = value
 		_on_param_changed()
 ## 果串的倾斜角（度）：0 = 垂直下垂，正值让果串朝外张开。
 @export_range(0.0, 60.0, 1.0) var bunch_tilt_degrees: float = 0.0:
@@ -160,6 +171,8 @@ var _built_bananas: int = 0
 var _tree_model: Node3D = null
 ## 假茎半径剖面缓存 {y: radius}，随树模型一起重建。
 var _stalk_profile: Dictionary = {}
+## 抑制自动重建的开关（见 [method configure_bunches]）。
+var _suppress_rebuild: bool = false
 
 
 func _ready() -> void:
@@ -174,6 +187,48 @@ func rebuild() -> void:
 	_build_tree()
 	_build_bunches()
 	tree_built.emit(_built_bunches, _built_bananas)
+
+
+## 一次性设置果串参数，并且只重建一次。
+##
+## 逐个改导出参数的话，**每个 setter 都会重建一次**（每次重建都要重新实例化
+## 树模型、重摆果串），改一批参数会白重建好几次。这个方法把它们攒成一次。
+##
+## [param first_ratio] / [param step_ratio] 是"挂点高度"占树总高的比例
+## （0~1），用来把果串钉在假茎上 —— 树的总高含叶冠，假茎只到总高的 60~70%，
+## 按总高挂会挂进叶子里。算比例请用 [method get_stalk_height_range]。
+## [param hug] = true 时果串直接贴在假茎表面（不生成果柄）。
+func configure_bunches(
+	count: int,
+	per_bunch: int,
+	seed: int,
+	first_ratio: float,
+	step_ratio: float,
+	hug: bool = false
+) -> void:
+	_suppress_rebuild = true
+	bunch_count = count
+	bananas_per_bunch = per_bunch
+	random_seed = seed
+	first_bunch_height_ratio = first_ratio
+	bunch_height_step_ratio = step_ratio
+	hug_stalk = hug
+	_suppress_rebuild = false
+	rebuild()
+
+
+## 假茎（树干）的高度范围（模型局部坐标的 y），返回 [code]Vector2(min, max)[/code]。
+##
+## 树的总高 [member tree_height] **包含叶冠**，但果串只能长在假茎上：
+## 高款树的假茎只到 3.26 m（总高 4.77 m），矮款只到 1.69 m（总高 2.66 m）。
+## 想把果串挂在干上，就用这个范围算挂点高度。
+## 读不到假茎（模型没扫到 Stalk 网格）时返回 [code]Vector2.ZERO[/code]。
+func get_stalk_height_range() -> Vector2:
+	if _stalk_profile.is_empty():
+		return Vector2.ZERO
+	var keys := _stalk_profile.keys()
+	keys.sort()
+	return Vector2(float(keys[0]), float(keys[keys.size() - 1]))
 
 
 ## 只清空已生成的果串，保留树模型。
@@ -215,6 +270,8 @@ func set_style(is_tall: bool) -> void:
 ## ---------------- 内部实现 ----------------
 
 func _on_param_changed() -> void:
+	if _suppress_rebuild:
+		return
 	if not is_inside_tree() or not is_node_ready() or not auto_generate:
 		return
 	rebuild()
@@ -324,10 +381,27 @@ func _build_bunches() -> void:
 		container.add_child(instance)
 		# 子节点 _ready 早于父节点，所以这里主动让它按上面的参数生成
 		instance.rebuild()
-		if show_peduncle:
+		if hug_stalk:
+			# 直接贴在假茎表面：按该高度处的假茎半径重新外推，
+			# 让香蕉的背面刚好贴住树皮（中间不要果柄）
+			_hug_bunch_to_stalk(instance, axis, height, outward)
+		elif show_peduncle:
 			_add_peduncle(container, index, height, outward)
 		_built_bunches += 1
 		_built_bananas += instance.get_banana_count()
+
+
+## 把这一把香蕉挪到"直接贴在假茎表面"的位置。
+##
+## 先量出这一把香蕉自己的横向半径（[method BananaBunch.get_bunch_radius]），
+## 再把果轴挪到"该高度处的假茎半径 + 香蕉半径"处 ——
+## 香蕉的内侧刚好贴着树皮，既不插进假茎，中间也没有空隙。
+func _hug_bunch_to_stalk(bunch: BananaBunch, axis: Vector3, height: float, outward: Vector3) -> void:
+	var stalk_radius: float = _stalk_radius_at(height)
+	if stalk_radius <= 0.0:
+		return
+	var radius: float = bunch.get_bunch_radius()
+	bunch.position = axis + Vector3(0.0, height, 0.0) + outward * (stalk_radius + radius)
 
 
 ## 从假茎表面往外伸一小段果柄，把果串和树干连起来。

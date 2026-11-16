@@ -1,0 +1,128 @@
+[gd_scene load_steps=11 format=3]
+
+[ext_resource type="Script" path="res://components/banana-tree/gatherable_banana_tree_test.gd" id="1_test"]
+[ext_resource type="PackedScene" path="res://components/player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" path="res://components/banana-tree/gatherable_banana_tree.tscn" id="3_tree"]
+[ext_resource type="SystemFont" path="res://common/resources/cjk_font.tres" id="4_font"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.19, 0.19, 0.42, 1)
+sky_horizon_color = Color(0.74, 0.74, 0.87, 1)
+ground_bottom_color = Color(0.12, 0.22, 0.38, 1)
+ground_horizon_color = Color(0.74, 0.74, 0.87, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.55
+ambient_light_energy = 0.45
+tonemap_mode = 2
+tonemap_exposure = 1.15
+fog_enabled = true
+fog_light_color = Color(0.72, 0.84, 0.96, 1)
+fog_density = 0.0012
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.27, 0.42, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(60, 1, 60)
+
+[node name="BananaTreeTest" type="Node3D"]
+script = ExtResource("1_test")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_env")
+
+[node name="Sun" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.8253356, -0.44229966, 0.3509874, 0, 0.62161, 0.7833269, -0.5646425, -0.6465076, 0.51303685, 0, 20, 0)
+light_color = Color(1, 0.89, 0.75, 1)
+light_energy = 2.4
+shadow_enabled = true
+directional_shadow_max_distance = 120.0
+
+[node name="Ground" type="StaticBody3D" parent="."]
+collision_layer = 1
+collision_mask = 1
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+material_override = SubResource("StandardMaterial3D_ground")
+mesh = SubResource("BoxMesh_ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="Player" parent="." instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 6)
+
+[node name="Tree_0" parent="." instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+banana_count = 0
+random_seed = 11
+
+[node name="Tree_1" parent="." instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+banana_count = 2
+random_seed = 22
+
+[node name="Tree_2" parent="." instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+banana_count = 4
+random_seed = 33
+
+[node name="Tree_3" parent="." instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+banana_count = 7
+random_seed = 44
+
+[node name="Tree_4" parent="." instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+banana_count = 10
+random_seed = 55
+
+[node name="TestHUD" type="CanvasLayer" parent="."]
+
+[node name="Info" type="Label" parent="TestHUD"]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 900.0
+offset_bottom = 140.0
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+text = "香蕉树采集测试场
+WASD 移动 · 鼠标转视角 · E 采集 · ESC 释放鼠标
+走近一棵树按 E，树顶的数量会变少"
+
+[node name="Stats" type="Label" parent="TestHUD"]
+offset_left = 16.0
+offset_top = 150.0
+offset_right = 900.0
+offset_bottom = 420.0
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+
+[node name="Message" type="Label" parent="TestHUD"]
+offset_left = 16.0
+offset_top = 1280.0
+offset_right = 1200.0
+offset_bottom = 1340.0
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+theme_override_colors/font_color = Color(0.45, 0.28, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
