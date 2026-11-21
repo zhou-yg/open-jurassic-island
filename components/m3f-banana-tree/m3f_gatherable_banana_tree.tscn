@@ -1,0 +1,51 @@
+[gd_scene format=3 uid="uid://bdl3815ocd5jk"]
+
+[ext_resource type="Script" uid="uid://4baipwif24tp" path="res://components/m3f-banana-tree/m3f_gatherable_banana_tree.gd" id="1_script"]
+[ext_resource type="PackedScene" uid="uid://daaug0uwxf5fc" path="res://assets/models/m3f-banana/m3f_banana_tree.glb" id="2_tree"]
+[ext_resource type="PackedScene" uid="uid://ertjt7k1ll3t" path="res://assets/models/m3f-banana/m3f_banana_bunch.glb" id="3_bunch"]
+[ext_resource type="SystemFont" path="res://common/resources/cjk_font.tres" id="4_font"]
+
+[sub_resource type="SphereShape3D" id="SphereShape3D_area"]
+radius = 2.8
+
+[sub_resource type="CylinderShape3D" id="CylinderShape3D_trunk"]
+height = 1.7
+radius = 0.16
+
+[node name="M3FGatherableBananaTree" type="Node3D" unique_id=303507575]
+script = ExtResource("1_script")
+
+[node name="Tree" parent="." unique_id=462269386 instance=ExtResource("2_tree")]
+
+[node name="Bunch" parent="." unique_id=1259428409 instance=ExtResource("3_bunch")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.06, 1.45, 0)
+
+[node name="CountLabel" type="Label3D" parent="." unique_id=916592347]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.4085004, 0)
+visible = false
+pixel_size = 0.004
+billboard = 1
+no_depth_test = true
+render_priority = 2
+modulate = Color(0.72, 0.72, 0.72, 1)
+outline_modulate = Color(0.08, 0.08, 0.08, 0.9)
+text = "香蕉 × 0"
+font = ExtResource("4_font")
+font_size = 64
+outline_size = 24
+
+[node name="InteractArea" type="Area3D" parent="." unique_id=1931414096]
+collision_layer = 0
+collision_mask = 16
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="InteractArea" unique_id=375040978]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.4, 0)
+shape = SubResource("SphereShape3D_area")
+
+[node name="Trunk" type="StaticBody3D" parent="." unique_id=1396280015]
+collision_layer = 2
+collision_mask = 0
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="Trunk" unique_id=1597597369]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.85, 0)
+shape = SubResource("CylinderShape3D_trunk")

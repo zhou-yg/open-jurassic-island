@@ -96,6 +96,33 @@ components/banana-tree
   （`banana_count = 3`），写错名字值会落到别的属性上
 - 细节见 `components/banana-tree/README.md`
 
+components/m3f-banana-tree
+- **新外观的可采集香蕉树**（树 / 果串**分离**的两个模型）：
+  `m3f_gatherable_banana_tree.tscn` —— `Tree` 节点是
+  `assets/models/m3f-banana/m3f_banana_tree.glb`（假茎 + 叶冠 + 根部草被），
+  `Bunch` 节点是 `assets/models/m3f-banana/m3f_banana_bunch.glb`（果柄 + 16 根香蕉）
+- **一根香蕉 = 一个独立网格节点**（`M3FBanana_Fruit_01` … `_16`），
+  脚本只切 `visible`：**少一根 = 少一个节点可见**，不生成、不换贴图
+  - 树顶 `Label3D` 写"香蕉 × N"，采集一次减 1（默认一次采 1 根）
+    —— ⚠️ 这个标签**默认是关的**（`show_count_label = false`），
+    只有测试场才打开；游戏里的树不该顶着"香蕉 × N"的牌子
+  - 果串挂在树体局部坐标 **(0.06, 1.45, 0)**：果柄是一段**弧**
+    （先往外甩再往下垂），根部埋进假茎侧面，果串垂在树干外侧
+- **记账同样在 `res://config/resources.gd`**：`ResourcesConfig.add_collected_bananas(n)`
+  累加全局采集数，并同步到全局资源池（`autoloads/data/resources.gd` 的 "banana"）
+- **目标是**准星射线**定的，不是距离**：从相机沿视线打一条射线
+  （长度 = `interact_radius`，`get_aimed_tree()`），命中哪棵树的碰撞体就是哪棵。
+  站着近没用，得**看着**它；射线只可能命中一棵树，所以一次按键只掉一根。
+  `InteractArea` 只做**粗筛**（把玩家附近的树唤醒去收按键，省大世界的开销）
+- 测试场：`components/m3f-banana-tree/m3f_gatherable_banana_tree_test.tscn`
+  （一排 11 棵树，数量 **0 ~ 10** + `Player` + HUD 显示全局配置数值；
+  `R` 键重置整场；准星指着**还有货**的树时，屏幕下方浮出 **"按 E 采集"** 提示）
+- ⚠️ 这套**没有接进大世界**：是给"换一版香蕉树外观"用的备选组件。
+  真要替换 `banana-tree-tall/short`，得先同步改
+  `components/vegetation/banana_tree/banana_tree.gd` 里写死的 `tree_height`
+- 细节见 `components/m3f-banana-tree/README.md`；
+  **采集逻辑的完整流程**见 `components/m3f-banana-tree/GATHERING.md`（改采集前先看）
+
 components/ai/dinosaur
 - 恐龙的**独立 AI 模块**：感官 → 黑板 → **行为树决策** → 转向 → 身体
   - `dinosaur_perception.gd` 视听（**视线会被树挡住**，玩家能躲树）
@@ -313,6 +340,7 @@ HUD 和天空共用一个时钟，**永远不会走偏**。主菜单里是另一
 | `components/vegetation/banana_tree/banana_tree.gd` | 编辑器里把果串挂上去，看得到整棵树 |
 | `components/vegetation/banana_bunch/banana_bunch.gd` | 同上 |
 | `components/banana-tree/gatherable_banana_tree.gd` | 同上 —— 改 `banana_count` 能立刻看到挂果位显隐和数量标签 |
+| `components/m3f-banana-tree/m3f_gatherable_banana_tree.gd` | 同上 —— 改 `banana_count` 能立刻看到果串里香蕉的显隐和数量标签 |
 | `components/island/ruined_wall/ruined_wall_run.gd` | 按 `segments` 在编辑器里拼出整段墙 |
 
 **不开的**（运行时才需要，编辑器里本来就不干活）：`ground_scatter.gd` /

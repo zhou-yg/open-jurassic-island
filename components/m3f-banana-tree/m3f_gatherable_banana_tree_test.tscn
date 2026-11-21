@@ -1,0 +1,194 @@
+[gd_scene format=3 uid="uid://dfmluhqfaw4kf"]
+
+[ext_resource type="Script" uid="uid://chqlbeycdu5pi" path="res://components/m3f-banana-tree/m3f_gatherable_banana_tree_test.gd" id="1_test"]
+[ext_resource type="PackedScene" uid="uid://c13o0utq48gmg" path="res://components/player/player.tscn" id="2_player"]
+[ext_resource type="PackedScene" uid="uid://bdl3815ocd5jk" path="res://components/m3f-banana-tree/m3f_gatherable_banana_tree.tscn" id="3_tree"]
+[ext_resource type="SystemFont" path="res://common/resources/cjk_font.tres" id="4_font"]
+
+[sub_resource type="ProceduralSkyMaterial" id="ProceduralSkyMaterial_sky"]
+sky_top_color = Color(0.19, 0.19, 0.42, 1)
+sky_horizon_color = Color(0.74, 0.74, 0.87, 1)
+ground_bottom_color = Color(0.12, 0.22, 0.38, 1)
+ground_horizon_color = Color(0.74, 0.74, 0.87, 1)
+
+[sub_resource type="Sky" id="Sky_env"]
+sky_material = SubResource("ProceduralSkyMaterial_sky")
+
+[sub_resource type="Environment" id="Environment_env"]
+background_mode = 2
+sky = SubResource("Sky_env")
+ambient_light_source = 3
+ambient_light_sky_contribution = 0.55
+ambient_light_energy = 0.45
+tonemap_mode = 2
+tonemap_exposure = 1.15
+fog_enabled = true
+fog_light_color = Color(0.72, 0.84, 0.96, 1)
+fog_density = 0.0012
+
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_ground"]
+albedo_color = Color(0.27, 0.42, 0.18, 1)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ground"]
+size = Vector3(60, 1, 60)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ground"]
+size = Vector3(60, 1, 60)
+
+[node name="M3FBananaTreeTest" type="Node3D" unique_id=1116568875]
+script = ExtResource("1_test")
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=187961278]
+environment = SubResource("Environment_env")
+
+[node name="Sun" type="DirectionalLight3D" parent="." unique_id=1786756615]
+transform = Transform3D(0.8253356, -0.44229966, 0.3509874, 0, 0.62161, 0.7833269, -0.5646425, -0.6465076, 0.51303685, 0, 20, 0)
+light_color = Color(1, 0.89, 0.75, 1)
+light_energy = 2.4
+shadow_enabled = true
+directional_shadow_max_distance = 120.0
+
+[node name="Ground" type="StaticBody3D" parent="." unique_id=1366425134]
+
+[node name="Mesh" type="MeshInstance3D" parent="Ground" unique_id=162983196]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.0033433437, -0.4958825, -0.0024170876)
+material_override = SubResource("StandardMaterial3D_ground")
+mesh = SubResource("BoxMesh_ground")
+
+[node name="Collision" type="CollisionShape3D" parent="Ground" unique_id=2062415020]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 0)
+shape = SubResource("BoxShape3D_ground")
+
+[node name="Player" parent="." unique_id=265591854 instance=ExtResource("2_player")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.9, 6)
+
+[node name="Tree_0" parent="." unique_id=981181271 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -20, 0, 0)
+show_count_label = true
+
+[node name="Tree_1" parent="." unique_id=2105554239 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16, 0, 0)
+banana_count = 1
+show_count_label = true
+
+[node name="Tree_2" parent="." unique_id=1248657294 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 0)
+banana_count = 2
+show_count_label = true
+
+[node name="Tree_3" parent="." unique_id=1670882448 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+banana_count = 3
+show_count_label = true
+
+[node name="Tree_4" parent="." unique_id=1388933533 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, 0)
+banana_count = 4
+show_count_label = true
+
+[node name="Tree_5" parent="." unique_id=780663478 instance=ExtResource("3_tree")]
+banana_count = 5
+show_count_label = true
+
+[node name="Tree_6" parent="." unique_id=1088075845 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+banana_count = 6
+show_count_label = true
+
+[node name="Tree_7" parent="." unique_id=171521334 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
+banana_count = 7
+show_count_label = true
+
+[node name="Tree_8" parent="." unique_id=1484577440 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, 0)
+banana_count = 8
+show_count_label = true
+
+[node name="Tree_9" parent="." unique_id=206448531 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16, 0, 0)
+banana_count = 9
+show_count_label = true
+
+[node name="Tree_10" parent="." unique_id=516144916 instance=ExtResource("3_tree")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 0, 0)
+banana_count = 10
+show_count_label = true
+
+[node name="TestHUD" type="CanvasLayer" parent="." unique_id=1577498950]
+
+[node name="Info" type="Label" parent="TestHUD" unique_id=1219763646]
+offset_left = 16.0
+offset_top = 12.0
+offset_right = 900.0
+offset_bottom = 140.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 22
+text = "m3f 香蕉树采集测试场（树 / 果串分离）
+WASD 移动 · 鼠标转视角 · E 采集 · R 重置 · ESC 释放鼠标
+一排 11 棵树，香蕉数量 0 ~ 10；采一根就少一根"
+
+[node name="Stats" type="Label" parent="TestHUD" unique_id=672623904]
+offset_left = 16.0
+offset_top = 150.0
+offset_right = 900.0
+offset_bottom = 480.0
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 20
+
+[node name="Message" type="Label" parent="TestHUD" unique_id=1331365734]
+offset_left = 16.0
+offset_top = 1280.0
+offset_right = 1200.0
+offset_bottom = 1340.0
+theme_override_colors/font_color = Color(0.45, 0.28, 0.85, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 24
+
+[node name="InteractPrompt" type="Label" parent="TestHUD" unique_id=1602754318]
+visible = false
+anchor_left = 0.5
+anchor_top = 0.74
+anchor_right = 0.5
+anchor_bottom = 0.74
+offset_left = -220.0
+offset_top = -46.0
+offset_right = 220.0
+offset_bottom = 6.0
+grow_horizontal = 2
+grow_vertical = 1
+theme_override_colors/font_color = Color(1, 0.92, 0.55, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 8
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 30
+horizontal_alignment = 1
+text = "按 E 采集"
+
+[node name="Crosshair" type="Label" parent="TestHUD" unique_id=1174650233]
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -24.0
+offset_top = -22.0
+offset_right = 24.0
+offset_bottom = 22.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 0.75)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 0.9)
+theme_override_constants/outline_size = 6
+theme_override_fonts/font = ExtResource("4_font")
+theme_override_font_sizes/font_size = 26
+horizontal_alignment = 1
+vertical_alignment = 1
+text = "+"
